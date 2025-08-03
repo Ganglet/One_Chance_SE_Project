@@ -39,6 +39,11 @@ export type drag_drop_items = $Result.DefaultSelection<Prisma.$drag_drop_itemsPa
  */
 export type ordering_items = $Result.DefaultSelection<Prisma.$ordering_itemsPayload>
 /**
+ * Model teams
+ * 
+ */
+export type teams = $Result.DefaultSelection<Prisma.$teamsPayload>
+/**
  * Model participant_history
  * 
  */
@@ -317,6 +322,16 @@ export class PrismaClient<
     * ```
     */
   get ordering_items(): Prisma.ordering_itemsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.teams`: Exposes CRUD operations for the **teams** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Teams
+    * const teams = await prisma.teams.findMany()
+    * ```
+    */
+  get teams(): Prisma.teamsDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.participant_history`: Exposes CRUD operations for the **participant_history** model.
@@ -822,6 +837,7 @@ export namespace Prisma {
     matching_pairs: 'matching_pairs',
     drag_drop_items: 'drag_drop_items',
     ordering_items: 'ordering_items',
+    teams: 'teams',
     participant_history: 'participant_history',
     questions: 'questions',
     quiz_sessions: 'quiz_sessions',
@@ -846,7 +862,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "answers" | "options" | "matching_pairs" | "drag_drop_items" | "ordering_items" | "participant_history" | "questions" | "quiz_sessions" | "quizzes" | "session_participants" | "users"
+      modelProps: "answers" | "options" | "matching_pairs" | "drag_drop_items" | "ordering_items" | "teams" | "participant_history" | "questions" | "quiz_sessions" | "quizzes" | "session_participants" | "users"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1177,6 +1193,72 @@ export namespace Prisma {
           count: {
             args: Prisma.ordering_itemsCountArgs<ExtArgs>
             result: $Utils.Optional<Ordering_itemsCountAggregateOutputType> | number
+          }
+        }
+      }
+      teams: {
+        payload: Prisma.$teamsPayload<ExtArgs>
+        fields: Prisma.teamsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.teamsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.teamsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload>
+          }
+          findFirst: {
+            args: Prisma.teamsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.teamsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload>
+          }
+          findMany: {
+            args: Prisma.teamsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload>[]
+          }
+          create: {
+            args: Prisma.teamsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload>
+          }
+          createMany: {
+            args: Prisma.teamsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.teamsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload>
+          }
+          update: {
+            args: Prisma.teamsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload>
+          }
+          deleteMany: {
+            args: Prisma.teamsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.teamsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.teamsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$teamsPayload>
+          }
+          aggregate: {
+            args: Prisma.TeamsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateTeams>
+          }
+          groupBy: {
+            args: Prisma.teamsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<TeamsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.teamsCountArgs<ExtArgs>
+            result: $Utils.Optional<TeamsCountAggregateOutputType> | number
           }
         }
       }
@@ -1665,6 +1747,7 @@ export namespace Prisma {
     matching_pairs?: matching_pairsOmit
     drag_drop_items?: drag_drop_itemsOmit
     ordering_items?: ordering_itemsOmit
+    teams?: teamsOmit
     participant_history?: participant_historyOmit
     questions?: questionsOmit
     quiz_sessions?: quiz_sessionsOmit
@@ -1866,12 +1949,14 @@ export namespace Prisma {
     participant_history: number
     questions: number
     quiz_sessions: number
+    teams: number
   }
 
   export type QuizzesCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     participant_history?: boolean | QuizzesCountOutputTypeCountParticipant_historyArgs
     questions?: boolean | QuizzesCountOutputTypeCountQuestionsArgs
     quiz_sessions?: boolean | QuizzesCountOutputTypeCountQuiz_sessionsArgs
+    teams?: boolean | QuizzesCountOutputTypeCountTeamsArgs
   }
 
   // Custom InputTypes
@@ -1904,6 +1989,13 @@ export namespace Prisma {
    */
   export type QuizzesCountOutputTypeCountQuiz_sessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: quiz_sessionsWhereInput
+  }
+
+  /**
+   * QuizzesCountOutputType without action
+   */
+  export type QuizzesCountOutputTypeCountTeamsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: teamsWhereInput
   }
 
 
@@ -6894,6 +6986,988 @@ export namespace Prisma {
 
 
   /**
+   * Model teams
+   */
+
+  export type AggregateTeams = {
+    _count: TeamsCountAggregateOutputType | null
+    _avg: TeamsAvgAggregateOutputType | null
+    _sum: TeamsSumAggregateOutputType | null
+    _min: TeamsMinAggregateOutputType | null
+    _max: TeamsMaxAggregateOutputType | null
+  }
+
+  export type TeamsAvgAggregateOutputType = {
+    id: number | null
+    quiz_id: number | null
+    max_members: number | null
+  }
+
+  export type TeamsSumAggregateOutputType = {
+    id: number | null
+    quiz_id: number | null
+    max_members: number | null
+  }
+
+  export type TeamsMinAggregateOutputType = {
+    id: number | null
+    quiz_id: number | null
+    name: string | null
+    color: string | null
+    max_members: number | null
+    created_at: Date | null
+  }
+
+  export type TeamsMaxAggregateOutputType = {
+    id: number | null
+    quiz_id: number | null
+    name: string | null
+    color: string | null
+    max_members: number | null
+    created_at: Date | null
+  }
+
+  export type TeamsCountAggregateOutputType = {
+    id: number
+    quiz_id: number
+    name: number
+    color: number
+    max_members: number
+    created_at: number
+    _all: number
+  }
+
+
+  export type TeamsAvgAggregateInputType = {
+    id?: true
+    quiz_id?: true
+    max_members?: true
+  }
+
+  export type TeamsSumAggregateInputType = {
+    id?: true
+    quiz_id?: true
+    max_members?: true
+  }
+
+  export type TeamsMinAggregateInputType = {
+    id?: true
+    quiz_id?: true
+    name?: true
+    color?: true
+    max_members?: true
+    created_at?: true
+  }
+
+  export type TeamsMaxAggregateInputType = {
+    id?: true
+    quiz_id?: true
+    name?: true
+    color?: true
+    max_members?: true
+    created_at?: true
+  }
+
+  export type TeamsCountAggregateInputType = {
+    id?: true
+    quiz_id?: true
+    name?: true
+    color?: true
+    max_members?: true
+    created_at?: true
+    _all?: true
+  }
+
+  export type TeamsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which teams to aggregate.
+     */
+    where?: teamsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of teams to fetch.
+     */
+    orderBy?: teamsOrderByWithRelationInput | teamsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: teamsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` teams from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` teams.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned teams
+    **/
+    _count?: true | TeamsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: TeamsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: TeamsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: TeamsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: TeamsMaxAggregateInputType
+  }
+
+  export type GetTeamsAggregateType<T extends TeamsAggregateArgs> = {
+        [P in keyof T & keyof AggregateTeams]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateTeams[P]>
+      : GetScalarType<T[P], AggregateTeams[P]>
+  }
+
+
+
+
+  export type teamsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: teamsWhereInput
+    orderBy?: teamsOrderByWithAggregationInput | teamsOrderByWithAggregationInput[]
+    by: TeamsScalarFieldEnum[] | TeamsScalarFieldEnum
+    having?: teamsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: TeamsCountAggregateInputType | true
+    _avg?: TeamsAvgAggregateInputType
+    _sum?: TeamsSumAggregateInputType
+    _min?: TeamsMinAggregateInputType
+    _max?: TeamsMaxAggregateInputType
+  }
+
+  export type TeamsGroupByOutputType = {
+    id: number
+    quiz_id: number
+    name: string
+    color: string
+    max_members: number
+    created_at: Date | null
+    _count: TeamsCountAggregateOutputType | null
+    _avg: TeamsAvgAggregateOutputType | null
+    _sum: TeamsSumAggregateOutputType | null
+    _min: TeamsMinAggregateOutputType | null
+    _max: TeamsMaxAggregateOutputType | null
+  }
+
+  type GetTeamsGroupByPayload<T extends teamsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<TeamsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof TeamsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], TeamsGroupByOutputType[P]>
+            : GetScalarType<T[P], TeamsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type teamsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    quiz_id?: boolean
+    name?: boolean
+    color?: boolean
+    max_members?: boolean
+    created_at?: boolean
+    quizzes?: boolean | quizzesDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["teams"]>
+
+
+
+  export type teamsSelectScalar = {
+    id?: boolean
+    quiz_id?: boolean
+    name?: boolean
+    color?: boolean
+    max_members?: boolean
+    created_at?: boolean
+  }
+
+  export type teamsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "quiz_id" | "name" | "color" | "max_members" | "created_at", ExtArgs["result"]["teams"]>
+  export type teamsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    quizzes?: boolean | quizzesDefaultArgs<ExtArgs>
+  }
+
+  export type $teamsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "teams"
+    objects: {
+      quizzes: Prisma.$quizzesPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      quiz_id: number
+      name: string
+      color: string
+      max_members: number
+      created_at: Date | null
+    }, ExtArgs["result"]["teams"]>
+    composites: {}
+  }
+
+  type teamsGetPayload<S extends boolean | null | undefined | teamsDefaultArgs> = $Result.GetResult<Prisma.$teamsPayload, S>
+
+  type teamsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<teamsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: TeamsCountAggregateInputType | true
+    }
+
+  export interface teamsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['teams'], meta: { name: 'teams' } }
+    /**
+     * Find zero or one Teams that matches the filter.
+     * @param {teamsFindUniqueArgs} args - Arguments to find a Teams
+     * @example
+     * // Get one Teams
+     * const teams = await prisma.teams.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends teamsFindUniqueArgs>(args: SelectSubset<T, teamsFindUniqueArgs<ExtArgs>>): Prisma__teamsClient<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Teams that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {teamsFindUniqueOrThrowArgs} args - Arguments to find a Teams
+     * @example
+     * // Get one Teams
+     * const teams = await prisma.teams.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends teamsFindUniqueOrThrowArgs>(args: SelectSubset<T, teamsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__teamsClient<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Teams that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {teamsFindFirstArgs} args - Arguments to find a Teams
+     * @example
+     * // Get one Teams
+     * const teams = await prisma.teams.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends teamsFindFirstArgs>(args?: SelectSubset<T, teamsFindFirstArgs<ExtArgs>>): Prisma__teamsClient<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Teams that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {teamsFindFirstOrThrowArgs} args - Arguments to find a Teams
+     * @example
+     * // Get one Teams
+     * const teams = await prisma.teams.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends teamsFindFirstOrThrowArgs>(args?: SelectSubset<T, teamsFindFirstOrThrowArgs<ExtArgs>>): Prisma__teamsClient<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Teams that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {teamsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Teams
+     * const teams = await prisma.teams.findMany()
+     * 
+     * // Get first 10 Teams
+     * const teams = await prisma.teams.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const teamsWithIdOnly = await prisma.teams.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends teamsFindManyArgs>(args?: SelectSubset<T, teamsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Teams.
+     * @param {teamsCreateArgs} args - Arguments to create a Teams.
+     * @example
+     * // Create one Teams
+     * const Teams = await prisma.teams.create({
+     *   data: {
+     *     // ... data to create a Teams
+     *   }
+     * })
+     * 
+     */
+    create<T extends teamsCreateArgs>(args: SelectSubset<T, teamsCreateArgs<ExtArgs>>): Prisma__teamsClient<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Teams.
+     * @param {teamsCreateManyArgs} args - Arguments to create many Teams.
+     * @example
+     * // Create many Teams
+     * const teams = await prisma.teams.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends teamsCreateManyArgs>(args?: SelectSubset<T, teamsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Teams.
+     * @param {teamsDeleteArgs} args - Arguments to delete one Teams.
+     * @example
+     * // Delete one Teams
+     * const Teams = await prisma.teams.delete({
+     *   where: {
+     *     // ... filter to delete one Teams
+     *   }
+     * })
+     * 
+     */
+    delete<T extends teamsDeleteArgs>(args: SelectSubset<T, teamsDeleteArgs<ExtArgs>>): Prisma__teamsClient<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Teams.
+     * @param {teamsUpdateArgs} args - Arguments to update one Teams.
+     * @example
+     * // Update one Teams
+     * const teams = await prisma.teams.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends teamsUpdateArgs>(args: SelectSubset<T, teamsUpdateArgs<ExtArgs>>): Prisma__teamsClient<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Teams.
+     * @param {teamsDeleteManyArgs} args - Arguments to filter Teams to delete.
+     * @example
+     * // Delete a few Teams
+     * const { count } = await prisma.teams.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends teamsDeleteManyArgs>(args?: SelectSubset<T, teamsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Teams.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {teamsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Teams
+     * const teams = await prisma.teams.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends teamsUpdateManyArgs>(args: SelectSubset<T, teamsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Teams.
+     * @param {teamsUpsertArgs} args - Arguments to update or create a Teams.
+     * @example
+     * // Update or create a Teams
+     * const teams = await prisma.teams.upsert({
+     *   create: {
+     *     // ... data to create a Teams
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Teams we want to update
+     *   }
+     * })
+     */
+    upsert<T extends teamsUpsertArgs>(args: SelectSubset<T, teamsUpsertArgs<ExtArgs>>): Prisma__teamsClient<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Teams.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {teamsCountArgs} args - Arguments to filter Teams to count.
+     * @example
+     * // Count the number of Teams
+     * const count = await prisma.teams.count({
+     *   where: {
+     *     // ... the filter for the Teams we want to count
+     *   }
+     * })
+    **/
+    count<T extends teamsCountArgs>(
+      args?: Subset<T, teamsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], TeamsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Teams.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {TeamsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends TeamsAggregateArgs>(args: Subset<T, TeamsAggregateArgs>): Prisma.PrismaPromise<GetTeamsAggregateType<T>>
+
+    /**
+     * Group by Teams.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {teamsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends teamsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: teamsGroupByArgs['orderBy'] }
+        : { orderBy?: teamsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, teamsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTeamsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the teams model
+   */
+  readonly fields: teamsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for teams.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__teamsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    quizzes<T extends quizzesDefaultArgs<ExtArgs> = {}>(args?: Subset<T, quizzesDefaultArgs<ExtArgs>>): Prisma__quizzesClient<$Result.GetResult<Prisma.$quizzesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the teams model
+   */
+  interface teamsFieldRefs {
+    readonly id: FieldRef<"teams", 'Int'>
+    readonly quiz_id: FieldRef<"teams", 'Int'>
+    readonly name: FieldRef<"teams", 'String'>
+    readonly color: FieldRef<"teams", 'String'>
+    readonly max_members: FieldRef<"teams", 'Int'>
+    readonly created_at: FieldRef<"teams", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * teams findUnique
+   */
+  export type teamsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * Filter, which teams to fetch.
+     */
+    where: teamsWhereUniqueInput
+  }
+
+  /**
+   * teams findUniqueOrThrow
+   */
+  export type teamsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * Filter, which teams to fetch.
+     */
+    where: teamsWhereUniqueInput
+  }
+
+  /**
+   * teams findFirst
+   */
+  export type teamsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * Filter, which teams to fetch.
+     */
+    where?: teamsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of teams to fetch.
+     */
+    orderBy?: teamsOrderByWithRelationInput | teamsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for teams.
+     */
+    cursor?: teamsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` teams from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` teams.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of teams.
+     */
+    distinct?: TeamsScalarFieldEnum | TeamsScalarFieldEnum[]
+  }
+
+  /**
+   * teams findFirstOrThrow
+   */
+  export type teamsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * Filter, which teams to fetch.
+     */
+    where?: teamsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of teams to fetch.
+     */
+    orderBy?: teamsOrderByWithRelationInput | teamsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for teams.
+     */
+    cursor?: teamsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` teams from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` teams.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of teams.
+     */
+    distinct?: TeamsScalarFieldEnum | TeamsScalarFieldEnum[]
+  }
+
+  /**
+   * teams findMany
+   */
+  export type teamsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * Filter, which teams to fetch.
+     */
+    where?: teamsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of teams to fetch.
+     */
+    orderBy?: teamsOrderByWithRelationInput | teamsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing teams.
+     */
+    cursor?: teamsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` teams from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` teams.
+     */
+    skip?: number
+    distinct?: TeamsScalarFieldEnum | TeamsScalarFieldEnum[]
+  }
+
+  /**
+   * teams create
+   */
+  export type teamsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a teams.
+     */
+    data: XOR<teamsCreateInput, teamsUncheckedCreateInput>
+  }
+
+  /**
+   * teams createMany
+   */
+  export type teamsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many teams.
+     */
+    data: teamsCreateManyInput | teamsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * teams update
+   */
+  export type teamsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a teams.
+     */
+    data: XOR<teamsUpdateInput, teamsUncheckedUpdateInput>
+    /**
+     * Choose, which teams to update.
+     */
+    where: teamsWhereUniqueInput
+  }
+
+  /**
+   * teams updateMany
+   */
+  export type teamsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update teams.
+     */
+    data: XOR<teamsUpdateManyMutationInput, teamsUncheckedUpdateManyInput>
+    /**
+     * Filter which teams to update
+     */
+    where?: teamsWhereInput
+    /**
+     * Limit how many teams to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * teams upsert
+   */
+  export type teamsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the teams to update in case it exists.
+     */
+    where: teamsWhereUniqueInput
+    /**
+     * In case the teams found by the `where` argument doesn't exist, create a new teams with this data.
+     */
+    create: XOR<teamsCreateInput, teamsUncheckedCreateInput>
+    /**
+     * In case the teams was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<teamsUpdateInput, teamsUncheckedUpdateInput>
+  }
+
+  /**
+   * teams delete
+   */
+  export type teamsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    /**
+     * Filter which teams to delete.
+     */
+    where: teamsWhereUniqueInput
+  }
+
+  /**
+   * teams deleteMany
+   */
+  export type teamsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which teams to delete
+     */
+    where?: teamsWhereInput
+    /**
+     * Limit how many teams to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * teams without action
+   */
+  export type teamsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model participant_history
    */
 
@@ -10360,6 +11434,7 @@ export namespace Prisma {
     participant_history?: boolean | quizzes$participant_historyArgs<ExtArgs>
     questions?: boolean | quizzes$questionsArgs<ExtArgs>
     quiz_sessions?: boolean | quizzes$quiz_sessionsArgs<ExtArgs>
+    teams?: boolean | quizzes$teamsArgs<ExtArgs>
     users?: boolean | usersDefaultArgs<ExtArgs>
     _count?: boolean | QuizzesCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["quizzes"]>
@@ -10382,6 +11457,7 @@ export namespace Prisma {
     participant_history?: boolean | quizzes$participant_historyArgs<ExtArgs>
     questions?: boolean | quizzes$questionsArgs<ExtArgs>
     quiz_sessions?: boolean | quizzes$quiz_sessionsArgs<ExtArgs>
+    teams?: boolean | quizzes$teamsArgs<ExtArgs>
     users?: boolean | usersDefaultArgs<ExtArgs>
     _count?: boolean | QuizzesCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -10392,6 +11468,7 @@ export namespace Prisma {
       participant_history: Prisma.$participant_historyPayload<ExtArgs>[]
       questions: Prisma.$questionsPayload<ExtArgs>[]
       quiz_sessions: Prisma.$quiz_sessionsPayload<ExtArgs>[]
+      teams: Prisma.$teamsPayload<ExtArgs>[]
       users: Prisma.$usersPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -10746,6 +11823,7 @@ export namespace Prisma {
     participant_history<T extends quizzes$participant_historyArgs<ExtArgs> = {}>(args?: Subset<T, quizzes$participant_historyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$participant_historyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     questions<T extends quizzes$questionsArgs<ExtArgs> = {}>(args?: Subset<T, quizzes$questionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$questionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     quiz_sessions<T extends quizzes$quiz_sessionsArgs<ExtArgs> = {}>(args?: Subset<T, quizzes$quiz_sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$quiz_sessionsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    teams<T extends quizzes$teamsArgs<ExtArgs> = {}>(args?: Subset<T, quizzes$teamsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$teamsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     users<T extends usersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, usersDefaultArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -11199,6 +12277,30 @@ export namespace Prisma {
   }
 
   /**
+   * quizzes.teams
+   */
+  export type quizzes$teamsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the teams
+     */
+    select?: teamsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the teams
+     */
+    omit?: teamsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: teamsInclude<ExtArgs> | null
+    where?: teamsWhereInput
+    orderBy?: teamsOrderByWithRelationInput | teamsOrderByWithRelationInput[]
+    cursor?: teamsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: TeamsScalarFieldEnum | TeamsScalarFieldEnum[]
+  }
+
+  /**
    * quizzes without action
    */
   export type quizzesDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -11252,6 +12354,7 @@ export namespace Prisma {
     session_id: number | null
     user_id: number | null
     join_code: string | null
+    team: string | null
     score: number | null
     streak: number | null
     accuracy: number | null
@@ -11263,6 +12366,7 @@ export namespace Prisma {
     session_id: number | null
     user_id: number | null
     join_code: string | null
+    team: string | null
     score: number | null
     streak: number | null
     accuracy: number | null
@@ -11274,6 +12378,7 @@ export namespace Prisma {
     session_id: number
     user_id: number
     join_code: number
+    team: number
     score: number
     streak: number
     accuracy: number
@@ -11305,6 +12410,7 @@ export namespace Prisma {
     session_id?: true
     user_id?: true
     join_code?: true
+    team?: true
     score?: true
     streak?: true
     accuracy?: true
@@ -11316,6 +12422,7 @@ export namespace Prisma {
     session_id?: true
     user_id?: true
     join_code?: true
+    team?: true
     score?: true
     streak?: true
     accuracy?: true
@@ -11327,6 +12434,7 @@ export namespace Prisma {
     session_id?: true
     user_id?: true
     join_code?: true
+    team?: true
     score?: true
     streak?: true
     accuracy?: true
@@ -11425,6 +12533,7 @@ export namespace Prisma {
     session_id: number
     user_id: number
     join_code: string | null
+    team: string | null
     score: number | null
     streak: number | null
     accuracy: number | null
@@ -11455,6 +12564,7 @@ export namespace Prisma {
     session_id?: boolean
     user_id?: boolean
     join_code?: boolean
+    team?: boolean
     score?: boolean
     streak?: boolean
     accuracy?: boolean
@@ -11472,13 +12582,14 @@ export namespace Prisma {
     session_id?: boolean
     user_id?: boolean
     join_code?: boolean
+    team?: boolean
     score?: boolean
     streak?: boolean
     accuracy?: boolean
     joined_at?: boolean
   }
 
-  export type session_participantsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "session_id" | "user_id" | "join_code" | "score" | "streak" | "accuracy" | "joined_at", ExtArgs["result"]["session_participants"]>
+  export type session_participantsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "session_id" | "user_id" | "join_code" | "team" | "score" | "streak" | "accuracy" | "joined_at", ExtArgs["result"]["session_participants"]>
   export type session_participantsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     answers?: boolean | session_participants$answersArgs<ExtArgs>
     quiz_sessions?: boolean | quiz_sessionsDefaultArgs<ExtArgs>
@@ -11498,6 +12609,7 @@ export namespace Prisma {
       session_id: number
       user_id: number
       join_code: string | null
+      team: string | null
       score: number | null
       streak: number | null
       accuracy: number | null
@@ -11878,6 +12990,7 @@ export namespace Prisma {
     readonly session_id: FieldRef<"session_participants", 'Int'>
     readonly user_id: FieldRef<"session_participants", 'Int'>
     readonly join_code: FieldRef<"session_participants", 'String'>
+    readonly team: FieldRef<"session_participants", 'String'>
     readonly score: FieldRef<"session_participants", 'Int'>
     readonly streak: FieldRef<"session_participants", 'Int'>
     readonly accuracy: FieldRef<"session_participants", 'Float'>
@@ -13422,6 +14535,18 @@ export namespace Prisma {
   export type Ordering_itemsScalarFieldEnum = (typeof Ordering_itemsScalarFieldEnum)[keyof typeof Ordering_itemsScalarFieldEnum]
 
 
+  export const TeamsScalarFieldEnum: {
+    id: 'id',
+    quiz_id: 'quiz_id',
+    name: 'name',
+    color: 'color',
+    max_members: 'max_members',
+    created_at: 'created_at'
+  };
+
+  export type TeamsScalarFieldEnum = (typeof TeamsScalarFieldEnum)[keyof typeof TeamsScalarFieldEnum]
+
+
   export const Participant_historyScalarFieldEnum: {
     id: 'id',
     user_id: 'user_id',
@@ -13485,6 +14610,7 @@ export namespace Prisma {
     session_id: 'session_id',
     user_id: 'user_id',
     join_code: 'join_code',
+    team: 'team',
     score: 'score',
     streak: 'streak',
     accuracy: 'accuracy',
@@ -13559,6 +14685,14 @@ export namespace Prisma {
   export type ordering_itemsOrderByRelevanceFieldEnum = (typeof ordering_itemsOrderByRelevanceFieldEnum)[keyof typeof ordering_itemsOrderByRelevanceFieldEnum]
 
 
+  export const teamsOrderByRelevanceFieldEnum: {
+    name: 'name',
+    color: 'color'
+  };
+
+  export type teamsOrderByRelevanceFieldEnum = (typeof teamsOrderByRelevanceFieldEnum)[keyof typeof teamsOrderByRelevanceFieldEnum]
+
+
   export const questionsOrderByRelevanceFieldEnum: {
     question: 'question',
     correct_answer: 'correct_answer',
@@ -13585,7 +14719,8 @@ export namespace Prisma {
 
 
   export const session_participantsOrderByRelevanceFieldEnum: {
-    join_code: 'join_code'
+    join_code: 'join_code',
+    team: 'team'
   };
 
   export type session_participantsOrderByRelevanceFieldEnum = (typeof session_participantsOrderByRelevanceFieldEnum)[keyof typeof session_participantsOrderByRelevanceFieldEnum]
@@ -13981,6 +15116,69 @@ export namespace Prisma {
     correct_order?: IntWithAggregatesFilter<"ordering_items"> | number
   }
 
+  export type teamsWhereInput = {
+    AND?: teamsWhereInput | teamsWhereInput[]
+    OR?: teamsWhereInput[]
+    NOT?: teamsWhereInput | teamsWhereInput[]
+    id?: IntFilter<"teams"> | number
+    quiz_id?: IntFilter<"teams"> | number
+    name?: StringFilter<"teams"> | string
+    color?: StringFilter<"teams"> | string
+    max_members?: IntFilter<"teams"> | number
+    created_at?: DateTimeNullableFilter<"teams"> | Date | string | null
+    quizzes?: XOR<QuizzesScalarRelationFilter, quizzesWhereInput>
+  }
+
+  export type teamsOrderByWithRelationInput = {
+    id?: SortOrder
+    quiz_id?: SortOrder
+    name?: SortOrder
+    color?: SortOrder
+    max_members?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    quizzes?: quizzesOrderByWithRelationInput
+    _relevance?: teamsOrderByRelevanceInput
+  }
+
+  export type teamsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: teamsWhereInput | teamsWhereInput[]
+    OR?: teamsWhereInput[]
+    NOT?: teamsWhereInput | teamsWhereInput[]
+    quiz_id?: IntFilter<"teams"> | number
+    name?: StringFilter<"teams"> | string
+    color?: StringFilter<"teams"> | string
+    max_members?: IntFilter<"teams"> | number
+    created_at?: DateTimeNullableFilter<"teams"> | Date | string | null
+    quizzes?: XOR<QuizzesScalarRelationFilter, quizzesWhereInput>
+  }, "id">
+
+  export type teamsOrderByWithAggregationInput = {
+    id?: SortOrder
+    quiz_id?: SortOrder
+    name?: SortOrder
+    color?: SortOrder
+    max_members?: SortOrder
+    created_at?: SortOrderInput | SortOrder
+    _count?: teamsCountOrderByAggregateInput
+    _avg?: teamsAvgOrderByAggregateInput
+    _max?: teamsMaxOrderByAggregateInput
+    _min?: teamsMinOrderByAggregateInput
+    _sum?: teamsSumOrderByAggregateInput
+  }
+
+  export type teamsScalarWhereWithAggregatesInput = {
+    AND?: teamsScalarWhereWithAggregatesInput | teamsScalarWhereWithAggregatesInput[]
+    OR?: teamsScalarWhereWithAggregatesInput[]
+    NOT?: teamsScalarWhereWithAggregatesInput | teamsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"teams"> | number
+    quiz_id?: IntWithAggregatesFilter<"teams"> | number
+    name?: StringWithAggregatesFilter<"teams"> | string
+    color?: StringWithAggregatesFilter<"teams"> | string
+    max_members?: IntWithAggregatesFilter<"teams"> | number
+    created_at?: DateTimeNullableWithAggregatesFilter<"teams"> | Date | string | null
+  }
+
   export type participant_historyWhereInput = {
     AND?: participant_historyWhereInput | participant_historyWhereInput[]
     OR?: participant_historyWhereInput[]
@@ -14248,6 +15446,7 @@ export namespace Prisma {
     participant_history?: Participant_historyListRelationFilter
     questions?: QuestionsListRelationFilter
     quiz_sessions?: Quiz_sessionsListRelationFilter
+    teams?: TeamsListRelationFilter
     users?: XOR<UsersScalarRelationFilter, usersWhereInput>
   }
 
@@ -14263,6 +15462,7 @@ export namespace Prisma {
     participant_history?: participant_historyOrderByRelationAggregateInput
     questions?: questionsOrderByRelationAggregateInput
     quiz_sessions?: quiz_sessionsOrderByRelationAggregateInput
+    teams?: teamsOrderByRelationAggregateInput
     users?: usersOrderByWithRelationInput
     _relevance?: quizzesOrderByRelevanceInput
   }
@@ -14282,6 +15482,7 @@ export namespace Prisma {
     participant_history?: Participant_historyListRelationFilter
     questions?: QuestionsListRelationFilter
     quiz_sessions?: Quiz_sessionsListRelationFilter
+    teams?: TeamsListRelationFilter
     users?: XOR<UsersScalarRelationFilter, usersWhereInput>
   }, "id">
 
@@ -14323,6 +15524,7 @@ export namespace Prisma {
     session_id?: IntFilter<"session_participants"> | number
     user_id?: IntFilter<"session_participants"> | number
     join_code?: StringNullableFilter<"session_participants"> | string | null
+    team?: StringNullableFilter<"session_participants"> | string | null
     score?: IntNullableFilter<"session_participants"> | number | null
     streak?: IntNullableFilter<"session_participants"> | number | null
     accuracy?: FloatNullableFilter<"session_participants"> | number | null
@@ -14337,6 +15539,7 @@ export namespace Prisma {
     session_id?: SortOrder
     user_id?: SortOrder
     join_code?: SortOrderInput | SortOrder
+    team?: SortOrderInput | SortOrder
     score?: SortOrderInput | SortOrder
     streak?: SortOrderInput | SortOrder
     accuracy?: SortOrderInput | SortOrder
@@ -14355,6 +15558,7 @@ export namespace Prisma {
     session_id?: IntFilter<"session_participants"> | number
     user_id?: IntFilter<"session_participants"> | number
     join_code?: StringNullableFilter<"session_participants"> | string | null
+    team?: StringNullableFilter<"session_participants"> | string | null
     score?: IntNullableFilter<"session_participants"> | number | null
     streak?: IntNullableFilter<"session_participants"> | number | null
     accuracy?: FloatNullableFilter<"session_participants"> | number | null
@@ -14369,6 +15573,7 @@ export namespace Prisma {
     session_id?: SortOrder
     user_id?: SortOrder
     join_code?: SortOrderInput | SortOrder
+    team?: SortOrderInput | SortOrder
     score?: SortOrderInput | SortOrder
     streak?: SortOrderInput | SortOrder
     accuracy?: SortOrderInput | SortOrder
@@ -14388,6 +15593,7 @@ export namespace Prisma {
     session_id?: IntWithAggregatesFilter<"session_participants"> | number
     user_id?: IntWithAggregatesFilter<"session_participants"> | number
     join_code?: StringNullableWithAggregatesFilter<"session_participants"> | string | null
+    team?: StringNullableWithAggregatesFilter<"session_participants"> | string | null
     score?: IntNullableWithAggregatesFilter<"session_participants"> | number | null
     streak?: IntNullableWithAggregatesFilter<"session_participants"> | number | null
     accuracy?: FloatNullableWithAggregatesFilter<"session_participants"> | number | null
@@ -14739,6 +15945,65 @@ export namespace Prisma {
     correct_order?: IntFieldUpdateOperationsInput | number
   }
 
+  export type teamsCreateInput = {
+    name: string
+    color: string
+    max_members?: number
+    created_at?: Date | string | null
+    quizzes: quizzesCreateNestedOneWithoutTeamsInput
+  }
+
+  export type teamsUncheckedCreateInput = {
+    id?: number
+    quiz_id: number
+    name: string
+    color: string
+    max_members?: number
+    created_at?: Date | string | null
+  }
+
+  export type teamsUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    max_members?: IntFieldUpdateOperationsInput | number
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quizzes?: quizzesUpdateOneRequiredWithoutTeamsNestedInput
+  }
+
+  export type teamsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    quiz_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    max_members?: IntFieldUpdateOperationsInput | number
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type teamsCreateManyInput = {
+    id?: number
+    quiz_id: number
+    name: string
+    color: string
+    max_members?: number
+    created_at?: Date | string | null
+  }
+
+  export type teamsUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    max_members?: IntFieldUpdateOperationsInput | number
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type teamsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    quiz_id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    max_members?: IntFieldUpdateOperationsInput | number
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type participant_historyCreateInput = {
     total_sessions?: number | null
     total_score?: number | null
@@ -15004,6 +16269,7 @@ export namespace Prisma {
     participant_history?: participant_historyCreateNestedManyWithoutQuizzesInput
     questions?: questionsCreateNestedManyWithoutQuizzesInput
     quiz_sessions?: quiz_sessionsCreateNestedManyWithoutQuizzesInput
+    teams?: teamsCreateNestedManyWithoutQuizzesInput
     users: usersCreateNestedOneWithoutQuizzesInput
   }
 
@@ -15019,6 +16285,7 @@ export namespace Prisma {
     participant_history?: participant_historyUncheckedCreateNestedManyWithoutQuizzesInput
     questions?: questionsUncheckedCreateNestedManyWithoutQuizzesInput
     quiz_sessions?: quiz_sessionsUncheckedCreateNestedManyWithoutQuizzesInput
+    teams?: teamsUncheckedCreateNestedManyWithoutQuizzesInput
   }
 
   export type quizzesUpdateInput = {
@@ -15031,6 +16298,7 @@ export namespace Prisma {
     participant_history?: participant_historyUpdateManyWithoutQuizzesNestedInput
     questions?: questionsUpdateManyWithoutQuizzesNestedInput
     quiz_sessions?: quiz_sessionsUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUpdateManyWithoutQuizzesNestedInput
     users?: usersUpdateOneRequiredWithoutQuizzesNestedInput
   }
 
@@ -15046,6 +16314,7 @@ export namespace Prisma {
     participant_history?: participant_historyUncheckedUpdateManyWithoutQuizzesNestedInput
     questions?: questionsUncheckedUpdateManyWithoutQuizzesNestedInput
     quiz_sessions?: quiz_sessionsUncheckedUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUncheckedUpdateManyWithoutQuizzesNestedInput
   }
 
   export type quizzesCreateManyInput = {
@@ -15081,6 +16350,7 @@ export namespace Prisma {
 
   export type session_participantsCreateInput = {
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -15095,6 +16365,7 @@ export namespace Prisma {
     session_id: number
     user_id: number
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -15104,6 +16375,7 @@ export namespace Prisma {
 
   export type session_participantsUpdateInput = {
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -15118,6 +16390,7 @@ export namespace Prisma {
     session_id?: IntFieldUpdateOperationsInput | number
     user_id?: IntFieldUpdateOperationsInput | number
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -15130,6 +16403,7 @@ export namespace Prisma {
     session_id: number
     user_id: number
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -15138,6 +16412,7 @@ export namespace Prisma {
 
   export type session_participantsUpdateManyMutationInput = {
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -15149,6 +16424,7 @@ export namespace Prisma {
     session_id?: IntFieldUpdateOperationsInput | number
     user_id?: IntFieldUpdateOperationsInput | number
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -15626,14 +16902,59 @@ export namespace Prisma {
     correct_order?: SortOrder
   }
 
-  export type UsersScalarRelationFilter = {
-    is?: usersWhereInput
-    isNot?: usersWhereInput
-  }
-
   export type QuizzesScalarRelationFilter = {
     is?: quizzesWhereInput
     isNot?: quizzesWhereInput
+  }
+
+  export type teamsOrderByRelevanceInput = {
+    fields: teamsOrderByRelevanceFieldEnum | teamsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type teamsCountOrderByAggregateInput = {
+    id?: SortOrder
+    quiz_id?: SortOrder
+    name?: SortOrder
+    color?: SortOrder
+    max_members?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type teamsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    quiz_id?: SortOrder
+    max_members?: SortOrder
+  }
+
+  export type teamsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    quiz_id?: SortOrder
+    name?: SortOrder
+    color?: SortOrder
+    max_members?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type teamsMinOrderByAggregateInput = {
+    id?: SortOrder
+    quiz_id?: SortOrder
+    name?: SortOrder
+    color?: SortOrder
+    max_members?: SortOrder
+    created_at?: SortOrder
+  }
+
+  export type teamsSumOrderByAggregateInput = {
+    id?: SortOrder
+    quiz_id?: SortOrder
+    max_members?: SortOrder
+  }
+
+  export type UsersScalarRelationFilter = {
+    is?: usersWhereInput
+    isNot?: usersWhereInput
   }
 
   export type participant_historyCountOrderByAggregateInput = {
@@ -15937,6 +17258,12 @@ export namespace Prisma {
     none?: quiz_sessionsWhereInput
   }
 
+  export type TeamsListRelationFilter = {
+    every?: teamsWhereInput
+    some?: teamsWhereInput
+    none?: teamsWhereInput
+  }
+
   export type participant_historyOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -15946,6 +17273,10 @@ export namespace Prisma {
   }
 
   export type quiz_sessionsOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type teamsOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -16035,6 +17366,7 @@ export namespace Prisma {
     session_id?: SortOrder
     user_id?: SortOrder
     join_code?: SortOrder
+    team?: SortOrder
     score?: SortOrder
     streak?: SortOrder
     accuracy?: SortOrder
@@ -16055,6 +17387,7 @@ export namespace Prisma {
     session_id?: SortOrder
     user_id?: SortOrder
     join_code?: SortOrder
+    team?: SortOrder
     score?: SortOrder
     streak?: SortOrder
     accuracy?: SortOrder
@@ -16066,6 +17399,7 @@ export namespace Prisma {
     session_id?: SortOrder
     user_id?: SortOrder
     join_code?: SortOrder
+    team?: SortOrder
     score?: SortOrder
     streak?: SortOrder
     accuracy?: SortOrder
@@ -16279,6 +17613,20 @@ export namespace Prisma {
     upsert?: questionsUpsertWithoutOrdering_itemsInput
     connect?: questionsWhereUniqueInput
     update?: XOR<XOR<questionsUpdateToOneWithWhereWithoutOrdering_itemsInput, questionsUpdateWithoutOrdering_itemsInput>, questionsUncheckedUpdateWithoutOrdering_itemsInput>
+  }
+
+  export type quizzesCreateNestedOneWithoutTeamsInput = {
+    create?: XOR<quizzesCreateWithoutTeamsInput, quizzesUncheckedCreateWithoutTeamsInput>
+    connectOrCreate?: quizzesCreateOrConnectWithoutTeamsInput
+    connect?: quizzesWhereUniqueInput
+  }
+
+  export type quizzesUpdateOneRequiredWithoutTeamsNestedInput = {
+    create?: XOR<quizzesCreateWithoutTeamsInput, quizzesUncheckedCreateWithoutTeamsInput>
+    connectOrCreate?: quizzesCreateOrConnectWithoutTeamsInput
+    upsert?: quizzesUpsertWithoutTeamsInput
+    connect?: quizzesWhereUniqueInput
+    update?: XOR<XOR<quizzesUpdateToOneWithWhereWithoutTeamsInput, quizzesUpdateWithoutTeamsInput>, quizzesUncheckedUpdateWithoutTeamsInput>
   }
 
   export type usersCreateNestedOneWithoutParticipant_historyInput = {
@@ -16636,6 +17984,13 @@ export namespace Prisma {
     connect?: quiz_sessionsWhereUniqueInput | quiz_sessionsWhereUniqueInput[]
   }
 
+  export type teamsCreateNestedManyWithoutQuizzesInput = {
+    create?: XOR<teamsCreateWithoutQuizzesInput, teamsUncheckedCreateWithoutQuizzesInput> | teamsCreateWithoutQuizzesInput[] | teamsUncheckedCreateWithoutQuizzesInput[]
+    connectOrCreate?: teamsCreateOrConnectWithoutQuizzesInput | teamsCreateOrConnectWithoutQuizzesInput[]
+    createMany?: teamsCreateManyQuizzesInputEnvelope
+    connect?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+  }
+
   export type usersCreateNestedOneWithoutQuizzesInput = {
     create?: XOR<usersCreateWithoutQuizzesInput, usersUncheckedCreateWithoutQuizzesInput>
     connectOrCreate?: usersCreateOrConnectWithoutQuizzesInput
@@ -16661,6 +18016,13 @@ export namespace Prisma {
     connectOrCreate?: quiz_sessionsCreateOrConnectWithoutQuizzesInput | quiz_sessionsCreateOrConnectWithoutQuizzesInput[]
     createMany?: quiz_sessionsCreateManyQuizzesInputEnvelope
     connect?: quiz_sessionsWhereUniqueInput | quiz_sessionsWhereUniqueInput[]
+  }
+
+  export type teamsUncheckedCreateNestedManyWithoutQuizzesInput = {
+    create?: XOR<teamsCreateWithoutQuizzesInput, teamsUncheckedCreateWithoutQuizzesInput> | teamsCreateWithoutQuizzesInput[] | teamsUncheckedCreateWithoutQuizzesInput[]
+    connectOrCreate?: teamsCreateOrConnectWithoutQuizzesInput | teamsCreateOrConnectWithoutQuizzesInput[]
+    createMany?: teamsCreateManyQuizzesInputEnvelope
+    connect?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
   }
 
   export type NullableEnumquizzes_statusFieldUpdateOperationsInput = {
@@ -16707,6 +18069,20 @@ export namespace Prisma {
     update?: quiz_sessionsUpdateWithWhereUniqueWithoutQuizzesInput | quiz_sessionsUpdateWithWhereUniqueWithoutQuizzesInput[]
     updateMany?: quiz_sessionsUpdateManyWithWhereWithoutQuizzesInput | quiz_sessionsUpdateManyWithWhereWithoutQuizzesInput[]
     deleteMany?: quiz_sessionsScalarWhereInput | quiz_sessionsScalarWhereInput[]
+  }
+
+  export type teamsUpdateManyWithoutQuizzesNestedInput = {
+    create?: XOR<teamsCreateWithoutQuizzesInput, teamsUncheckedCreateWithoutQuizzesInput> | teamsCreateWithoutQuizzesInput[] | teamsUncheckedCreateWithoutQuizzesInput[]
+    connectOrCreate?: teamsCreateOrConnectWithoutQuizzesInput | teamsCreateOrConnectWithoutQuizzesInput[]
+    upsert?: teamsUpsertWithWhereUniqueWithoutQuizzesInput | teamsUpsertWithWhereUniqueWithoutQuizzesInput[]
+    createMany?: teamsCreateManyQuizzesInputEnvelope
+    set?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+    disconnect?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+    delete?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+    connect?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+    update?: teamsUpdateWithWhereUniqueWithoutQuizzesInput | teamsUpdateWithWhereUniqueWithoutQuizzesInput[]
+    updateMany?: teamsUpdateManyWithWhereWithoutQuizzesInput | teamsUpdateManyWithWhereWithoutQuizzesInput[]
+    deleteMany?: teamsScalarWhereInput | teamsScalarWhereInput[]
   }
 
   export type usersUpdateOneRequiredWithoutQuizzesNestedInput = {
@@ -16757,6 +18133,20 @@ export namespace Prisma {
     update?: quiz_sessionsUpdateWithWhereUniqueWithoutQuizzesInput | quiz_sessionsUpdateWithWhereUniqueWithoutQuizzesInput[]
     updateMany?: quiz_sessionsUpdateManyWithWhereWithoutQuizzesInput | quiz_sessionsUpdateManyWithWhereWithoutQuizzesInput[]
     deleteMany?: quiz_sessionsScalarWhereInput | quiz_sessionsScalarWhereInput[]
+  }
+
+  export type teamsUncheckedUpdateManyWithoutQuizzesNestedInput = {
+    create?: XOR<teamsCreateWithoutQuizzesInput, teamsUncheckedCreateWithoutQuizzesInput> | teamsCreateWithoutQuizzesInput[] | teamsUncheckedCreateWithoutQuizzesInput[]
+    connectOrCreate?: teamsCreateOrConnectWithoutQuizzesInput | teamsCreateOrConnectWithoutQuizzesInput[]
+    upsert?: teamsUpsertWithWhereUniqueWithoutQuizzesInput | teamsUpsertWithWhereUniqueWithoutQuizzesInput[]
+    createMany?: teamsCreateManyQuizzesInputEnvelope
+    set?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+    disconnect?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+    delete?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+    connect?: teamsWhereUniqueInput | teamsWhereUniqueInput[]
+    update?: teamsUpdateWithWhereUniqueWithoutQuizzesInput | teamsUpdateWithWhereUniqueWithoutQuizzesInput[]
+    updateMany?: teamsUpdateManyWithWhereWithoutQuizzesInput | teamsUpdateManyWithWhereWithoutQuizzesInput[]
+    deleteMany?: teamsScalarWhereInput | teamsScalarWhereInput[]
   }
 
   export type answersCreateNestedManyWithoutSession_participantsInput = {
@@ -17292,6 +18682,7 @@ export namespace Prisma {
 
   export type session_participantsCreateWithoutAnswersInput = {
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -17305,6 +18696,7 @@ export namespace Prisma {
     session_id: number
     user_id: number
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -17367,6 +18759,7 @@ export namespace Prisma {
 
   export type session_participantsUpdateWithoutAnswersInput = {
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -17380,6 +18773,7 @@ export namespace Prisma {
     session_id?: IntFieldUpdateOperationsInput | number
     user_id?: IntFieldUpdateOperationsInput | number
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -17758,6 +19152,76 @@ export namespace Prisma {
     drag_drop_items?: drag_drop_itemsUncheckedUpdateManyWithoutQuestionsNestedInput
   }
 
+  export type quizzesCreateWithoutTeamsInput = {
+    title: string
+    description?: string | null
+    negative_marking?: boolean | null
+    team_mode?: boolean | null
+    status?: $Enums.quizzes_status | null
+    created_at?: Date | string | null
+    participant_history?: participant_historyCreateNestedManyWithoutQuizzesInput
+    questions?: questionsCreateNestedManyWithoutQuizzesInput
+    quiz_sessions?: quiz_sessionsCreateNestedManyWithoutQuizzesInput
+    users: usersCreateNestedOneWithoutQuizzesInput
+  }
+
+  export type quizzesUncheckedCreateWithoutTeamsInput = {
+    id?: number
+    user_id: number
+    title: string
+    description?: string | null
+    negative_marking?: boolean | null
+    team_mode?: boolean | null
+    status?: $Enums.quizzes_status | null
+    created_at?: Date | string | null
+    participant_history?: participant_historyUncheckedCreateNestedManyWithoutQuizzesInput
+    questions?: questionsUncheckedCreateNestedManyWithoutQuizzesInput
+    quiz_sessions?: quiz_sessionsUncheckedCreateNestedManyWithoutQuizzesInput
+  }
+
+  export type quizzesCreateOrConnectWithoutTeamsInput = {
+    where: quizzesWhereUniqueInput
+    create: XOR<quizzesCreateWithoutTeamsInput, quizzesUncheckedCreateWithoutTeamsInput>
+  }
+
+  export type quizzesUpsertWithoutTeamsInput = {
+    update: XOR<quizzesUpdateWithoutTeamsInput, quizzesUncheckedUpdateWithoutTeamsInput>
+    create: XOR<quizzesCreateWithoutTeamsInput, quizzesUncheckedCreateWithoutTeamsInput>
+    where?: quizzesWhereInput
+  }
+
+  export type quizzesUpdateToOneWithWhereWithoutTeamsInput = {
+    where?: quizzesWhereInput
+    data: XOR<quizzesUpdateWithoutTeamsInput, quizzesUncheckedUpdateWithoutTeamsInput>
+  }
+
+  export type quizzesUpdateWithoutTeamsInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    negative_marking?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    team_mode?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    status?: NullableEnumquizzes_statusFieldUpdateOperationsInput | $Enums.quizzes_status | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    participant_history?: participant_historyUpdateManyWithoutQuizzesNestedInput
+    questions?: questionsUpdateManyWithoutQuizzesNestedInput
+    quiz_sessions?: quiz_sessionsUpdateManyWithoutQuizzesNestedInput
+    users?: usersUpdateOneRequiredWithoutQuizzesNestedInput
+  }
+
+  export type quizzesUncheckedUpdateWithoutTeamsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    negative_marking?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    team_mode?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    status?: NullableEnumquizzes_statusFieldUpdateOperationsInput | $Enums.quizzes_status | null
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    participant_history?: participant_historyUncheckedUpdateManyWithoutQuizzesNestedInput
+    questions?: questionsUncheckedUpdateManyWithoutQuizzesNestedInput
+    quiz_sessions?: quiz_sessionsUncheckedUpdateManyWithoutQuizzesNestedInput
+  }
+
   export type usersCreateWithoutParticipant_historyInput = {
     username: string
     password: string
@@ -17795,6 +19259,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     questions?: questionsCreateNestedManyWithoutQuizzesInput
     quiz_sessions?: quiz_sessionsCreateNestedManyWithoutQuizzesInput
+    teams?: teamsCreateNestedManyWithoutQuizzesInput
     users: usersCreateNestedOneWithoutQuizzesInput
   }
 
@@ -17809,6 +19274,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     questions?: questionsUncheckedCreateNestedManyWithoutQuizzesInput
     quiz_sessions?: quiz_sessionsUncheckedCreateNestedManyWithoutQuizzesInput
+    teams?: teamsUncheckedCreateNestedManyWithoutQuizzesInput
   }
 
   export type quizzesCreateOrConnectWithoutParticipant_historyInput = {
@@ -17870,6 +19336,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     questions?: questionsUpdateManyWithoutQuizzesNestedInput
     quiz_sessions?: quiz_sessionsUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUpdateManyWithoutQuizzesNestedInput
     users?: usersUpdateOneRequiredWithoutQuizzesNestedInput
   }
 
@@ -17884,6 +19351,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     questions?: questionsUncheckedUpdateManyWithoutQuizzesNestedInput
     quiz_sessions?: quiz_sessionsUncheckedUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUncheckedUpdateManyWithoutQuizzesNestedInput
   }
 
   export type answersCreateWithoutQuestionsInput = {
@@ -18014,6 +19482,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     participant_history?: participant_historyCreateNestedManyWithoutQuizzesInput
     quiz_sessions?: quiz_sessionsCreateNestedManyWithoutQuizzesInput
+    teams?: teamsCreateNestedManyWithoutQuizzesInput
     users: usersCreateNestedOneWithoutQuizzesInput
   }
 
@@ -18028,6 +19497,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     participant_history?: participant_historyUncheckedCreateNestedManyWithoutQuizzesInput
     quiz_sessions?: quiz_sessionsUncheckedCreateNestedManyWithoutQuizzesInput
+    teams?: teamsUncheckedCreateNestedManyWithoutQuizzesInput
   }
 
   export type quizzesCreateOrConnectWithoutQuestionsInput = {
@@ -18192,6 +19662,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participant_history?: participant_historyUpdateManyWithoutQuizzesNestedInput
     quiz_sessions?: quiz_sessionsUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUpdateManyWithoutQuizzesNestedInput
     users?: usersUpdateOneRequiredWithoutQuizzesNestedInput
   }
 
@@ -18206,6 +19677,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participant_history?: participant_historyUncheckedUpdateManyWithoutQuizzesNestedInput
     quiz_sessions?: quiz_sessionsUncheckedUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUncheckedUpdateManyWithoutQuizzesNestedInput
   }
 
   export type quizzesCreateWithoutQuiz_sessionsInput = {
@@ -18217,6 +19689,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     participant_history?: participant_historyCreateNestedManyWithoutQuizzesInput
     questions?: questionsCreateNestedManyWithoutQuizzesInput
+    teams?: teamsCreateNestedManyWithoutQuizzesInput
     users: usersCreateNestedOneWithoutQuizzesInput
   }
 
@@ -18231,6 +19704,7 @@ export namespace Prisma {
     created_at?: Date | string | null
     participant_history?: participant_historyUncheckedCreateNestedManyWithoutQuizzesInput
     questions?: questionsUncheckedCreateNestedManyWithoutQuizzesInput
+    teams?: teamsUncheckedCreateNestedManyWithoutQuizzesInput
   }
 
   export type quizzesCreateOrConnectWithoutQuiz_sessionsInput = {
@@ -18268,6 +19742,7 @@ export namespace Prisma {
 
   export type session_participantsCreateWithoutQuiz_sessionsInput = {
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -18280,6 +19755,7 @@ export namespace Prisma {
     id?: number
     user_id: number
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -18317,6 +19793,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participant_history?: participant_historyUpdateManyWithoutQuizzesNestedInput
     questions?: questionsUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUpdateManyWithoutQuizzesNestedInput
     users?: usersUpdateOneRequiredWithoutQuizzesNestedInput
   }
 
@@ -18331,6 +19808,7 @@ export namespace Prisma {
     created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     participant_history?: participant_historyUncheckedUpdateManyWithoutQuizzesNestedInput
     questions?: questionsUncheckedUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUncheckedUpdateManyWithoutQuizzesNestedInput
   }
 
   export type usersUpsertWithoutQuiz_sessionsInput = {
@@ -18391,6 +19869,7 @@ export namespace Prisma {
     session_id?: IntFilter<"session_participants"> | number
     user_id?: IntFilter<"session_participants"> | number
     join_code?: StringNullableFilter<"session_participants"> | string | null
+    team?: StringNullableFilter<"session_participants"> | string | null
     score?: IntNullableFilter<"session_participants"> | number | null
     streak?: IntNullableFilter<"session_participants"> | number | null
     accuracy?: FloatNullableFilter<"session_participants"> | number | null
@@ -18497,6 +19976,31 @@ export namespace Prisma {
 
   export type quiz_sessionsCreateManyQuizzesInputEnvelope = {
     data: quiz_sessionsCreateManyQuizzesInput | quiz_sessionsCreateManyQuizzesInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type teamsCreateWithoutQuizzesInput = {
+    name: string
+    color: string
+    max_members?: number
+    created_at?: Date | string | null
+  }
+
+  export type teamsUncheckedCreateWithoutQuizzesInput = {
+    id?: number
+    name: string
+    color: string
+    max_members?: number
+    created_at?: Date | string | null
+  }
+
+  export type teamsCreateOrConnectWithoutQuizzesInput = {
+    where: teamsWhereUniqueInput
+    create: XOR<teamsCreateWithoutQuizzesInput, teamsUncheckedCreateWithoutQuizzesInput>
+  }
+
+  export type teamsCreateManyQuizzesInputEnvelope = {
+    data: teamsCreateManyQuizzesInput | teamsCreateManyQuizzesInput[]
     skipDuplicates?: boolean
   }
 
@@ -18618,6 +20122,34 @@ export namespace Prisma {
     status?: Enumquiz_sessions_statusNullableFilter<"quiz_sessions"> | $Enums.quiz_sessions_status | null
     started_at?: DateTimeNullableFilter<"quiz_sessions"> | Date | string | null
     ended_at?: DateTimeNullableFilter<"quiz_sessions"> | Date | string | null
+  }
+
+  export type teamsUpsertWithWhereUniqueWithoutQuizzesInput = {
+    where: teamsWhereUniqueInput
+    update: XOR<teamsUpdateWithoutQuizzesInput, teamsUncheckedUpdateWithoutQuizzesInput>
+    create: XOR<teamsCreateWithoutQuizzesInput, teamsUncheckedCreateWithoutQuizzesInput>
+  }
+
+  export type teamsUpdateWithWhereUniqueWithoutQuizzesInput = {
+    where: teamsWhereUniqueInput
+    data: XOR<teamsUpdateWithoutQuizzesInput, teamsUncheckedUpdateWithoutQuizzesInput>
+  }
+
+  export type teamsUpdateManyWithWhereWithoutQuizzesInput = {
+    where: teamsScalarWhereInput
+    data: XOR<teamsUpdateManyMutationInput, teamsUncheckedUpdateManyWithoutQuizzesInput>
+  }
+
+  export type teamsScalarWhereInput = {
+    AND?: teamsScalarWhereInput | teamsScalarWhereInput[]
+    OR?: teamsScalarWhereInput[]
+    NOT?: teamsScalarWhereInput | teamsScalarWhereInput[]
+    id?: IntFilter<"teams"> | number
+    quiz_id?: IntFilter<"teams"> | number
+    name?: StringFilter<"teams"> | string
+    color?: StringFilter<"teams"> | string
+    max_members?: IntFilter<"teams"> | number
+    created_at?: DateTimeNullableFilter<"teams"> | Date | string | null
   }
 
   export type usersUpsertWithoutQuizzesInput = {
@@ -18887,6 +20419,7 @@ export namespace Prisma {
     participant_history?: participant_historyCreateNestedManyWithoutQuizzesInput
     questions?: questionsCreateNestedManyWithoutQuizzesInput
     quiz_sessions?: quiz_sessionsCreateNestedManyWithoutQuizzesInput
+    teams?: teamsCreateNestedManyWithoutQuizzesInput
   }
 
   export type quizzesUncheckedCreateWithoutUsersInput = {
@@ -18900,6 +20433,7 @@ export namespace Prisma {
     participant_history?: participant_historyUncheckedCreateNestedManyWithoutQuizzesInput
     questions?: questionsUncheckedCreateNestedManyWithoutQuizzesInput
     quiz_sessions?: quiz_sessionsUncheckedCreateNestedManyWithoutQuizzesInput
+    teams?: teamsUncheckedCreateNestedManyWithoutQuizzesInput
   }
 
   export type quizzesCreateOrConnectWithoutUsersInput = {
@@ -18914,6 +20448,7 @@ export namespace Prisma {
 
   export type session_participantsCreateWithoutUsersInput = {
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -18926,6 +20461,7 @@ export namespace Prisma {
     id?: number
     session_id: number
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -19168,6 +20704,7 @@ export namespace Prisma {
     id?: number
     user_id: number
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -19176,6 +20713,7 @@ export namespace Prisma {
 
   export type session_participantsUpdateWithoutQuiz_sessionsInput = {
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -19188,6 +20726,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     user_id?: IntFieldUpdateOperationsInput | number
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -19199,6 +20738,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     user_id?: IntFieldUpdateOperationsInput | number
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -19235,6 +20775,14 @@ export namespace Prisma {
     status?: $Enums.quiz_sessions_status | null
     started_at?: Date | string | null
     ended_at?: Date | string | null
+  }
+
+  export type teamsCreateManyQuizzesInput = {
+    id?: number
+    name: string
+    color: string
+    max_members?: number
+    created_at?: Date | string | null
   }
 
   export type participant_historyUpdateWithoutQuizzesInput = {
@@ -19342,6 +20890,29 @@ export namespace Prisma {
     ended_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type teamsUpdateWithoutQuizzesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    max_members?: IntFieldUpdateOperationsInput | number
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type teamsUncheckedUpdateWithoutQuizzesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    max_members?: IntFieldUpdateOperationsInput | number
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type teamsUncheckedUpdateManyWithoutQuizzesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    color?: StringFieldUpdateOperationsInput | string
+    max_members?: IntFieldUpdateOperationsInput | number
+    created_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type answersCreateManySession_participantsInput = {
     id?: number
     question_id: number
@@ -19419,6 +20990,7 @@ export namespace Prisma {
     id?: number
     session_id: number
     join_code?: string | null
+    team?: string | null
     score?: number | null
     streak?: number | null
     accuracy?: number | null
@@ -19495,6 +21067,7 @@ export namespace Prisma {
     participant_history?: participant_historyUpdateManyWithoutQuizzesNestedInput
     questions?: questionsUpdateManyWithoutQuizzesNestedInput
     quiz_sessions?: quiz_sessionsUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUpdateManyWithoutQuizzesNestedInput
   }
 
   export type quizzesUncheckedUpdateWithoutUsersInput = {
@@ -19508,6 +21081,7 @@ export namespace Prisma {
     participant_history?: participant_historyUncheckedUpdateManyWithoutQuizzesNestedInput
     questions?: questionsUncheckedUpdateManyWithoutQuizzesNestedInput
     quiz_sessions?: quiz_sessionsUncheckedUpdateManyWithoutQuizzesNestedInput
+    teams?: teamsUncheckedUpdateManyWithoutQuizzesNestedInput
   }
 
   export type quizzesUncheckedUpdateManyWithoutUsersInput = {
@@ -19522,6 +21096,7 @@ export namespace Prisma {
 
   export type session_participantsUpdateWithoutUsersInput = {
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -19534,6 +21109,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     session_id?: IntFieldUpdateOperationsInput | number
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -19545,6 +21121,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     session_id?: IntFieldUpdateOperationsInput | number
     join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
     score?: NullableIntFieldUpdateOperationsInput | number | null
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null

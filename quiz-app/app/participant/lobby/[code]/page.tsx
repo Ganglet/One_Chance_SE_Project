@@ -60,6 +60,19 @@ export default function ParticipantLobby() {
         
         setSessionInfo(data.session)
         
+        // Check if this is a team quiz and redirect to team lobby
+        const quizRes = await fetch(`/api/quizzes/${data.session.quiz_id}`)
+        if (quizRes.ok) {
+          const quizData = await quizRes.json()
+          const quiz = quizData.quiz || quizData
+          
+          if (quiz?.is_team_quiz || quiz?.team_mode) {
+            // Redirect to team lobby
+            router.push(`/participant/team-lobby/${joinCode}`)
+            return
+          }
+        }
+        
         // Fetch current participants
         const pres = await fetch(`/api/sessions/participants?code=${joinCode}`)
         if (pres.ok) {

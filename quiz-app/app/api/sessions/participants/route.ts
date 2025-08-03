@@ -8,34 +8,52 @@ export async function GET(req: NextRequest) {
     const code = searchParams.get('code')
     if (!code) return NextResponse.json({ error: 'code required' }, { status: 400 })
     
+    console.log('Fetching participants for session code:', code)
+    
     // First find the session
     const session = await prisma.quiz_sessions.findFirst({ 
       where: { code }
     })
     
-    if (!session) return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+    if (!session) {
+      console.log('Session not found for code:', code)
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 })
+    }
+    
+    console.log('Found session:', session.id, 'quiz_id:', session.quiz_id)
     
     // Get the total number of questions for this quiz
     const totalQuestions = await prisma.questions.count({
       where: { quiz_id: session.quiz_id }
     })
     
-    // Then fetch participants with their related data and detailed statistics
+    console.log('Total questions for quiz:', totalQuestions)
+    
+    // Then fetch participants with their related data
     const participants = await prisma.session_participants.findMany({
       where: { session_id: session.id },
       include: { 
-        users: true,
-        answers: {
-          include: {
-            questions: true
-          }
-        }
+        users: true
       },
     })
     
+    console.log('Found participants:', participants.length)
+    participants.forEach(p => {
+      console.log('Participant:', p.users.username, 'team:', p.team, 'score:', p.score)
+    })
+    
     // Transform the data to include more detailed statistics
-    const transformedParticipants = participants.map(participant => {
-      const answers = participant.answers || []
+    const transformedParticipants = await Promise.all(participants.map(async (participant) => {
+      // Fetch answers for this specific participant
+      const answers = await prisma.answers.findMany({
+        where: { session_participant_id: participant.id },
+        include: {
+          questions: true
+        }
+      })
+      
+      console.log(`Participant ${participant.users.username} has ${answers.length} answers`)
+      
       const totalAnswers = answers.length
       const correctAnswers = answers.filter(a => a.is_correct).length
       const totalTimeTaken = answers.reduce((sum, a) => sum + (a.time_taken || 0), 0)
@@ -64,9 +82,10 @@ export async function GET(req: NextRequest) {
         id: participant.id,
         user_id: participant.user_id,
         session_id: participant.session_id,
-        score: participant.score || 0,
+        score: totalPointsEarned, // Use calculated score from answers instead of database field
         streak: participant.streak || 0,
-        accuracy: participant.accuracy || 0,
+        accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0, // Calculate accuracy from answers
+        team: participant.team || null,
         joined_at: participant.joined_at,
         users: participant.users,
         answered: totalAnswers >= totalQuestions,
@@ -85,7 +104,9 @@ export async function GET(req: NextRequest) {
         averagePointsPerQuestion: totalAnswers > 0 ? Math.round(totalPointsEarned / totalAnswers) : 0,
         efficiency: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
       }
-    })
+    }))
+    
+    console.log('Returning transformed participants:', transformedParticipants.length)
     
     return NextResponse.json({ participants: transformedParticipants })
   } catch (error) {

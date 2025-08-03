@@ -162,6 +162,15 @@ exports.Prisma.Ordering_itemsScalarFieldEnum = {
   correct_order: 'correct_order'
 };
 
+exports.Prisma.TeamsScalarFieldEnum = {
+  id: 'id',
+  quiz_id: 'quiz_id',
+  name: 'name',
+  color: 'color',
+  max_members: 'max_members',
+  created_at: 'created_at'
+};
+
 exports.Prisma.Participant_historyScalarFieldEnum = {
   id: 'id',
   user_id: 'user_id',
@@ -213,6 +222,7 @@ exports.Prisma.Session_participantsScalarFieldEnum = {
   session_id: 'session_id',
   user_id: 'user_id',
   join_code: 'join_code',
+  team: 'team',
   score: 'score',
   streak: 'streak',
   accuracy: 'accuracy',
@@ -260,6 +270,11 @@ exports.Prisma.ordering_itemsOrderByRelevanceFieldEnum = {
   item_text: 'item_text'
 };
 
+exports.Prisma.teamsOrderByRelevanceFieldEnum = {
+  name: 'name',
+  color: 'color'
+};
+
 exports.Prisma.questionsOrderByRelevanceFieldEnum = {
   question: 'question',
   correct_answer: 'correct_answer',
@@ -277,7 +292,8 @@ exports.Prisma.quizzesOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.session_participantsOrderByRelevanceFieldEnum = {
-  join_code: 'join_code'
+  join_code: 'join_code',
+  team: 'team'
 };
 
 exports.Prisma.usersOrderByRelevanceFieldEnum = {
@@ -325,6 +341,7 @@ exports.Prisma.ModelName = {
   matching_pairs: 'matching_pairs',
   drag_drop_items: 'drag_drop_items',
   ordering_items: 'ordering_items',
+  teams: 'teams',
   participant_history: 'participant_history',
   questions: 'questions',
   quiz_sessions: 'quiz_sessions',

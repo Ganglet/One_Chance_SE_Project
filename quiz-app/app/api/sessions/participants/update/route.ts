@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../../lib/db'
 
-// PATCH /api/sessions/participants/update - Update participant stats
+// PATCH /api/sessions/participants/update - Update participant stats and team
 export async function PATCH(req: NextRequest) {
   try {
-    const { sessionCode, username, score, streak, accuracy } = await req.json()
+    const { code, username, score, streak, accuracy, team } = await req.json()
     
-    if (!sessionCode || !username) {
-      return NextResponse.json({ error: 'sessionCode and username required' }, { status: 400 })
+    if (!code || !username) {
+      return NextResponse.json({ error: 'code and username required' }, { status: 400 })
     }
 
     // Find the session
     const session = await prisma.quiz_sessions.findFirst({
-      where: { code: sessionCode },
+      where: { code: code },
     })
     
     if (!session) {
@@ -40,13 +40,14 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Participant not found in session' }, { status: 404 })
     }
 
-    // Update the participant stats
+    // Update the participant stats and team
     const updatedParticipant = await prisma.session_participants.update({
       where: { id: participant.id },
       data: {
         score: score !== undefined ? score : participant.score,
         streak: streak !== undefined ? streak : participant.streak,
         accuracy: accuracy !== undefined ? accuracy : participant.accuracy,
+        team: team !== undefined ? team : participant.team,
       },
     })
 

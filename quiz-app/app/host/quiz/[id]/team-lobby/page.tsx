@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Users, Play, X, Trophy, Clock, UserCheck, UserX, Shield } from "lucide-react"
+import { Users, Play, X, Trophy, Clock, UserCheck, UserX, Shield, Zap, Target } from "lucide-react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 
@@ -25,7 +25,7 @@ interface Team {
   maxMembers: number
 }
 
-export default function HostLobby() {
+export default function HostTeamLobby() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -38,7 +38,6 @@ export default function HostLobby() {
   const [error, setError] = useState<string | null>(null)
   const [quizTitle, setQuizTitle] = useState<string>("")
   const [participantCount, setParticipantCount] = useState(0)
-  const [isTeamQuiz, setIsTeamQuiz] = useState(false)
 
   // Fetch session and participants on mount
   useEffect(() => {
@@ -51,7 +50,7 @@ export default function HostLobby() {
           return
         }
 
-        console.log("Fetching session with code:", code)
+        console.log("Fetching team session with code:", code)
         
         // Fetch session details
         const res = await fetch(`/api/sessions?code=${code}`)
@@ -70,10 +69,8 @@ export default function HostLobby() {
         const quizRes = await fetch(`/api/quizzes/${data.session.quiz_id}`)
         if (quizRes.ok) {
           const quizData = await quizRes.json()
-          // Handle both formats: direct quiz object or wrapped in quiz property
           const quiz = quizData.quiz || quizData
-          setQuizTitle(quiz?.title || 'Quiz')
-          setIsTeamQuiz(quiz?.team_mode || false)
+          setQuizTitle(quiz?.title || 'Team Quiz')
           
           // Set up teams from quiz data
           if (quiz?.teams && Array.isArray(quiz.teams)) {
@@ -126,7 +123,7 @@ export default function HostLobby() {
     }
     
     fetchSession()
-    // Poll for new participants every 8 seconds (reduced frequency)
+    // Poll for new participants every 8 seconds
     const interval = setInterval(fetchSession, 8000)
     return () => clearInterval(interval)
   }, [searchParams])
@@ -143,25 +140,21 @@ export default function HostLobby() {
       })
       
       if (res.ok) {
-        // Redirect to appropriate session page based on quiz type
-        if (isTeamQuiz) {
-          router.push(`/host/quiz/${params.id}/team-session?code=${joinCode}`)
-        } else {
-          router.push(`/host/quiz/${params.id}/session?code=${joinCode}`)
-        }
+        // Redirect to team session page
+        router.push(`/host/quiz/${params.id}/team-session?code=${joinCode}`)
       } else {
-        alert("Failed to start quiz")
+        alert("Failed to start team quiz")
       }
     } catch (error) {
-      console.error("Error starting quiz:", error)
-      alert("Failed to start quiz")
+      console.error("Error starting team quiz:", error)
+      alert("Failed to start team quiz")
     }
   }
 
   const handleStopQuiz = async () => {
     if (!joinCode) return
     
-    if (!confirm("Are you sure you want to stop this quiz session? You can restart it later from the dashboard.")) {
+    if (!confirm("Are you sure you want to stop this team quiz session? You can restart it later from the dashboard.")) {
       return
     }
     
@@ -199,15 +192,15 @@ export default function HostLobby() {
       // Redirect back to host dashboard
       router.push("/host/dashboard")
     } catch (error) {
-      console.error("Error stopping quiz:", error)
-      alert("Failed to stop quiz")
+      console.error("Error stopping team quiz:", error)
+      alert("Failed to stop team quiz")
     }
   }
 
   const handleTerminateQuiz = async () => {
     if (!joinCode) return
     
-    if (!confirm("Are you sure you want to terminate this quiz session? This action cannot be undone.")) {
+    if (!confirm("Are you sure you want to terminate this team quiz session? This action cannot be undone.")) {
       return
     }
     
@@ -245,8 +238,8 @@ export default function HostLobby() {
       // Redirect back to host dashboard
       router.push("/host/dashboard")
     } catch (error) {
-      console.error("Error terminating quiz:", error)
-      alert("Failed to terminate quiz")
+      console.error("Error terminating team quiz:", error)
+      alert("Failed to terminate team quiz")
     }
   }
 
@@ -256,7 +249,7 @@ export default function HostLobby() {
         await navigator.clipboard.writeText(joinCode)
         toast({
           title: "Code copied!",
-          description: "Join code has been copied to clipboard.",
+          description: "Team quiz join code has been copied to clipboard.",
           variant: "success",
         })
       } else {
@@ -273,7 +266,7 @@ export default function HostLobby() {
           document.execCommand('copy')
           toast({
             title: "Code copied!",
-            description: "Join code has been copied to clipboard.",
+            description: "Team quiz join code has been copied to clipboard.",
             variant: "success",
           })
         } catch (err) {
@@ -299,10 +292,10 @@ export default function HostLobby() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-lg text-gray-900">Loading quiz lobby...</p>
+          <p className="mt-4 text-lg text-white">Loading team quiz lobby...</p>
         </div>
       </div>
     )
@@ -310,10 +303,10 @@ export default function HostLobby() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Quiz Lobby</h1>
-          <p className="text-gray-700 mb-4">{error}</p>
+          <h1 className="text-2xl font-bold text-red-400 mb-4">Error Loading Team Quiz Lobby</h1>
+          <p className="text-white mb-4">{error}</p>
           <Button onClick={() => window.location.reload()}>
             Try Again
           </Button>
@@ -323,22 +316,22 @@ export default function HostLobby() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 fade-in-up">
+    <div className="min-h-screen bg-slate-900 fade-in-up">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 slide-in-left">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {isTeamQuiz ? 'Team Quiz Lobby' : 'Quiz Lobby'}
+            <h1 className="text-3xl font-bold text-cyan-500 mb-2" style={{ color: '#06b6d4' }}>
+              Team Quiz Lobby
             </h1>
-            <p className="mt-2 text-gray-600">
-              {quizTitle || "Quiz Session"}
+            <p className="text-gray-300 text-lg">
+              {quizTitle || "Team Quiz Session"}
             </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm text-gray-500">Join Code</p>
-              <p className="text-2xl font-mono font-bold text-gray-900">
+              <p className="text-sm text-gray-300 font-medium">Join Code</p>
+              <p className="text-2xl font-mono font-bold bg-gray-800 px-3 py-2 rounded-lg border" style={{ color: '#06b6d4', borderColor: '#06b6d4' }}>
                 {joinCode}
               </p>
             </div>
@@ -353,10 +346,10 @@ export default function HostLobby() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-900">
                   <Shield className="w-5 h-5 text-blue-600" />
-                  {isTeamQuiz ? 'Team Quiz Join Code' : 'Quiz Join Code'}
+                  Team Quiz Join Code
                 </CardTitle>
                 <CardDescription className="text-gray-600">
-                  Share this code with {isTeamQuiz ? 'team members' : 'participants'} to join the quiz
+                  Share this code with team members to join the competitive quiz
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -377,204 +370,60 @@ export default function HostLobby() {
                   </Button>
                 </div>
                 <p className="text-sm mt-2 text-gray-600">
-                  {isTeamQuiz ? 'Team members' : 'Participants'} can join by entering this code at the dashboard
+                  Team members can join by entering this code at the dashboard
                 </p>
               </CardContent>
             </Card>
 
-            {/* Teams Overview (for team quizzes) */}
-            {isTeamQuiz && teams.length > 0 && (
-              <Card className="card-hover fade-in-up bg-white border-gray-200 shadow-lg" style={{ animationDelay: '0.2s' }}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-gray-900">
-                    <Shield className="w-5 h-5 text-blue-600" />
-                    Tournament Team Management
-                  </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    BGMI-style tournament lobby - Drag participants to teams or click to assign
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* Tournament Grid Layout */}
-                  <div className="space-y-6">
-                    {/* Teams Grid */}
-                    <div className="grid grid-cols-2 gap-6">
-                      {teams.map((team, teamIndex) => (
-                        <div
-                          key={team.id}
-                          className="p-6 rounded-xl border-2 border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100"
-                          style={{ 
-                            borderColor: team.color,
-                            boxShadow: `0 4px 20px ${team.color}30`
-                          }}
-                        >
-                          {/* Team Header */}
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <div 
-                                className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg"
-                                style={{ backgroundColor: team.color }}
-                              >
-                                {teamIndex + 1}
-                              </div>
-                              <div>
-                                <h3 className="text-xl font-bold text-gray-900" style={{ color: team.color }}>
-                                  {team.name}
-                                </h3>
-                                <p className="text-sm text-gray-600">
-                                  {team.members.length}/{team.maxMembers} Members
-                                </p>
-                              </div>
-                            </div>
-                            <Badge className={`text-sm font-semibold ${
-                              team.members.length === team.maxMembers 
-                                ? 'bg-green-100 text-green-800 border-green-200' 
-                                : 'bg-blue-100 text-blue-800 border-blue-200'
-                            }`}>
-                              {team.members.length === team.maxMembers ? 'Full' : 'Open'}
-                            </Badge>
-                          </div>
-
-                          {/* Team Members Grid */}
-                          <div className="grid grid-cols-2 gap-3">
-                            {Array.from({ length: team.maxMembers }).map((_, memberIndex) => {
-                              const member = team.members[memberIndex]
-                              const participant = participants.find(p => p.name === member)
-                              
-                              return (
-                                <div
-                                  key={memberIndex}
-                                  className={`aspect-square rounded-lg border-2 flex flex-col items-center justify-center transition-all duration-200 ${
-                                    member 
-                                      ? 'border-green-400 bg-green-50 shadow-md' 
-                                      : 'border-gray-300 bg-gray-200 border-dashed'
-                                  }`}
-                                  style={{
-                                    borderColor: member ? team.color : undefined,
-                                    boxShadow: member ? `0 2px 10px ${team.color}40` : undefined
-                                  }}
-                                >
-                                  {member ? (
-                                    <>
-                                      <div 
-                                        className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mb-1"
-                                        style={{ backgroundColor: team.color }}
-                                      >
-                                        {member.charAt(0).toUpperCase()}
-                                      </div>
-                                      <p className="text-xs font-medium text-gray-900 text-center truncate w-full px-1">
-                                        {member}
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        {participant ? new Date(participant.joinedAt).toLocaleTimeString() : ''}
-                                      </p>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center mb-1">
-                                        <span className="text-gray-500 text-sm">?</span>
-                                      </div>
-                                      <p className="text-xs text-gray-500 text-center">Empty Slot</p>
-                                    </>
-                                  )}
-                                </div>
-                              )
-                            })}
-                          </div>
-
-                          {/* Team Stats */}
-                          <div className="mt-4 pt-4 border-t border-gray-200">
-                            <div className="flex justify-between text-sm">
-                              <span className="text-gray-600">Ready:</span>
-                              <span className="font-semibold text-green-600">
-                                {team.members.length}/{team.maxMembers}
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                              <div 
-                                className="h-2 rounded-full transition-all duration-300"
-                                style={{ 
-                                  width: `${(team.members.length / team.maxMembers) * 100}%`,
-                                  backgroundColor: team.color
-                                }}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Unassigned Participants */}
-                    {participants.filter(p => !p.team).length > 0 && (
-                      <div className="mt-6">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-3">Unassigned Participants</h4>
-                        <div className="grid grid-cols-4 gap-3">
-                          {participants.filter(p => !p.team).map((participant, index) => (
-                            <div
-                              key={participant.id}
-                              className="p-3 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center"
-                            >
-                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                                <span className="text-blue-600 font-bold text-sm">
-                                  {index + 1}
-                                </span>
-                              </div>
-                              <p className="text-sm font-medium text-gray-900 text-center truncate w-full">
-                                {participant.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(participant.joinedAt).toLocaleTimeString()}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
+            {/* Teams Overview */}
+            <Card className="card-hover fade-in-up bg-white border-gray-200 shadow-lg" style={{ animationDelay: '0.2s' }}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-gray-900">
+                  <Users className="w-5 h-5 text-blue-600" />
+                  Teams Overview
+                </CardTitle>
+                <CardDescription className="text-gray-600">
+                  Monitor team formation and member distribution
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 gap-4">
+                  {teams.map((team, index) => (
+                    <div
+                      key={team.id}
+                      className="p-4 rounded-lg border border-gray-300 bg-gray-50"
+                      style={{ 
+                        borderColor: team.color,
+                        boxShadow: `0 0 10px ${team.color}20`
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900" style={{ color: team.color }}>
+                          {team.name}
+                        </h3>
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                          {team.members.length}/{team.maxMembers}
+                        </Badge>
                       </div>
-                    )}
-
-                    {/* Quick Actions */}
-                    <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <h4 className="font-semibold text-blue-900 mb-2">Quick Actions</h4>
-                      <div className="flex gap-3">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="border-blue-300 text-blue-700 hover:bg-blue-100"
-                          onClick={() => {
-                            // Auto-assign participants to teams
-                            const unassigned = participants.filter(p => !p.team)
-                            const availableTeams = teams.filter(t => t.members.length < t.maxMembers)
-                            
-                            if (unassigned.length > 0 && availableTeams.length > 0) {
-                              toast({
-                                title: "Auto-assignment",
-                                description: "Feature coming soon! Participants can join teams manually.",
-                                variant: "default",
-                              })
-                            }
-                          }}
-                        >
-                          Auto-Assign Teams
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="border-green-300 text-green-700 hover:bg-green-100"
-                          onClick={() => {
-                            toast({
-                              title: "Team Management",
-                              description: "Participants can join teams from their lobby. Host can monitor here.",
-                              variant: "default",
-                            })
-                          }}
-                        >
-                          View Team Instructions
-                        </Button>
+                      <div className="flex gap-2">
+                        {Array.from({ length: team.maxMembers }).map((_, memberIndex) => (
+                          <div
+                            key={memberIndex}
+                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all duration-200 ${
+                              memberIndex < team.members.length
+                                ? 'bg-green-500 border-green-400 text-white shadow-lg'
+                                : 'bg-gray-300 border-gray-400 text-gray-600'
+                            }`}
+                          >
+                            {memberIndex < team.members.length ? team.members[memberIndex].charAt(0).toUpperCase() : '?'}
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Participants List */}
             <Card className="card-hover fade-in-up bg-white border-gray-200 shadow-lg" style={{ animationDelay: '0.3s' }}>
@@ -584,16 +433,16 @@ export default function HostLobby() {
                   Participants ({participantCount})
                 </CardTitle>
                 <CardDescription className="text-gray-600">
-                  {isTeamQuiz ? 'Team members' : 'Participants'} who have joined the lobby
+                  Team members who have joined the lobby
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {participantCount === 0 ? (
                   <div className="text-center py-12">
                     <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <h3 className="text-lg font-semibold mb-2 text-gray-900">No {isTeamQuiz ? 'team members' : 'participants'} yet</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-gray-900">No team members yet</h3>
                     <p className="text-gray-600">
-                      Share the join code with {isTeamQuiz ? 'team members' : 'participants'} to get started
+                      Share the join code with team members to get started
                     </p>
                   </div>
                 ) : (
@@ -615,7 +464,7 @@ export default function HostLobby() {
                           </p>
                           <p className="text-xs text-gray-600">
                             Joined {new Date(participant.joinedAt).toLocaleTimeString()}
-                            {isTeamQuiz && participant.team && ` • Team: ${participant.team}`}
+                            {participant.team && ` • Team: ${participant.team}`}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -638,11 +487,9 @@ export default function HostLobby() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-gray-900">
                   <Trophy className="w-5 h-5 text-blue-600" />
-                  {isTeamQuiz ? 'Team Host Controls' : 'Host Controls'}
+                  Team Host Controls
                 </CardTitle>
-                <CardDescription className="text-gray-600">
-                  Manage the {isTeamQuiz ? 'team ' : ''}quiz session
-                </CardDescription>
+                <CardDescription className="text-gray-600">Manage the competitive team quiz session</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Session Status */}
@@ -652,28 +499,24 @@ export default function HostLobby() {
                     <span className="font-medium text-gray-900">Session Status</span>
                   </div>
                   <Badge variant="default" className="bg-blue-600 text-white">
-                    Waiting for {isTeamQuiz ? 'Teams' : 'Participants'}
+                    Waiting for Teams
                   </Badge>
                 </div>
 
-                {/* Stats */}
+                {/* Team Stats */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Total Joined</span>
                     <span className="font-bold text-gray-900">{participantCount}</span>
                   </div>
-                  {isTeamQuiz && (
-                    <>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Teams Ready</span>
-                        <span className="font-bold text-blue-600">{teams.filter(t => t.members.length > 0).length}/{teams.length}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Ready to Start</span>
-                        <span className="font-bold text-blue-600">{participantCount > 0 ? 'Yes' : 'No'}</span>
-                      </div>
-                    </>
-                  )}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Teams Ready</span>
+                    <span className="font-bold text-blue-600">{teams.filter(t => t.members.length > 0).length}/{teams.length}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Ready to Start</span>
+                    <span className="font-bold text-blue-600">{participantCount > 0 ? 'Yes' : 'No'}</span>
+                  </div>
                 </div>
 
                 <Progress value={participantCount > 0 ? 100 : 0} className="h-2 [&>div]:bg-blue-500" />
@@ -687,7 +530,7 @@ export default function HostLobby() {
                     disabled={participantCount === 0}
                   >
                     <Play className="w-4 h-4 mr-2" />
-                    Start {isTeamQuiz ? 'Team ' : ''}Quiz
+                    Start Team Quiz
                   </Button>
                   
                   <Button 
@@ -713,13 +556,13 @@ export default function HostLobby() {
 
                 {/* Instructions */}
                 <div className="mt-6 p-4 rounded-lg bg-gray-50 border border-gray-200">
-                  <h4 className="font-medium mb-2 text-gray-900">{isTeamQuiz ? 'Team Quiz' : 'Quiz'} Instructions</h4>
+                  <h4 className="font-medium mb-2 text-gray-900">Team Quiz Instructions</h4>
                   <ul className="text-sm space-y-1 text-gray-600">
-                    <li>• Share the join code with {isTeamQuiz ? 'team members' : 'participants'}</li>
-                    {isTeamQuiz && <li>• Wait for teams to form and join</li>}
-                    {isTeamQuiz && <li>• Monitor team member distribution</li>}
-                    <li>• Click "Start {isTeamQuiz ? 'Team ' : ''}Quiz" when ready</li>
-                    <li>• {isTeamQuiz ? 'Teams will compete for points' : 'Participants will answer questions'}</li>
+                    <li>• Share the join code with team members</li>
+                    <li>• Wait for teams to form and join</li>
+                    <li>• Monitor team member distribution</li>
+                    <li>• Click "Start Team Quiz" when ready</li>
+                    <li>• Teams will compete for points</li>
                     <li>• Use "Stop Quiz" to pause and restart later</li>
                   </ul>
                 </div>

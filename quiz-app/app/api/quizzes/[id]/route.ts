@@ -24,7 +24,8 @@ export async function GET(
             drag_drop_items: true,
             ordering_items: true
           }
-        }
+        },
+        teams: true
       }
     })
 

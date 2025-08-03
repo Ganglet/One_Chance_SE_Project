@@ -4,11 +4,12 @@ import { prisma } from '@/lib/db';
 export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
-    // Expecting: { title, description, negativeMarking, teamMode, questions, userId }
-    const { title, description, negativeMarking, teamMode, questions, userId } = data;
+    // Expecting: { title, description, negativeMarking, teamMode, questions, userId, teams, maxTeams, teamSize }
+    const { title, description, negativeMarking, teamMode, questions, userId, teams, maxTeams, teamSize } = data;
     if (!title || !userId || !Array.isArray(questions) || questions.length === 0) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+    
     // Create quiz
     const quiz = await prisma.quizzes.create({
       data: {
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
         negative_marking: negativeMarking,
         team_mode: teamMode,
         user_id: userId,
-        status: 'active', // New quizzes start as inactive
+        status: 'active', // New quizzes start as active
         questions: {
           create: questions.map((q: any) => ({
             type: q.type,
@@ -64,6 +65,16 @@ export async function POST(req: NextRequest) {
               : undefined,
           })),
         },
+        // Create teams if teamMode is true
+        ...(teamMode && teams && Array.isArray(teams) && {
+          teams: {
+            create: teams.map((team: any) => ({
+              name: team.name,
+              color: team.color,
+              max_members: team.maxMembers || teamSize || 4,
+            })),
+          },
+        }),
       },
       include: { 
         questions: { 
@@ -73,11 +84,13 @@ export async function POST(req: NextRequest) {
             drag_drop_items: true,
             ordering_items: true
           } 
-        } 
+        },
+        teams: true
       },
     });
     return NextResponse.json({ quiz }, { status: 201 });
   } catch (err) {
+    console.error('Error creating quiz:', err);
     return NextResponse.json({ error: 'Failed to create quiz', details: err }, { status: 500 });
   }
 }

@@ -22,6 +22,7 @@ interface Quiz {
   participants: number
   status: "inactive" | "active" | "stopped" | "completed" | "terminated"
   createdAt: string
+  teamMode?: boolean
 }
 
 export default function HostDashboard() {
@@ -60,6 +61,7 @@ export default function HostDashboard() {
         participants: 0, // You can update this if you have participant data
         status: q.status || "inactive", // Use the actual status from database
         createdAt: q.created_at ? q.created_at.split("T")[0] : "",
+        teamMode: q.team_mode || false
       }))
 
       setQuizzes(processedQuizzes)
@@ -106,8 +108,16 @@ export default function HostDashboard() {
         setQuizzes(prev => prev.map(q => 
           q.id === quizId ? { ...q, status: "active" } : q
         ))
-        // Redirect to lobby page with ?code=SESSIONCODE
-        router.push(`/host/quiz/${quizId}/lobby?code=${data.session.code}`)
+        
+        // Check if this is a team quiz and redirect accordingly
+        const quiz = quizzes.find(q => q.id === quizId)
+        if (quiz?.teamMode) {
+          // Redirect to team quiz lobby
+          router.push(`/host/quiz/${quizId}/team-lobby?code=${data.session.code}`)
+        } else {
+          // Redirect to regular quiz lobby
+          router.push(`/host/quiz/${quizId}/lobby?code=${data.session.code}`)
+        }
       } else {
         // If session creation fails, revert quiz status
         await fetch(`/api/quizzes/${quizId}`, {
@@ -848,14 +858,27 @@ export default function HostDashboard() {
                 {quizzes.map((quiz) => (
                   <div
                     key={quiz.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 card-hover"
+                    className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 card-hover ${
+                      quiz.teamMode 
+                        ? 'bg-gray-900 border-cyan-500/30 hover:bg-gray-800 text-cyan-50' 
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
                   >
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">{quiz.title}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className={`font-semibold ${quiz.teamMode ? 'text-cyan-50' : 'text-gray-900 dark:text-white'}`}>
+                          {quiz.title}
+                        </h3>
+                        {quiz.teamMode && (
+                          <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/50 text-xs">
+                            Team Quiz
+                          </Badge>
+                        )}
+                      </div>
+                      <p className={`text-sm mt-1 ${quiz.teamMode ? 'text-cyan-300' : 'text-gray-600 dark:text-gray-400'}`}>
                         {quiz.description || "No description"}
                       </p>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      <div className={`flex items-center gap-4 mt-2 text-xs ${quiz.teamMode ? 'text-cyan-400' : 'text-gray-500 dark:text-gray-400'}`}>
                         <span>{quiz.questions} questions</span>
                         <span>{quiz.participants} participants</span>
                         <span>Created {quiz.createdAt}</span>

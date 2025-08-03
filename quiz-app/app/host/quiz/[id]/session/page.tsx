@@ -78,6 +78,7 @@ export default function QuizSession() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const [isTeamQuiz, setIsTeamQuiz] = useState(false)
 
   // Function to format correct answers for display
   const formatCorrectAnswer = (correctAnswer: string | number, questionType: string) => {
@@ -142,6 +143,14 @@ export default function QuizSession() {
         setJoinCode(data.session.code)
         setSessionId(data.session.id)
         setSessionStatus(data.session.status)
+        
+        // Fetch quiz details to check if it's a team quiz
+        const quizRes = await fetch(`/api/quizzes/${data.session.quiz_id}`)
+        if (quizRes.ok) {
+          const quizData = await quizRes.json()
+          const quiz = quizData.quiz || quizData
+          setIsTeamQuiz(quiz?.team_mode || false)
+        }
         
         // Fetch participants
         const participantsUrl = `/api/sessions/participants?code=${data.session.code}`
@@ -695,10 +704,10 @@ export default function QuizSession() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-4 text-lg">Loading quiz session...</p>
+          <div className={`animate-spin rounded-full h-32 w-32 border-b-2 mx-auto ${isTeamQuiz ? 'border-cyan-400' : 'border-gray-900 dark:border-white'}`}></div>
+          <p className={`mt-4 text-lg ${isTeamQuiz ? 'text-cyan-50' : ''}`}>Loading quiz session...</p>
         </div>
       </div>
     )
@@ -706,10 +715,10 @@ export default function QuizSession() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error Loading Session</h1>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
+          <h1 className={`text-2xl font-bold mb-4 ${isTeamQuiz ? 'text-red-400' : 'text-red-600 dark:text-red-400'}`}>Error Loading Session</h1>
+          <p className={`mb-4 ${isTeamQuiz ? 'text-cyan-300' : 'text-gray-600 dark:text-gray-400'}`}>{error}</p>
           <Button onClick={() => window.location.reload()}>
             Try Again
           </Button>
@@ -720,28 +729,30 @@ export default function QuizSession() {
 
   if (questions.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">No Questions Found</h1>
-          <p className="text-gray-600 dark:text-gray-400">This quiz doesn't have any questions yet.</p>
+          <h1 className={`text-2xl font-bold mb-4 ${isTeamQuiz ? 'text-cyan-50' : 'text-gray-900 dark:text-white'}`}>No Questions Found</h1>
+          <p className={isTeamQuiz ? 'text-cyan-300' : 'text-gray-600 dark:text-gray-400'}>This quiz doesn't have any questions yet.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className={`min-h-screen ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Quiz Session</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Join Code: <span className="font-mono font-bold text-lg">{joinCode}</span>
+            <h1 className={`text-3xl font-bold ${isTeamQuiz ? 'text-cyan-50' : 'text-gray-900 dark:text-white'}`}>
+              {isTeamQuiz ? 'Team Quiz Session' : 'Quiz Session'}
+            </h1>
+            <p className={`mt-2 ${isTeamQuiz ? 'text-cyan-300' : 'text-gray-600 dark:text-gray-400'}`}>
+              Join Code: <span className={`font-mono font-bold text-lg ${isTeamQuiz ? 'text-cyan-400' : ''}`}>{joinCode}</span>
             </p>
           </div>
           <div className="flex items-center gap-4">
-            <Badge variant="outline" className="text-lg px-4 py-2">
+            <Badge variant="outline" className={`text-lg px-4 py-2 ${isTeamQuiz ? 'border-cyan-500/50 text-cyan-400' : ''}`}>
               {participants.length} Participants
             </Badge>
             <Button 
@@ -752,10 +763,11 @@ export default function QuizSession() {
             >
               <X className="w-4 h-4 mr-2" />
               End Quiz
-            </Button>            <Button 
+            </Button>
+            <Button 
               onClick={() => handleDownloadSessionData()} 
               variant="outline"
-              className="border-blue-200 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30"
+              className={`${isTeamQuiz ? 'border-cyan-500/50 text-cyan-400 hover:bg-cyan-900/30' : 'border-blue-200 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30'}`}
             >
               <Download className="w-4 h-4 mr-2" />
               Export Complete Analytics
@@ -767,26 +779,26 @@ export default function QuizSession() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Questions Preview */}
-            <Card>
+            <Card className={isTeamQuiz ? 'bg-gray-800 border-cyan-500/30' : ''}>
               <CardHeader>
-                <CardTitle className="text-xl">Quiz Questions Preview</CardTitle>
-                <CardDescription>All questions in this quiz</CardDescription>
+                <CardTitle className={`text-xl ${isTeamQuiz ? 'text-cyan-50' : ''}`}>Quiz Questions Preview</CardTitle>
+                <CardDescription className={isTeamQuiz ? 'text-cyan-300' : ''}>All questions in this quiz</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
                   {questions.map((question, index) => (
-                    <div key={question.id} className="border rounded-lg p-4">
+                    <div key={question.id} className={`border rounded-lg p-4 ${isTeamQuiz ? 'border-cyan-500/30 bg-gray-700/50' : ''}`}>
                       <div className="flex items-center gap-2 mb-3">
-                        <Badge variant="secondary">Question {index + 1}</Badge>
-                        <Badge variant="outline">{question.type}</Badge>
-                        <Badge variant="outline">{question.points} pts</Badge>
+                        <Badge variant="secondary" className={isTeamQuiz ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50' : ''}>Question {index + 1}</Badge>
+                        <Badge variant="outline" className={isTeamQuiz ? 'border-cyan-500/50 text-cyan-400' : ''}>{question.type}</Badge>
+                        <Badge variant="outline" className={isTeamQuiz ? 'border-cyan-500/50 text-cyan-400' : ''}>{question.points} pts</Badge>
                       </div>
-                      <p className="text-lg font-medium mb-3">{question.question}</p>
+                      <p className={`text-lg font-medium mb-3 ${isTeamQuiz ? 'text-cyan-50' : ''}`}>{question.question}</p>
                       
                       {question.type === "multiple-choice" && question.options && (
                         <div className="grid grid-cols-2 gap-2">
                           {question.options.map((option, optIndex) => (
-                            <div key={optIndex} className="p-2 border rounded bg-gray-50 dark:bg-gray-800">
+                            <div key={optIndex} className={`p-2 border rounded ${isTeamQuiz ? 'border-cyan-500/30 bg-gray-700 text-cyan-50' : 'bg-gray-50 dark:bg-gray-800'}`}>
                               <span className="font-medium">{String.fromCharCode(65 + optIndex)}.</span> {option}
                             </div>
                           ))}

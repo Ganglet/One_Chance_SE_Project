@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { Plus, Trash2, ArrowLeftIcon } from "lucide-react"
+import { Plus, Trash2, ArrowLeftIcon, Users } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 interface Question {
@@ -34,7 +34,6 @@ export default function CreateQuiz() {
   const [quizTitle, setQuizTitle] = useState("")
   const [quizDescription, setQuizDescription] = useState("")
   const [negativeMarking, setNegativeMarking] = useState(false)
-  const [teamMode, setTeamMode] = useState(false)
   const [questions, setQuestions] = useState<Question[]>([
     {
       id: "1",
@@ -151,7 +150,7 @@ export default function CreateQuiz() {
           title: quizTitle,
           description: quizDescription,
           negativeMarking, // camelCase
-          teamMode,        // camelCase
+          teamMode: false, // Always false for regular quiz
           questions: formattedQuestions,
           userId,
         }),
@@ -161,6 +160,18 @@ export default function CreateQuiz() {
     } catch (err) {
       alert('Error creating quiz.');
     }
+  };
+
+  const handleTeamModeClick = () => {
+    // Store current quiz data in localStorage for team quiz creation
+    const quizData = {
+      title: quizTitle,
+      description: quizDescription,
+      negativeMarking,
+      questions: questions
+    };
+    localStorage.setItem('teamQuizData', JSON.stringify(quizData));
+    router.push('/host/create-team-quiz');
   };
 
   return (
@@ -214,9 +225,29 @@ export default function CreateQuiz() {
                   <Switch id="negative-marking" checked={negativeMarking} onCheckedChange={setNegativeMarking} />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="team-mode">Team Mode</Label>
-                  <Switch id="team-mode" checked={teamMode} onCheckedChange={setTeamMode} />
+                {/* Team Mode Button */}
+                <div className="space-y-2">
+                  <Label>Game Mode</Label>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleSaveQuiz} 
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white transition-all duration-300"
+                      size="lg"
+                    >
+                      Individual Mode
+                    </Button>
+                    <Button 
+                      onClick={handleTeamModeClick}
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white transition-all duration-300 transform hover:scale-105 hover:shadow-lg group relative overflow-hidden"
+                      size="lg"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                      <Users className="w-5 h-5 mr-2 group-hover:animate-pulse" />
+                      <span className="relative z-10 font-bold tracking-wide">Team Mode</span>
+                      <div className="absolute inset-0 border-2 border-cyan-400 opacity-0 group-hover:opacity-50 transition-opacity duration-300 rounded-md"></div>
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="pt-4 border-t">
@@ -228,10 +259,6 @@ export default function CreateQuiz() {
                     <p>Total Points: {questions.reduce((sum, q) => sum + q.points, 0)}</p>
                   </div>
                 </div>
-
-                <Button onClick={handleSaveQuiz} className="w-full" size="lg">
-                  Save Quiz
-                </Button>
               </CardContent>
             </Card>
           </div>
