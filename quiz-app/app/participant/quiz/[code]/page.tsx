@@ -9,11 +9,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Clock, Trophy, CheckCircle, XCircle, AlertTriangle } from "lucide-react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
+import { useProctoring } from "@/hooks/useProctoring"
+import { ProctoringWarning } from "@/components/ProctoringWarning"
 
 interface Question {
   id: string
   question: string
-  type: "multiple-choice" | "true-false" | "matching-pairs" | "ordering"
+  type: "multiple-choice" | "multiple_choice" | "true-false" | "true_false" | "matching-pairs" | "matching_pairs" | "ordering" | "short-answer" | "short_answer"
   options?: string[]
   timeLimit: number
   points: number
@@ -21,6 +23,7 @@ interface Question {
   // New fields for different question types
   matchingPairs?: Array<{ left: string; right: string }>
   orderingItems?: string[]
+  dragDropItems?: string[]
 }
 
 interface PlayerStats {
@@ -69,12 +72,6 @@ export default function ParticipantQuiz() {
     correctAnswers: 0,
   })
 
-  const [proctorViolations, setProctorViolations] = useState(0)
-  const [showProctorModal, setShowProctorModal] = useState(false)
-  const [proctorTimer, setProctorTimer] = useState(10)
-  const proctorIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const violationTriggeredRef = useRef(false)
-
   const [questions, setQuestions] = useState<Question[]>([])
   const [questionIndex, setQuestionIndex] = useState(0)
   const [participants, setParticipants] = useState<Array<{id: string, name: string, score: number}>>([])
@@ -83,6 +80,52 @@ export default function ParticipantQuiz() {
   const [showTerminationModal, setShowTerminationModal] = useState(false)
   const [sessionStatus, setSessionStatus] = useState<string>("waiting")
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("connecting")
+  const [quizStarted, setQuizStarted] = useState(false)
+
+  // Check if we're in browser environment
+  const isBrowser = typeof window !== 'undefined'
+
+  // Determine if proctoring should be active
+  const shouldProctoringBeActive = gameState === "active" && !showFeedback && !showTerminationModal
+
+  // Comprehensive proctoring system (only in browser)
+  const proctoringConfig = {
+    maxWarnings: 3, // Increased from 2 to 3 for more leniency
+    warningDuration: 5000,
+    enableFullscreen: shouldProctoringBeActive, // Only enable when quiz is active and not in feedback/transition
+    enableTabSwitchDetection: shouldProctoringBeActive,
+    enableFocusDetection: shouldProctoringBeActive,
+    disqualificationRoute: "/participant/quiz/disqualified"
+  }
+
+  const {
+    warnings,
+    isFullscreen,
+    isDisqualified,
+    showWarning,
+    warningMessage,
+    enterFullscreen,
+    exitFullscreen,
+    checkFullscreen,
+    isFullscreenSupported
+  } = useProctoring(isBrowser ? proctoringConfig : {
+    maxWarnings: 0,
+    warningDuration: 0,
+    enableFullscreen: false,
+    enableTabSwitchDetection: false,
+    enableFocusDetection: false,
+    disqualificationRoute: ""
+  })
+
+  // Only activate proctoring when quiz is active and in browser
+  useEffect(() => {
+    if (shouldProctoringBeActive && isFullscreenSupported && typeof window !== 'undefined') {
+      enterFullscreen()
+    } else if (!shouldProctoringBeActive && isFullscreen) {
+      // Exit fullscreen when proctoring should not be active
+      exitFullscreen()
+    }
+  }, [shouldProctoringBeActive, enterFullscreen, exitFullscreen, isFullscreenSupported, isFullscreen])
 
   // Check if participant is already in session
   useEffect(() => {
@@ -243,7 +286,7 @@ export default function ParticipantQuiz() {
               setSessionStatus(sessionStatus)
               
               // Start the quiz when session becomes active
-              if (sessionStatus === "active" && gameState === "waiting" && questions.length > 0) {
+              if (sessionStatus === "active" && gameState === "waiting" && questions.length > 0 && !quizStarted) {
                 console.log("Session is now active, starting quiz...")
                 console.log("Current state:", { sessionStatus, gameState, questionsLength: questions.length, questionIndex })
                 
@@ -252,21 +295,26 @@ export default function ParticipantQuiz() {
                 
                 console.log(`Starting quiz from question ${startIndex + 1} (always start from first question)`)
                 
+                // Set question index first, then current question to prevent race conditions
                 setQuestionIndex(startIndex)
                 setCurrentQuestion(questions[startIndex])
                 setGameState("active")
                 setTimeRemaining(questions[startIndex].timeLimit)
+                setHiddenOptions([])
+                setActivePowerUp(null)
+                setQuizStarted(true)
                 
                 // Save the starting question index for proctoring
                 saveQuestionProgress(startIndex)
               } else {
-                console.log("Not starting quiz:", { sessionStatus, gameState, questionsLength: questions.length })
+                console.log("Not starting quiz:", { sessionStatus, gameState, questionsLength: questions.length, quizStarted })
               }
               
               // Check for termination conditions
               if ((sessionStatus === "completed" || sessionStatus === "paused" || quizStatus === "terminated" || quizStatus === "stopped") && !showTerminationModal) {
                 console.log("Quiz terminated/stopped detected via SSE! Showing termination modal...")
                 setShowTerminationModal(true)
+                setQuizStarted(false)
                 // Redirect to review page after 2 seconds
                 setTimeout(() => {
                   console.log("Redirecting to review page...")
@@ -327,27 +375,32 @@ export default function ParticipantQuiz() {
             setSessionStatus(status)
             
             // Start the quiz when session becomes active
-            if (status === "active" && gameState === "waiting" && questions.length > 0) {
+            if (status === "active" && gameState === "waiting" && questions.length > 0 && !quizStarted) {
               console.log("Session is now active (polling), starting quiz...")
               console.log("Current state:", { status, gameState, questionsLength: questions.length, questionIndex })
               
               // Always start from question 1 for proctoring
               const startIndex = 0
               
+              // Set question index first, then current question to prevent race conditions
+              setQuestionIndex(startIndex)
               setCurrentQuestion(questions[startIndex])
               setGameState("active")
               setTimeRemaining(questions[startIndex].timeLimit)
-              setQuestionIndex(startIndex)
+              setHiddenOptions([])
+              setActivePowerUp(null)
+              setQuizStarted(true)
               
               // Save the starting question index for proctoring
               saveQuestionProgress(startIndex)
             } else {
-              console.log("Not starting quiz (polling):", { status, gameState, questionsLength: questions.length })
+              console.log("Not starting quiz (polling):", { status, gameState, questionsLength: questions.length, quizStarted })
             }
             
             if (status === "completed" || status === "paused" && !showTerminationModal) {
               console.log("Quiz terminated/stopped detected via polling! Showing termination modal...")
               setShowTerminationModal(true)
+              setQuizStarted(false)
               setTimeout(() => {
                 console.log("Redirecting to review page...")
                 router.push(`/participant/review/${quizCode}?name=${encodeURIComponent(playerName)}`)
@@ -376,11 +429,12 @@ export default function ParticipantQuiz() {
         eventSource.close()
       }
     }
-  }, [quizCode, showTerminationModal, router, gameState, questions])
+  }, [quizCode, showTerminationModal, router, gameState, questions, quizStarted])
 
   // Auto-redirect when quiz is completed
   useEffect(() => {
     if (gameState === "completed") {
+      setQuizStarted(false)
       // Show completion message for 2 seconds, then redirect
       setTimeout(() => {
         router.push(`/participant/review/${quizCode}?name=${encodeURIComponent(playerName)}`)
@@ -389,19 +443,8 @@ export default function ParticipantQuiz() {
   }, [gameState, quizCode, playerName, router])
 
   // When moving to next question, update currentQuestion and reset hidden options
-  useEffect(() => {
-    console.log("Question progression useEffect triggered:", { questionIndex, questionsLength: questions.length, gameState })
-    if (questions.length > 0 && questionIndex < questions.length && gameState === "waiting") {
-      console.log(`Moving to question ${questionIndex + 1}/${questions.length}`)
-      const question = questions[questionIndex]
-      console.log("Setting current question:", question)
-      setCurrentQuestion(question)
-      setTimeRemaining(question.timeLimit)
-      setGameState("active")
-      setHiddenOptions([])
-      setActivePowerUp(null)
-    }
-  }, [questionIndex, questions, gameState])
+  // REMOVED: This useEffect was causing conflicts with handleNextQuestion's setTimeout
+  // The question progression is now handled entirely by handleNextQuestion
 
   // Handle next question manually
   const handleNextQuestion = () => {
@@ -409,8 +452,10 @@ export default function ParticipantQuiz() {
     if (questionIndex < questions.length - 1) {
       const nextIndex = questionIndex + 1
       console.log(`Manually moving to next question: ${nextIndex + 1}/${questions.length}`)
-      setQuestionIndex(nextIndex)
+      
+      // Set game state to waiting to disable proctoring during transition
       setGameState("waiting")
+      setQuestionIndex(nextIndex)
       setSelectedAnswer(null)
       setCurrentQuestion(null)
       setShowFeedback(false)
@@ -424,15 +469,17 @@ export default function ParticipantQuiz() {
       // Save progress for proctoring
       saveQuestionProgress(nextIndex)
       
-      // Set the next question after a brief delay
+      // Set the next question after a brief delay to allow proctoring to disable
       setTimeout(() => {
         if (nextIndex < questions.length) {
           console.log("Setting next question:", questions[nextIndex])
           setCurrentQuestion(questions[nextIndex])
           setGameState("active")
           setTimeRemaining(questions[nextIndex].timeLimit)
+          setHiddenOptions([])
+          setActivePowerUp(null)
         }
-      }, 100)
+      }, 500) // Increased delay to 500ms to ensure proctoring is properly disabled
     } else {
       console.log("All questions completed!")
       setGameState("completed")
@@ -443,6 +490,9 @@ export default function ParticipantQuiz() {
   const handleSkipQuestion = () => {
     console.log("handleSkipQuestion called, current questionIndex:", questionIndex)
     if (questionIndex < questions.length - 1) {
+      // Temporarily disable proctoring during skip action
+      // setProctoringDisabled(true) // This state is no longer used
+      
       const nextIndex = questionIndex + 1
       console.log(`Skipping to next question: ${nextIndex + 1}/${questions.length}`)
       
@@ -479,15 +529,17 @@ export default function ParticipantQuiz() {
       // Save progress for proctoring
       saveQuestionProgress(nextIndex)
       
-      // Set the next question after a brief delay
+      // Set the next question after a brief delay to allow proctoring to disable
       setTimeout(() => {
         if (nextIndex < questions.length) {
           console.log("Setting next question:", questions[nextIndex])
           setCurrentQuestion(questions[nextIndex])
           setGameState("active")
           setTimeRemaining(questions[nextIndex].timeLimit)
+          setHiddenOptions([])
+          setActivePowerUp(null)
         }
-      }, 100)
+      }, 500) // Increased delay to 500ms to ensure proctoring is properly disabled
     } else {
       console.log("All questions completed!")
       setGameState("completed")
@@ -544,12 +596,21 @@ export default function ParticipantQuiz() {
 
   const handleAnswerSelect = (answer: string | number) => {
     if (gameState !== "active") return
+    
+    // Temporarily disable proctoring during answer selection
+    // setProctoringDisabled(true) // This state is no longer used
+    
     setSelectedAnswer(answer)
     // Reset hidden options and double points after answer
     setHiddenOptions([])
     setActivePowerUp(null)
     // Immediately submit answer without delay, passing the answer directly
     handleSubmitAnswer(answer)
+    
+    // Re-enable proctoring after a short delay
+    setTimeout(() => {
+      // setProctoringDisabled(false) // This state is no longer used
+    }, 2000)
   }
 
   // Handlers for new question types
@@ -595,8 +656,22 @@ export default function ParticipantQuiz() {
     })
   }
 
+  const handleResetQuestion = () => {
+    if (gameState !== "active") return
+    
+    if (currentQuestion?.type === "matching-pairs" || currentQuestion?.type === "matching_pairs") {
+      setMatchingAnswers({})
+      setSelectedLeftItem(null)
+    } else if (currentQuestion?.type === "ordering") {
+      setOrderingAnswers([])
+    }
+  }
+
   const handleSubmitNewQuestionType = () => {
     if (gameState !== "active") return
+    
+    // Temporarily disable proctoring during answer submission
+    // setProctoringDisabled(true) // This state is no longer used
     
     let answer: any = null
     let isCorrect = false
@@ -609,7 +684,7 @@ export default function ParticipantQuiz() {
         
         // Check against the correct answer from the database
         try {
-          const correctPairs = JSON.parse(currentQuestion.correct_answer || '[]')
+          const correctPairs = JSON.parse(String(currentQuestion.correct_answer || '[]'))
           if (Array.isArray(correctPairs) && correctPairs.length > 0) {
             // For matching pairs, we need to check if the user's matches align with the correct pairs
             // The correct_answer contains the original pairs, so we need to verify the matching logic
@@ -638,7 +713,7 @@ export default function ParticipantQuiz() {
         
         // Check against the correct answer from the database
         try {
-          const correctOrder = JSON.parse(currentQuestion.correct_answer || '[]')
+          const correctOrder = JSON.parse(String(currentQuestion.correct_answer || '[]'))
           if (Array.isArray(correctOrder) && correctOrder.length === orderingAnswers.length) {
             // Compare the user's order with the correct order
             isCorrect = orderingAnswers.every((item, index) => item === correctOrder[index])
@@ -656,6 +731,14 @@ export default function ParticipantQuiz() {
     
     if (answer !== null) {
       handleSubmitAnswer(answer, isCorrect)
+      
+      // Re-enable proctoring after a short delay
+      setTimeout(() => {
+        // setProctoringDisabled(false) // This state is no longer used
+      }, 2000)
+    } else {
+      // Re-enable proctoring if no answer was submitted
+      // setProctoringDisabled(false) // This state is no longer used
     }
   }
 
@@ -750,15 +833,17 @@ export default function ParticipantQuiz() {
   // Function to update participant stats in database
   const updateParticipantStats = async (stats: PlayerStats) => {
     try {
-      const response = await fetch('/api/sessions/participants/update', {
-        method: 'PATCH',
+      const response = await fetch('/api/sessions/update-stats', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sessionCode: quizCode,
+          code: quizCode,
           username: playerName,
-          score: stats.score,
-          streak: stats.streak,
-          accuracy: stats.accuracy,
+          stats: {
+            score: stats.score,
+            streak: stats.streak,
+            accuracy: stats.accuracy,
+          },
         }),
       })
 
@@ -863,21 +948,25 @@ export default function ParticipantQuiz() {
       setSelectedAnswer(null)
       
       // Automatically move to next question immediately
-      setTimeout(() => {
-        if (questionIndex < questions.length - 1) {
-          handleNextQuestion()
-        } else {
-          setGameState("completed")
-        }
-      }, 1000)
+      if (questionIndex < questions.length - 1) {
+        handleNextQuestion()
+      } else {
+        setGameState("completed")
+      }
     }, 1000)
   }
 
+  // Request fullscreen when quiz starts
   useEffect(() => {
-    // Request fullscreen when quiz starts
     if (gameState === "active") {
       const requestFullscreen = async () => {
         try {
+          // Check if document has focus first
+          if (!document.hasFocus()) {
+            console.log('Document not focused, skipping auto fullscreen')
+            return
+          }
+          
           const elem = document.documentElement
           if (elem.requestFullscreen) {
             await elem.requestFullscreen()
@@ -892,8 +981,8 @@ export default function ParticipantQuiz() {
         }
       }
       
-      // Add a small delay to ensure the page is fully loaded
-      setTimeout(requestFullscreen, 500)
+      // Add a longer delay to ensure user interaction
+      setTimeout(requestFullscreen, 2000)
     }
     // Exit fullscreen when quiz ends
     if (gameState === "completed" || gameState === "waiting") {
@@ -902,136 +991,6 @@ export default function ParticipantQuiz() {
       }
     }
   }, [gameState])
-
-  // Proctoring event handler
-  useEffect(() => {
-    let fullscreenRequestInProgress = false
-    
-    function triggerProctorViolation() {
-      if (violationTriggeredRef.current || fullscreenRequestInProgress) return; // Prevent double trigger
-      violationTriggeredRef.current = true;
-      
-      console.log("Proctoring violation detected!")
-      setProctorViolations((prev) => {
-        const newCount = prev + 1
-        console.log(`Violation count: ${newCount}`)
-        
-        if (newCount >= 3) {
-          console.log("Max violations reached, redirecting to disqualified page")
-          router.replace("/participant/quiz/disqualified");
-          return newCount
-        } else {
-          console.log("Showing proctor modal")
-          setShowProctorModal(true)
-          return newCount
-        }
-      })
-    }
-    
-    function handleVisibilityChange() {
-      if (document.visibilityState === "hidden" && gameState === "active") {
-        console.log("Tab/window hidden - proctoring violation")
-        triggerProctorViolation()
-      }
-    }
-    
-    function handleBlur() {
-      if (gameState === "active") {
-        console.log("Window lost focus - proctoring violation")
-        triggerProctorViolation()
-      }
-    }
-    
-    function handleFullscreenChange() {
-      // Add a small delay to prevent false triggers during fullscreen entry
-      setTimeout(() => {
-        if (!document.fullscreenElement && gameState === "active" && !fullscreenRequestInProgress) {
-          console.log("Exited fullscreen - proctoring violation")
-          triggerProctorViolation()
-        }
-      }, 500)
-    }
-    
-    // Start proctoring immediately when quiz becomes active
-    if (gameState === "active") {
-      console.log("Starting proctoring system for quiz...")
-      
-      // Set flag when requesting fullscreen
-      fullscreenRequestInProgress = true
-      setTimeout(() => {
-        fullscreenRequestInProgress = false
-        console.log("Fullscreen establishment period ended, proctoring fully active")
-      }, 2000) // Allow 2 seconds for fullscreen to be established
-      
-      // Add event listeners immediately
-      window.addEventListener("blur", handleBlur)
-      document.addEventListener("visibilitychange", handleVisibilityChange)
-      document.addEventListener("fullscreenchange", handleFullscreenChange)
-      
-      console.log("Proctoring event listeners added")
-      
-      return () => {
-        console.log("Removing proctoring event listeners")
-        window.removeEventListener("blur", handleBlur)
-        document.removeEventListener("visibilitychange", handleVisibilityChange)
-        document.removeEventListener("fullscreenchange", handleFullscreenChange)
-      }
-    } else {
-      console.log("Quiz not active, proctoring disabled. Game state:", gameState)
-    }
-  }, [gameState, router])
-
-  // Proctoring modal logic (force quit site when timer runs out or after 2 warnings)
-  useEffect(() => {
-    if (showProctorModal) {
-      setProctorTimer(10)
-      if (proctorIntervalRef.current) clearInterval(proctorIntervalRef.current)
-      proctorIntervalRef.current = setInterval(() => {
-        setProctorTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(proctorIntervalRef.current!)
-            setShowProctorModal(false)
-            // Force quit site when timer runs out
-            router.replace("/participant/quiz/disqualified");
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-    } else {
-      if (proctorIntervalRef.current) {
-        clearInterval(proctorIntervalRef.current)
-      }
-      violationTriggeredRef.current = false; // Allow future triggers
-    }
-    return () => {
-      if (proctorIntervalRef.current) {
-        clearInterval(proctorIntervalRef.current)
-      }
-    }
-  }, [showProctorModal, proctorViolations])
-
-  // Resume exam handler
-  function handleResumeExam() {
-    setShowProctorModal(false)
-    // Re-enter fullscreen
-    const requestFullscreen = async () => {
-      try {
-        const elem = document.documentElement
-        if (elem.requestFullscreen) {
-          await elem.requestFullscreen()
-        } else if ((elem as any).webkitRequestFullscreen) {
-          await (elem as any).webkitRequestFullscreen()
-        } else if ((elem as any).msRequestFullscreen) {
-          await (elem as any).msRequestFullscreen()
-        }
-      } catch (error) {
-        console.log("Fullscreen request failed on resume:", error)
-        // Continue without fullscreen if permission denied
-      }
-    }
-    requestFullscreen()
-  }
 
   // Only show game content if questions are loaded
   if (questions.length === 0) {
@@ -1093,38 +1052,34 @@ export default function ParticipantQuiz() {
   }
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen">
-        {showProctorModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 text-center max-w-md mx-auto">
-              <h2 className="text-2xl font-bold mb-4 text-red-600">Proctoring Violation</h2>
-              <p className="mb-2">
-                You exited fullscreen or switched tabs/windows.<br />
-                <span className="text-sm text-gray-600">Violation {proctorViolations} of 3</span>
-              </p>
-              <p className="mb-4 text-sm">
-                You must resume the exam within <span className="font-bold text-red-600">{proctorTimer}</span> seconds or the exam will close.
-              </p>
-              <Button onClick={handleResumeExam} className="mt-2">Resume Exam</Button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      <TooltipProvider>
+        {/* Proctoring Warning Modal */}
+        {showWarning && isBrowser && (
+          <ProctoringWarning
+            message={warningMessage}
+            isVisible={showWarning}
+            onDismiss={() => {
+              // Warning will auto-dismiss after duration
+            }}
+            warningCount={warnings}
+            maxWarnings={proctoringConfig.maxWarnings}
+          />
         )}
+
+        {/* Termination Modal */}
         {showTerminationModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-            <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-8 text-center max-w-md mx-auto">
-              <AlertTriangle className="w-16 h-16 text-red-600 mb-4" />
-              <h2 className="text-2xl font-bold mb-4 text-red-600">Quiz Terminated</h2>
-              <p className="mb-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
+            <div className="bg-gray-800 rounded-lg shadow-2xl p-8 text-center max-w-md mx-auto border border-red-500">
+              <AlertTriangle className="w-16 h-16 text-red-400 mb-4 mx-auto" />
+              <h2 className="text-2xl font-bold mb-4 text-red-400">Quiz Terminated</h2>
+              <p className="mb-4 text-gray-300">
                 The quiz has been terminated by the host. You will be redirected to the dashboard in 2 seconds.
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                If you are not redirected, please click the button below.
-              </p>
-              <Button onClick={() => router.push("/dashboard")} className="mt-2">Go to Dashboard</Button>
             </div>
           </div>
         )}
+
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -1151,10 +1106,22 @@ export default function ParticipantQuiz() {
                      "Disconnected"}
                   </span>
                 </span>
-                {gameState === "active" && (
-                  <span>
-                    Proctoring: <span className="font-medium text-red-600">Active</span>
-                  </span>
+                {(gameState === "active" || gameState === "answered") && isBrowser && (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-400">Proctoring</p>
+                    <p className={`font-medium ${isFullscreen ? 'text-green-400' : 'text-yellow-400'}`}>
+                      {isFullscreen ? 'Active' : 'Not Available'}
+                    </p>
+                    {!isFullscreen && isFullscreenSupported && (
+                      <Button
+                        onClick={() => enterFullscreen().catch(() => console.log('Fullscreen request failed'))}
+                        size="sm"
+                        className="mt-1 text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700"
+                      >
+                        Enable Fullscreen
+                      </Button>
+                    )}
+                  </div>
                 )}
                 {connectionStatus === "disconnected" && (
                   <Button
@@ -1325,13 +1292,7 @@ export default function ParticipantQuiz() {
                           </div>
                           
                           {/* Debug logging */}
-                          {console.log("Rendering question:", {
-                            type: currentQuestion.type,
-                            matchingPairs: currentQuestion.matchingPairs,
-                            dragDropItems: currentQuestion.dragDropItems,
-                            orderingItems: currentQuestion.orderingItems
-                          })}
-
+                          
                           {currentQuestion.type === "multiple-choice" || currentQuestion.type === "multiple_choice" ? (
                             <div className="space-y-4 max-w-3xl mx-auto">
                               {currentQuestion.options && currentQuestion.options.length > 0 ? (
@@ -1512,6 +1473,7 @@ export default function ParticipantQuiz() {
                               <div className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
                                 Arrange the items in the correct order by clicking them in sequence.
                               </div>
+                              
                               <div className="space-y-3">
                                 {currentQuestion.orderingItems?.map((item, index) => (
                                   <Button
@@ -1711,7 +1673,7 @@ export default function ParticipantQuiz() {
             )}
           </div>
         </div>
-      </div>
-    </TooltipProvider>
+      </TooltipProvider>
+    </div>
   )
 }

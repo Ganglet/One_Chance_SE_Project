@@ -40,27 +40,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Participant not found in session' }, { status: 404 })
     }
 
-    // Update the participant with enhanced statistics
+    // Update the participant with only the fields that exist in the database schema
     const updatedParticipant = await prisma.session_participants.update({
       where: { id: participant.id },
       data: {
         score: stats.score || participant.score,
         streak: stats.streak || participant.streak,
         accuracy: stats.accuracy || participant.accuracy,
-        // Enhanced statistics fields
-        totalAnswers: stats.totalAnswered || 0,
-        correctAnswers: stats.correctAnswers || 0,
-        incorrectAnswers: (stats.totalAnswered || 0) - (stats.correctAnswers || 0),
-        averageTimeTaken: stats.averageTimeTaken || 0,
-        totalTimeTaken: stats.totalTimeTaken || 0,
-        totalPointsEarned: stats.totalPointsEarned || stats.score || 0,
-        fastestAnswer: stats.fastestAnswer || 0,
-        slowestAnswer: stats.slowestAnswer || 0,
-        questionsAnswered: stats.questionsAnswered || stats.totalAnswered || 0,
-        questionsCorrect: stats.questionsCorrect || stats.correctAnswers || 0,
-        questionsIncorrect: stats.questionsIncorrect || ((stats.totalAnswered || 0) - (stats.correctAnswers || 0)),
-        averagePointsPerQuestion: stats.averagePointsPerQuestion || 0,
-        efficiency: stats.efficiency || stats.accuracy || 0,
       },
     })
 

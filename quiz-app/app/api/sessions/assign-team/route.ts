@@ -80,6 +80,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'code required' }, { status: 400 })
     }
 
+    console.log('Auto-assigning teams for session code:', code)
+
     // Find session
     const session = await prisma.quiz_sessions.findFirst({
       where: { code },
@@ -98,13 +100,18 @@ export async function PATCH(req: NextRequest) {
     })
     
     if (!session) {
+      console.log('Session not found for code:', code)
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
     const teams = session.quizzes.teams
     const participants = session.session_participants.filter((p: any) => !p.team) // Only unassigned participants
     
+    console.log('Found teams:', teams.length, teams.map((t: any) => t.name))
+    console.log('Found participants:', participants.length, participants.map((p: any) => p.users.username))
+    
     if (teams.length === 0) {
+      console.log('No teams found for this quiz')
       return NextResponse.json({ error: 'No teams found for this quiz' }, { status: 400 })
     }
 
@@ -114,6 +121,8 @@ export async function PATCH(req: NextRequest) {
       const teamIndex = i % teams.length
       const team = teams[teamIndex]
       const participant = participants[i]
+      
+      console.log(`Assigning ${participant.users.username} to team ${team.name}`)
       
       const updatedParticipant = await prisma.session_participants.update({
         where: { id: participant.id },
@@ -125,6 +134,8 @@ export async function PATCH(req: NextRequest) {
         team: team.name
       })
     }
+
+    console.log('Team assignments completed:', assignments)
 
     return NextResponse.json({ 
       success: true,

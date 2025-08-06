@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertTriangle, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 
-export default function DisqualifiedPage() {
+export default function TeamDisqualifiedPage() {
   const router = useRouter()
 
   useEffect(() => {
@@ -41,9 +41,9 @@ export default function DisqualifiedPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Quiz Violation Detected</h3>
+              <h3 className="text-lg font-semibold">Team Quiz Violation Detected</h3>
               <p className="text-gray-600 dark:text-gray-400">
-                You have been disqualified from the quiz due to multiple proctoring violations.
+                You have been disqualified from the team quiz due to multiple proctoring violations.
               </p>
             </div>
             

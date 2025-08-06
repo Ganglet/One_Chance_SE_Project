@@ -131,6 +131,28 @@ export default function HostTeamLobby() {
   const handleStartQuiz = async () => {
     if (!joinCode) return
     
+    // Check if all participants have joined a team
+    const participantsWithoutTeam = participants.filter(p => !p.team)
+    if (participantsWithoutTeam.length > 0) {
+      toast({
+        title: "Cannot Start Quiz",
+        description: `All participants must join a team first. ${participantsWithoutTeam.length} participant(s) still need to join a team.`,
+        variant: "destructive",
+      })
+      return
+    }
+    
+    // Check if at least one team has members (changed from requiring all teams to have members)
+    const teamsWithMembers = teams.filter(t => t.members.length > 0)
+    if (teamsWithMembers.length === 0) {
+      toast({
+        title: "Cannot Start Quiz",
+        description: "At least one team must have members to start the quiz.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     try {
       // Update session status to active
       const res = await fetch("/api/sessions/status", {
@@ -514,12 +536,22 @@ export default function HostTeamLobby() {
                     <span className="font-bold text-blue-600">{teams.filter(t => t.members.length > 0).length}/{teams.length}</span>
                   </div>
                   <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">All Participants in Teams</span>
+                    <span className="font-bold text-blue-600">{participants.filter(p => p.team).length}/{participantCount}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Ready to Start</span>
-                    <span className="font-bold text-blue-600">{participantCount > 0 ? 'Yes' : 'No'}</span>
+                    <span className="font-bold text-blue-600">
+                      {participantCount > 0 && participants.filter(p => p.team).length === participantCount && teams.filter(t => t.members.length > 0).length > 0 ? 'Yes' : 'No'}
+                    </span>
                   </div>
                 </div>
 
-                <Progress value={participantCount > 0 ? 100 : 0} className="h-2 [&>div]:bg-blue-500" />
+                <Progress value={
+                  participantCount > 0 
+                    ? Math.min(100, (participants.filter(p => p.team).length / participantCount) * 100)
+                    : 0
+                } className="h-2 [&>div]:bg-blue-500" />
 
                 {/* Action Buttons */}
                 <div className="space-y-3 pt-4">
@@ -527,7 +559,11 @@ export default function HostTeamLobby() {
                     onClick={handleStartQuiz} 
                     className="w-full transition-element bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                     size="lg"
-                    disabled={participantCount === 0}
+                    disabled={
+                      participantCount === 0 || 
+                      participants.filter(p => p.team).length !== participantCount ||
+                      teams.filter(t => t.members.length > 0).length === 0
+                    }
                   >
                     <Play className="w-4 h-4 mr-2" />
                     Start Team Quiz

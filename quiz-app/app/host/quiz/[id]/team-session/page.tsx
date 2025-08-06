@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, Users, Target, Clock, Star, Medal, Award, BarChart3, CheckCircle, XCircle, AlertTriangle, Shield, Download, X, TrendingUp, TrendingDown, Activity, Zap, Eye, EyeOff, ChevronDown, ChevronUp, Scatter } from "lucide-react"
+import { Trophy, Users, Target, Clock, Star, Medal, Award, BarChart3, CheckCircle, XCircle, AlertTriangle, Shield, Download, X, TrendingUp, TrendingDown, Activity, Zap, Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react"
 import { useParams, useSearchParams } from "next/navigation"
 import { useRouter } from "next/navigation"
 import { 
@@ -251,8 +251,8 @@ export default function TeamQuizSession() {
     }
     
     fetchSession()
-    // Poll for session updates every 3 seconds for better real-time updates
-    const interval = setInterval(fetchSession, 3000)
+    // Poll for session updates every 30 seconds to reduce blinking
+    const interval = setInterval(fetchSession, 30000)
     return () => clearInterval(interval)
   }, [searchParams])
 
@@ -693,14 +693,14 @@ export default function TeamQuizSession() {
 
             <div class="section">
                 <h2>Team Performance</h2>
-                ${teams?.map(team => `
+                ${teams?.map((team: any) => `
                     <div class="team-section">
                         <div class="team-header">
                             <div class="team-color" style="background-color: ${team.color}"></div>
                             <div class="team-name">${team.name}</div>
                         </div>
                         <div class="participant-list">
-                            ${participants?.filter(p => p.team === team.name).map(participant => `
+                            ${participants?.filter((p: any) => p.team === team.name).map((participant: any) => `
                                 <div class="participant-card">
                                     <div class="participant-name">${participant.name}</div>
                                     <div class="participant-stats">
@@ -739,7 +739,7 @@ export default function TeamQuizSession() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${participants?.sort((a, b) => b.score - a.score).map((participant, index) => `
+                        ${participants?.sort((a: any, b: any) => b.score - a.score).map((participant: any, index: any) => `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>${participant.name}</td>
@@ -773,7 +773,7 @@ export default function TeamQuizSession() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${questions?.map((question, index) => `
+                        ${questions?.map((question: any, index: any) => `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>${question.question}</td>

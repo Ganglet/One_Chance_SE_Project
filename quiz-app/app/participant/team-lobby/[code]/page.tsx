@@ -414,8 +414,8 @@ export default function TeamParticipantLobby() {
                             : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
                         }`}
                         style={{ 
-                          borderColor: currentTeam === team.name ? undefined : team.color,
-                          boxShadow: currentTeam === team.name ? `0 8px 25px ${team.color}40` : `0 4px 15px ${team.color}20`
+                          borderColor: currentTeam === team.name ? undefined : (team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color),
+                          boxShadow: currentTeam === team.name ? `0 8px 25px ${team.color}40` : `0 4px 15px ${(team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color)}20`
                         }}
                         onClick={() => handleJoinTeam(team.name)}
                       >
@@ -424,12 +424,12 @@ export default function TeamParticipantLobby() {
                           <div className="flex items-center gap-3">
                             <div 
                               className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg"
-                              style={{ backgroundColor: team.color }}
+                              style={{ backgroundColor: team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color }}
                             >
                               {teamIndex + 1}
                             </div>
                             <div>
-                              <h3 className="text-xl font-bold text-gray-900" style={{ color: team.color }}>
+                              <h3 className="text-xl font-bold text-gray-900" style={{ color: team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color }}>
                                 {team.name}
                               </h3>
                               <p className="text-sm text-gray-600">
@@ -466,8 +466,8 @@ export default function TeamParticipantLobby() {
                                     : 'border-gray-300 bg-gray-200 border-dashed'
                                 }`}
                                 style={{
-                                  borderColor: member ? (isCurrentUser ? undefined : team.color) : undefined,
-                                  boxShadow: member ? `0 2px 10px ${team.color}40` : undefined
+                                  borderColor: member ? (isCurrentUser ? undefined : (team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color)) : undefined,
+                                  boxShadow: member ? `0 2px 10px ${(team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color)}40` : undefined
                                 }}
                               >
                                 {member ? (
@@ -476,7 +476,7 @@ export default function TeamParticipantLobby() {
                                       className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mb-1 ${
                                         isCurrentUser ? 'bg-green-500' : ''
                                       }`}
-                                      style={{ backgroundColor: isCurrentUser ? undefined : team.color }}
+                                      style={{ backgroundColor: isCurrentUser ? undefined : (team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color) }}
                                     >
                                       {member.charAt(0).toUpperCase()}
                                     </div>
@@ -515,7 +515,7 @@ export default function TeamParticipantLobby() {
                               className="h-2 rounded-full transition-all duration-300"
                               style={{ 
                                 width: `${(team.members.length / team.maxMembers) * 100}%`,
-                                backgroundColor: team.color
+                                backgroundColor: team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color
                               }}
                             />
                           </div>
@@ -526,7 +526,7 @@ export default function TeamParticipantLobby() {
                           <div className="mt-4">
                             <Button 
                               className="w-full transition-all duration-200"
-                              style={{ backgroundColor: team.color }}
+                              style={{ backgroundColor: team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color }}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleJoinTeam(team.name)
@@ -588,15 +588,15 @@ export default function TeamParticipantLobby() {
                         if (teamMembers.length === 0) return null
                         
                         return (
-                          <div key={team.id} className="border rounded-lg p-4" style={{ borderColor: team.color }}>
+                          <div key={team.id} className="border rounded-lg p-4" style={{ borderColor: team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color }}>
                             <div className="flex items-center gap-2 mb-3">
                               <div 
                                 className="w-6 h-6 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                                style={{ backgroundColor: team.color }}
+                                style={{ backgroundColor: team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color }}
                               >
                                 {teams.findIndex(t => t.id === team.id) + 1}
                               </div>
-                              <h4 className="font-semibold text-gray-900" style={{ color: team.color }}>
+                              <h4 className="font-semibold text-gray-900" style={{ color: team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color }}>
                                 {team.name} ({teamMembers.length}/{team.maxMembers})
                               </h4>
                             </div>

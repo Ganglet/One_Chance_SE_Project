@@ -153,21 +153,34 @@ model quizzes {
 }
 
 model session_participants {
-  id            Int           @id @default(autoincrement())
-  session_id    Int
-  user_id       Int
-  join_code     String?       @db.VarChar(10)
-  team          String?       @db.VarChar(100) // Team name for team quizzes
-  score         Int?          @default(0)
-  streak        Int?          @default(0)
-  accuracy      Float?        @default(0) @db.Float
-  joined_at     DateTime?     @default(now()) @db.Timestamp(0)
-  answers       answers[]
-  quiz_sessions quiz_sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "session_participants_ibfk_1")
-  users         users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "session_participants_ibfk_2")
+  id                    Int                     @id @default(autoincrement())
+  session_id            Int
+  user_id               Int
+  join_code             String?                 @db.VarChar(10)
+  team                  String?                 @db.VarChar(100) // Team name for team quizzes
+  score                 Int?                    @default(0)
+  streak                Int?                    @default(0)
+  accuracy              Float?                  @default(0) @db.Float
+  joined_at             DateTime?               @default(now()) @db.Timestamp(0)
+  answers               answers[]
+  proctoring_violations proctoring_violations[]
+  quiz_sessions         quiz_sessions           @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "session_participants_ibfk_1")
+  users                 users                   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "session_participants_ibfk_2")
 
   @@index([session_id], map: "session_id")
   @@index([user_id], map: "user_id")
+}
+
+model proctoring_violations {
+  id                     Int                  @id @default(autoincrement())
+  session_participant_id Int
+  violation_type         String               @db.VarChar(100) // e.g., "tab_switch", "fullscreen_exit", "camera_disconnect"
+  violation_reason       String               @db.VarChar(255)
+  timestamp              DateTime             @default(now()) @db.Timestamp(0)
+  session_participants   session_participants @relation(fields: [session_participant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([session_participant_id], map: "session_participant_id")
+  @@index([timestamp], map: "timestamp")
 }
 
 model users {

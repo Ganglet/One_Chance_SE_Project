@@ -47,6 +47,30 @@ export default function TeamQuizReview() {
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
   const [leaderboard, setLeaderboard] = useState<any[]>([])
 
+  // Prevent back button navigation
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault()
+      window.history.pushState(null, '', window.location.href)
+    }
+
+    // Push current state to prevent back navigation
+    window.history.pushState(null, '', window.location.href)
+    
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
   // Fetch session and quiz data
   useEffect(() => {
     async function fetchData() {
@@ -168,6 +192,67 @@ export default function TeamQuizReview() {
     fetchData()
   }, [quizCode, playerName])
 
+  // Separate effect to update teams when quizInfo changes
+  useEffect(() => {
+    if (quizInfo?.teams && Array.isArray(quizInfo.teams)) {
+      const mappedTeams = quizInfo.teams.map((team: any) => ({
+        id: team.id.toString(),
+        name: team.name,
+        color: team.color,
+        members: [],
+        score: 0,
+        accuracy: 0
+      }))
+      setTeams(mappedTeams)
+    }
+  }, [quizInfo])
+
+  // Separate effect to update teams with participant data
+  useEffect(() => {
+    async function updateTeamsWithParticipants() {
+      if (teams.length > 0) {
+        try {
+          const participantsRes = await fetch(`/api/sessions/participants?code=${quizCode}`)
+          if (participantsRes.ok) {
+            const participantsData = await participantsRes.json()
+            
+            const updatedTeams = teams.map((team) => {
+              const teamMembers = participantsData.participants.filter((p: any) => p.team === team.name)
+              const memberUsernames = teamMembers.map((p: any) => p.users.username)
+              
+              // Calculate team score from participant data
+              const teamScore = teamMembers.reduce((sum: number, p: any) => sum + (p.score || 0), 0)
+              const teamAccuracy = teamMembers.length > 0 
+                ? Math.round(teamMembers.reduce((sum: number, p: any) => sum + (p.accuracy || 0), 0) / teamMembers.length)
+                : 0
+              
+              return {
+                ...team,
+                members: memberUsernames,
+                score: teamScore,
+                accuracy: teamAccuracy
+              }
+            })
+            setTeams(updatedTeams)
+            
+            // Find current user's team
+            const currentParticipant = participantsData.participants.find((p: any) => p.users.username === playerName)
+            if (currentParticipant && currentParticipant.team) {
+              const userTeam = updatedTeams.find((t: any) => t.name === currentParticipant.team)
+              if (userTeam) {
+                setCurrentTeam(userTeam)
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error updating teams with participants:", error)
+        }
+      }
+    }
+    
+    updateTeamsWithParticipants()
+  }, [teams.length, quizCode, playerName])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex items-center justify-center">
@@ -207,7 +292,7 @@ export default function TeamQuizReview() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Trophy className="w-8 h-8 text-yellow-400" />
-            <h1 className="text-3xl font-bold text-white">Team Quiz Results</h1>
+            <h1 className="text-3xl font-bold text-cyan-500">Team Quiz Results</h1>
             <Trophy className="w-8 h-8 text-yellow-400" />
           </div>
           <p className="text-gray-400 text-lg">
@@ -219,27 +304,27 @@ export default function TeamQuizReview() {
           {/* Player Performance Summary */}
           <Card className="bg-gray-800 border-gray-700 shadow-xl">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl text-white flex items-center justify-center gap-2">
-                <Star className="w-6 h-6 text-yellow-400" />
+            <CardTitle className="text-2xl text-black flex items-center justify-center gap-2">
+            <Star className="w-6 h-6 text-yellow-400" />
                 Your Performance
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-400 mb-2">{playerStats.score}</div>
+                  <div className="text-3xl font-bold text-white mb-2">{playerStats.score}</div>
                   <p className="text-gray-400">Total Score</p>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-400 mb-2">{playerStats.accuracy}%</div>
+                  <div className="text-3xl font-bold text-white mb-2">{playerStats.accuracy}%</div>
                   <p className="text-gray-400">Accuracy</p>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-400 mb-2">{playerStats.correctAnswers}/{playerStats.totalAnswered}</div>
+                  <div className="text-3xl font-bold text-white mb-2">{playerStats.correctAnswers}/{playerStats.totalAnswered}</div>
                   <p className="text-gray-400">Correct Answers</p>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-orange-400 mb-2">#{playerRank}</div>
+                  <div className="text-3xl font-bold text-white mb-2">#{playerRank}</div>
                   <p className="text-gray-400">Rank</p>
                 </div>
               </div>
@@ -249,7 +334,7 @@ export default function TeamQuizReview() {
                   <div className="flex items-center gap-3 mb-3">
                     <div 
                       className="w-6 h-6 rounded-full"
-                      style={{ backgroundColor: currentTeam.color }}
+                      style={{ backgroundColor: currentTeam.color === '#00ffff' || currentTeam.color === 'cyan' ? '#3b82f6' : currentTeam.color }}
                     />
                     <span className="text-white font-medium">Your Team: {currentTeam.name}</span>
                   </div>
@@ -277,7 +362,7 @@ export default function TeamQuizReview() {
           {/* Team Rankings */}
           <Card className="bg-gray-800 border-gray-700 shadow-xl">
             <CardHeader>
-              <CardTitle className="text-xl text-white flex items-center gap-2">
+              <CardTitle className="text-xl text-black flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-400" />
                 Team Rankings
               </CardTitle>
@@ -288,9 +373,7 @@ export default function TeamQuizReview() {
                   <div
                     key={team.id}
                     className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-                      currentTeam?.name === team.name
-                        ? "border-blue-400 bg-blue-900/20"
-                        : "border-gray-600 bg-gray-700"
+                      "border-gray-600 bg-gray-700"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -308,7 +391,7 @@ export default function TeamQuizReview() {
                         <div className="flex items-center gap-2">
                           <div 
                             className="w-6 h-6 rounded-full"
-                            style={{ backgroundColor: team.color }}
+                            style={{ backgroundColor: team.color === '#00ffff' || team.color === 'cyan' ? '#3b82f6' : team.color }}
                           />
                           <div>
                             <h3 className="font-semibold text-white text-lg">{team.name}</h3>
@@ -326,7 +409,7 @@ export default function TeamQuizReview() {
                     <div className="mt-3 pt-3 border-t border-gray-600">
                       <h4 className="text-sm font-medium text-gray-300 mb-2">Team Members:</h4>
                       <div className="space-y-1">
-                        {team.members.length > 0 ? (
+                        {team.members && team.members.length > 0 ? (
                           team.members.map((member, memberIndex) => {
                             const memberData = leaderboard.find((p: any) => p.username === member)
                             return (
@@ -340,7 +423,7 @@ export default function TeamQuizReview() {
                                 </div>
                                 {memberData && (
                                   <div className="text-right">
-                                    <span className="text-gray-400">{memberData.score} pts</span>
+                                    <span className="text-white">{memberData.score} pts</span>
                                     <span className="text-gray-500 ml-1">({memberData.accuracy}%)</span>
                                   </div>
                                 )}
@@ -375,7 +458,7 @@ export default function TeamQuizReview() {
           {/* Individual Leaderboard */}
           <Card className="bg-gray-800 border-gray-700 shadow-xl">
             <CardHeader>
-              <CardTitle className="text-xl text-white flex items-center gap-2">
+              <CardTitle className="text-xl text-black flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-green-400" />
                 Individual Leaderboard
               </CardTitle>
@@ -433,13 +516,6 @@ export default function TeamQuizReview() {
               className="bg-blue-600 hover:bg-blue-700"
             >
               Back to Dashboard
-            </Button>
-            <Button
-              onClick={() => router.push(`/participant/join/${quizCode}`)}
-              variant="outline"
-              className="border-gray-600 text-gray-300 hover:bg-gray-700"
-            >
-              Join Another Session
             </Button>
           </div>
         </div>

@@ -229,6 +229,14 @@ exports.Prisma.Session_participantsScalarFieldEnum = {
   joined_at: 'joined_at'
 };
 
+exports.Prisma.Proctoring_violationsScalarFieldEnum = {
+  id: 'id',
+  session_participant_id: 'session_participant_id',
+  violation_type: 'violation_type',
+  violation_reason: 'violation_reason',
+  timestamp: 'timestamp'
+};
+
 exports.Prisma.UsersScalarFieldEnum = {
   id: 'id',
   username: 'username',
@@ -296,6 +304,11 @@ exports.Prisma.session_participantsOrderByRelevanceFieldEnum = {
   team: 'team'
 };
 
+exports.Prisma.proctoring_violationsOrderByRelevanceFieldEnum = {
+  violation_type: 'violation_type',
+  violation_reason: 'violation_reason'
+};
+
 exports.Prisma.usersOrderByRelevanceFieldEnum = {
   username: 'username',
   password: 'password',
@@ -347,6 +360,7 @@ exports.Prisma.ModelName = {
   quiz_sessions: 'quiz_sessions',
   quizzes: 'quizzes',
   session_participants: 'session_participants',
+  proctoring_violations: 'proctoring_violations',
   users: 'users'
 };
 

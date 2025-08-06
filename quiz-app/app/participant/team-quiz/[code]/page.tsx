@@ -9,6 +9,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Clock, Trophy, CheckCircle, XCircle, AlertTriangle, Users, Shield } from "lucide-react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
+import { useProctoring } from "@/hooks/useProctoring"
+import { ProctoringWarning } from "@/components/ProctoringWarning"
 
 interface Question {
   id: string
@@ -49,6 +51,7 @@ export default function TeamParticipantQuiz() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const playerName = searchParams.get("name") || "Anonymous"
+  const teamName = searchParams.get("team") || "Anonymous Team"
   const quizCode = params.code as string
 
   const [gameState, setGameState] = useState<"waiting" | "active" | "answered" | "results" | "completed">("waiting")
@@ -61,10 +64,12 @@ export default function TeamParticipantQuiz() {
   const [activePowerUp, setActivePowerUp] = useState<string | null>(null)
   const [hiddenOptions, setHiddenOptions] = useState<number[]>([])
   
+  // State for new question types
   const [matchingAnswers, setMatchingAnswers] = useState<{[key: number]: number}>({})
   const [orderingAnswers, setOrderingAnswers] = useState<string[]>([])
   const [selectedLeftItem, setSelectedLeftItem] = useState<number | null>(null)
 
+  // Optimized reverse lookup for matching answers to improve performance
   const matchedRightItems = useMemo(() => {
     return new Set(Object.values(matchingAnswers))
   }, [matchingAnswers])
@@ -76,29 +81,67 @@ export default function TeamParticipantQuiz() {
     position: 1,
     totalAnswered: 0,
     correctAnswers: 0,
-    // Enhanced statistics
-    averageTimeTaken: 0,
-    totalTimeTaken: 0,
-    fastestAnswer: 0,
-    slowestAnswer: 0,
   })
-
-  const [proctorViolations, setProctorViolations] = useState(0)
-  const [showProctorModal, setShowProctorModal] = useState(false)
-  const [proctorTimer, setProctorTimer] = useState(10)
-  const proctorIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const violationTriggeredRef = useRef(false)
 
   const [questions, setQuestions] = useState<Question[]>([])
   const [questionIndex, setQuestionIndex] = useState(0)
   const [teams, setTeams] = useState<Team[]>([])
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
+  const [allParticipants, setAllParticipants] = useState<any[]>([])
   
+  // New state for quiz termination
   const [showTerminationModal, setShowTerminationModal] = useState(false)
   const [sessionStatus, setSessionStatus] = useState<string>("waiting")
-  const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("connecting")
-  const [showProctoringWarning, setShowProctoringWarning] = useState(false)
-  const [showRestrictionPage, setShowRestrictionPage] = useState(false)
+  const [connectionStatus, setConnectionStatus] = useState<string>("connecting")
+
+  // Calculate enemy teams and current team score
+  const enemyTeams = teams.filter(team => team.id !== currentTeam?.id)
+  const currentTeamScore = currentTeam?.score || 0
+
+  // Check if we're in browser environment
+  const isBrowser = typeof window !== 'undefined'
+
+  // Determine if proctoring should be active
+  const shouldProctoringBeActive = gameState === "active" && !showFeedback && !showTerminationModal
+
+  // Comprehensive proctoring system (only in browser)
+  const proctoringConfig = {
+    maxWarnings: 3, // Increased from 2 to 3 for more leniency
+    warningDuration: 5000,
+    enableFullscreen: shouldProctoringBeActive, // Only enable when quiz is active and not in feedback/transition
+    enableTabSwitchDetection: shouldProctoringBeActive,
+    enableFocusDetection: shouldProctoringBeActive,
+    disqualificationRoute: "/participant/team-quiz/disqualified"
+  }
+
+  const {
+    warnings,
+    isFullscreen,
+    isDisqualified,
+    showWarning,
+    warningMessage,
+    enterFullscreen,
+    exitFullscreen,
+    checkFullscreen,
+    isFullscreenSupported
+  } = useProctoring(isBrowser ? proctoringConfig : {
+    maxWarnings: 0,
+    warningDuration: 0,
+    enableFullscreen: false,
+    enableTabSwitchDetection: false,
+    enableFocusDetection: false,
+    disqualificationRoute: ""
+  })
+
+  // Only activate proctoring when quiz is active and in browser
+  useEffect(() => {
+    if (shouldProctoringBeActive && isFullscreenSupported && typeof window !== 'undefined') {
+      enterFullscreen()
+    } else if (!shouldProctoringBeActive && isFullscreen) {
+      // Exit fullscreen when proctoring should not be active
+      exitFullscreen()
+    }
+  }, [shouldProctoringBeActive, enterFullscreen, exitFullscreen, isFullscreenSupported, isFullscreen])
 
   // Check if participant is already in session
   useEffect(() => {
@@ -136,6 +179,23 @@ export default function TeamParticipantQuiz() {
                 }
               } else {
                 console.log("Successfully joined session")
+                
+                // Try to auto-assign to a team if not already assigned
+                try {
+                  const assignRes = await fetch("/api/sessions/assign-team", {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ code: quizCode })
+                  })
+                  
+                  if (assignRes.ok) {
+                    console.log("Auto-assigned to team")
+                  } else {
+                    console.log("Auto-assignment failed, but continuing")
+                  }
+                } catch (assignError) {
+                  console.log("Auto-assignment error:", assignError)
+                }
               }
             } catch (joinError) {
               console.warn("Error joining session:", joinError)
@@ -205,51 +265,131 @@ export default function TeamParticipantQuiz() {
     fetchQuestions()
   }, [quizCode])
 
-  // Fetch teams and current team
-  useEffect(() => {
-    async function fetchTeams() {
-      try {
-        const res = await fetch(`/api/sessions/participants?code=${quizCode}`)
-        if (res.ok) {
-          const data = await res.json()
-          const participants = data.participants || []
+  const fetchTeams = async () => {
+    try {
+      const res = await fetch(`/api/sessions/teams?code=${quizCode}`)
+      if (res.ok) {
+        const data = await res.json()
+        const teamsData = data.teams || []
+        
+        // Also fetch participants to calculate accurate team scores
+        const participantsRes = await fetch(`/api/sessions/participants?code=${quizCode}`)
+        if (participantsRes.ok) {
+          const participantsData = await participantsRes.json()
+          const participants = participantsData.participants || []
+          
+          console.log("Fetched participants for score calculation:", participants.map((p: any) => ({
+            username: p.users?.username,
+            team: p.team,
+            score: p.score
+          })))
+          
+          // Calculate team scores from participant data
+          const updatedTeams = teamsData.map((team: Team) => {
+            const teamParticipants = participants.filter((p: any) => p.team === team.name)
+            const teamScore = teamParticipants.reduce((sum: number, p: any) => sum + (p.score || 0), 0)
+            
+            console.log(`Team ${team.name} score calculation:`, {
+              participants: teamParticipants.map((p: any) => ({ username: p.users?.username, score: p.score })),
+              totalScore: teamScore
+            })
+            
+            return {
+              ...team,
+              score: teamScore || 0
+            }
+          })
+          
+          setTeams(updatedTeams)
           
           // Find current user's team
-          const currentParticipant = participants.find((p: any) => p.users.username === playerName)
-          if (currentParticipant && currentParticipant.team) {
-            // Get team info from quiz
-            const sessionRes = await fetch(`/api/sessions?code=${quizCode}`)
-            if (sessionRes.ok) {
-              const sessionData = await sessionRes.json()
-              const quizRes = await fetch(`/api/quizzes/${sessionData.session.quiz_id}`)
-              if (quizRes.ok) {
-                const quizData = await quizRes.json()
-                const quiz = quizData.quiz || quizData
-                
-                if (quiz?.teams) {
-                  const userTeam = quiz.teams.find((t: any) => t.name === currentParticipant.team)
-                  if (userTeam) {
-                    setCurrentTeam({
-                      id: userTeam.id.toString(),
-                      name: userTeam.name,
-                      color: userTeam.color,
-                      members: participants
-                        .filter((p: any) => p.team === userTeam.name)
-                        .map((p: any) => p.users.username),
-                      score: 0
-                    })
-                  }
-                }
-              }
+          const userTeam = updatedTeams.find((team: Team) => 
+            team.members.includes(playerName)
+          )
+          if (userTeam) {
+            setCurrentTeam(userTeam)
+          }
+        } else {
+          // Fallback if participants fetch fails
+          const teamsWithDefaultScores = teamsData.map((team: Team) => ({
+            ...team,
+            score: team.score || 0
+          }))
+          setTeams(teamsWithDefaultScores)
+          
+          // Find current user's team
+          const userTeam = teamsWithDefaultScores.find((team: Team) => 
+            team.members.includes(playerName)
+          )
+          if (userTeam) {
+            setCurrentTeam(userTeam)
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching teams:", error)
+      // Keep existing teams if fetch fails
+    }
+  }
+
+  const fetchParticipants = async () => {
+    try {
+      const res = await fetch(`/api/sessions/participants?code=${quizCode}`)
+      if (res.ok) {
+        const data = await res.json()
+        const participants = data.participants || []
+        setAllParticipants(participants) // Update allParticipants state
+        
+        console.log("Fetched participants data:", participants.map((p: any) => ({
+          username: p.users?.username,
+          team: p.team,
+          score: p.score
+        })))
+        
+        // Also update teams with participant data if teams are already loaded
+        if (teams.length > 0) {
+          const updatedTeams = teams.map(team => {
+            const teamParticipants = participants.filter((p: any) => p.team === team.name)
+            const teamScore = teamParticipants.reduce((sum: number, p: any) => sum + (p.score || 0), 0)
+            
+            console.log(`Updating team ${team.name} score from participants:`, {
+              participants: teamParticipants.map((p: any) => ({ username: p.users?.username, score: p.score })),
+              totalScore: teamScore
+            })
+            
+            return {
+              ...team,
+              score: teamScore || 0
+            }
+          })
+          setTeams(updatedTeams)
+          
+          // Update current team if it exists
+          if (currentTeam) {
+            const updatedCurrentTeam = updatedTeams.find(t => t.name === currentTeam.name)
+            if (updatedCurrentTeam) {
+              setCurrentTeam(updatedCurrentTeam)
             }
           }
         }
-      } catch (error) {
-        console.error("Error fetching teams:", error)
       }
+    } catch (error) {
+      console.error("Error fetching participants:", error)
+      // Keep existing participants if fetch fails
     }
-    
+  }
+
+  useEffect(() => {
     fetchTeams()
+    fetchParticipants()
+    
+    // Poll for updates every 1 second for more real-time updates
+    const interval = setInterval(() => {
+      fetchTeams()
+      fetchParticipants()
+    }, 1000)
+    
+    return () => clearInterval(interval)
   }, [quizCode, playerName])
 
   // Setup event source for real-time updates
@@ -272,6 +412,37 @@ export default function TeamParticipantQuiz() {
             console.log(`Session status: ${sessionStatus}`)
             setSessionStatus(sessionStatus)
             
+            // Update live scores if participant data is available
+            if (data.participants && Array.isArray(data.participants)) {
+              console.log("Updating live scores from SSE:", data.participants)
+              // Update teams with real-time participant data
+              if (teams.length > 0) {
+                const updatedTeams = teams.map(team => {
+                  const teamParticipants = data.participants.filter((p: any) => p.team === team.name)
+                  const teamScore = teamParticipants.reduce((sum: number, p: any) => sum + (p.score || 0), 0)
+                  
+                  console.log(`Team ${team.name} score update:`, {
+                    participants: teamParticipants.map((p: any) => ({ username: p.username, score: p.score })),
+                    totalScore: teamScore
+                  })
+                  
+                  return {
+                    ...team,
+                    score: teamScore || 0
+                  }
+                })
+                setTeams(updatedTeams)
+                
+                // Also update current team if it exists
+                if (currentTeam) {
+                  const updatedCurrentTeam = updatedTeams.find(t => t.name === currentTeam.name)
+                  if (updatedCurrentTeam) {
+                    setCurrentTeam(updatedCurrentTeam)
+                  }
+                }
+              }
+            }
+            
             // Start the quiz when session becomes active
             if (sessionStatus === "active" && gameState === "waiting" && questions.length > 0) {
               console.log("Session is now active, starting quiz...")
@@ -282,6 +453,7 @@ export default function TeamParticipantQuiz() {
               
               console.log(`Starting quiz from question ${startIndex + 1}`)
               
+              // Reset all state to ensure clean start
               setQuestionIndex(startIndex)
               setCurrentQuestion(questions[startIndex])
               setGameState("active")
@@ -292,7 +464,6 @@ export default function TeamParticipantQuiz() {
               setMatchingAnswers({})
               setOrderingAnswers([])
               setActivePowerUp(null)
-              setShowProctoringWarning(true)
             } else if (sessionStatus === "completed" && gameState !== "completed") {
               setGameState("completed")
               setSessionStatus("completed")
@@ -304,20 +475,33 @@ export default function TeamParticipantQuiz() {
           } else if (data.type === "session_started") {
             setGameState("active")
             setSessionStatus("active")
-            setShowProctoringWarning(true)
+            // Removed setShowProctoringWarning(true)
           } else if (data.type === "question_started") {
-            setCurrentQuestion(data.question)
-            setQuestionIndex(data.questionIndex || 0)
-            setTimeRemaining(data.question.timeLimit || 30)
-            setSelectedAnswer(null)
-            setShowFeedback(false)
-            setHiddenOptions([])
-            setMatchingAnswers({})
-            setOrderingAnswers([])
-            setActivePowerUp(null)
+            // For team quiz, we handle question progression locally
+            // Only update if we're not currently in the middle of answering
+            if (gameState === "waiting" && !currentQuestion) {
+              const newQuestionIndex = data.questionIndex || 0
+              console.log(`Question started event: index ${newQuestionIndex + 1}, question:`, data.question)
+              
+              setQuestionIndex(newQuestionIndex)
+              setCurrentQuestion(data.question)
+              setTimeRemaining(data.question.timeLimit || 30)
+              setSelectedAnswer(null)
+              setShowFeedback(false)
+              setHiddenOptions([])
+              setMatchingAnswers({})
+              setOrderingAnswers([])
+              setActivePowerUp(null)
+              setGameState("active")
+            } else {
+              console.log("Ignoring question_started event - local progression in progress")
+            }
           } else if (data.type === "question_ended") {
-            setGameState("answered")
-            setShowFeedback(true)
+            // Only handle question_ended if we're not in local progression
+            if (gameState === "active" && !showFeedback) {
+              setGameState("answered")
+              setShowFeedback(true)
+            }
           } else if (data.type === "session_ended") {
             setGameState("completed")
             setSessionStatus("completed")
@@ -381,7 +565,6 @@ export default function TeamParticipantQuiz() {
             setMatchingAnswers({})
             setOrderingAnswers([])
             setActivePowerUp(null)
-            setShowProctoringWarning(true)
           } else if (sessionStatus === "completed" && gameState !== "completed") {
             setGameState("completed")
             router.push(`/participant/team-quiz-review/${quizCode}?name=${encodeURIComponent(playerName)}`)
@@ -422,127 +605,17 @@ export default function TeamParticipantQuiz() {
     }
   }, [gameState, timeRemaining])
 
-  // Proctoring system - improved implementation from regular quiz
-  useEffect(() => {
-    let fullscreenRequestInProgress = false
-    
-    function triggerProctorViolation() {
-      if (violationTriggeredRef.current || fullscreenRequestInProgress) return; // Prevent double trigger
-      violationTriggeredRef.current = true;
-      
-      console.log("Proctoring violation detected!")
-      setProctorViolations((prev) => {
-        const newCount = prev + 1
-        console.log(`Violation count: ${newCount}`)
-        
-        if (newCount >= 3) {
-          console.log("Max violations reached, showing restriction page")
-          setShowRestrictionPage(true)
-          return newCount
-        } else {
-          console.log("Showing proctor modal")
-          setShowProctorModal(true)
-          return newCount
-        }
-      })
-    }
-    
-    function handleVisibilityChange() {
-      if (document.visibilityState === "hidden" && (gameState === "active" || gameState === "answered")) {
-        console.log("Tab/window hidden - proctoring violation")
-        triggerProctorViolation()
-      }
-    }
-    
-    function handleBlur() {
-      if (gameState === "active" || gameState === "answered") {
-        console.log("Window lost focus - proctoring violation")
-        triggerProctorViolation()
-      }
-    }
-    
-    function handleFullscreenChange() {
-      // Add a small delay to prevent false triggers during fullscreen entry
-      setTimeout(() => {
-        if (!document.fullscreenElement && (gameState === "active" || gameState === "answered") && !fullscreenRequestInProgress) {
-          console.log("Exited fullscreen - proctoring violation")
-          triggerProctorViolation()
-        }
-      }, 500)
-    }
-    
-    // Start proctoring immediately when quiz becomes active
-    if (gameState === "active" || gameState === "answered") {
-      console.log("Starting proctoring system for team quiz...")
-      
-      // Set flag when requesting fullscreen
-      fullscreenRequestInProgress = true
-      setTimeout(() => {
-        fullscreenRequestInProgress = false
-        console.log("Fullscreen establishment period ended, proctoring fully active")
-      }, 2000) // Allow 2 seconds for fullscreen to be established
-      
-      // Add event listeners immediately
-      window.addEventListener("blur", handleBlur)
-      document.addEventListener("visibilitychange", handleVisibilityChange)
-      document.addEventListener("fullscreenchange", handleFullscreenChange)
-      
-      console.log("Proctoring event listeners added")
-      
-      return () => {
-        console.log("Removing proctoring event listeners")
-        window.removeEventListener("blur", handleBlur)
-        document.removeEventListener("visibilitychange", handleVisibilityChange)
-        document.removeEventListener("fullscreenchange", handleFullscreenChange)
-      }
-    } else {
-      console.log("Quiz not active, proctoring disabled. Game state:", gameState)
-    }
-  }, [gameState])
-
-  // Proctoring modal logic (force quit site when timer runs out or after 2 warnings)
-  useEffect(() => {
-    if (showProctorModal) {
-      setProctorTimer(10)
-      if (proctorIntervalRef.current) clearInterval(proctorIntervalRef.current)
-      proctorIntervalRef.current = setInterval(() => {
-        setProctorTimer((prev) => {
-          if (prev <= 1) {
-            clearInterval(proctorIntervalRef.current!)
-            setShowProctorModal(false)
-            // Force quit site when timer runs out
-            setGameState("completed")
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-      
-      return () => {
-        if (proctorIntervalRef.current) {
-          clearInterval(proctorIntervalRef.current)
-        }
-      }
-    }
-  }, [showProctorModal])
-
-  // Restriction page auto-redirect
-  useEffect(() => {
-    if (showRestrictionPage) {
-      const timeout = setTimeout(() => {
-        setShowRestrictionPage(false)
-        router.push("/participant/dashboard")
-      }, 5000)
-      
-      return () => clearTimeout(timeout)
-    }
-  }, [showRestrictionPage, router])
-
   // Request fullscreen when quiz starts
   useEffect(() => {
     if (gameState === "active") {
       const requestFullscreen = async () => {
         try {
+          // Check if document has focus first
+          if (!document.hasFocus()) {
+            console.log('Document not focused, skipping auto fullscreen')
+            return
+          }
+          
           const elem = document.documentElement
           if (elem.requestFullscreen) {
             await elem.requestFullscreen()
@@ -557,8 +630,8 @@ export default function TeamParticipantQuiz() {
         }
       }
       
-      // Add a small delay to ensure the page is fully loaded
-      setTimeout(requestFullscreen, 500)
+      // Add a longer delay to ensure user interaction
+      setTimeout(requestFullscreen, 2000)
     }
     // Exit fullscreen when quiz ends
     if (gameState === "completed" || gameState === "waiting") {
@@ -568,39 +641,91 @@ export default function TeamParticipantQuiz() {
     }
   }, [gameState])
 
+  // Monitor question progression for debugging
+  useEffect(() => {
+    console.log("Question progression update:", {
+      questionIndex,
+      currentQuestionId: currentQuestion?.id,
+      gameState,
+      totalQuestions: questions.length
+    })
+  }, [questionIndex, currentQuestion?.id, gameState, questions.length])
+
+  // Synchronize question index with current question
+  useEffect(() => {
+    if (currentQuestion && questions.length > 0) {
+      const expectedIndex = questions.findIndex(q => q.id === currentQuestion.id)
+      if (expectedIndex !== -1 && expectedIndex !== questionIndex) {
+        console.log(`Question index mismatch detected. Expected: ${expectedIndex}, Actual: ${questionIndex}`)
+        console.log("Synchronizing question index...")
+        setQuestionIndex(expectedIndex)
+      }
+    }
+  }, [currentQuestion?.id, questions, questionIndex])
+
   // Safety timeout to prevent getting stuck in answered state
   useEffect(() => {
     if (gameState === "answered") {
       const timeout = setTimeout(() => {
         console.log("Safety timeout triggered - auto-advancing to next question")
-        handleNextQuestion()
-      }, currentQuestion?.type === "multiple-choice" || currentQuestion?.type === "true-false" ? 5000 : 30000) // 5 seconds for MCQ/True-False, 30 seconds for others
+        // Only call handleNextQuestion if we're still in answered state
+        if (gameState === "answered") {
+          handleNextQuestion()
+        } else {
+          console.log("Safety timeout ignored - state changed")
+        }
+      }, 3000) // 3 seconds timeout
       
       return () => clearTimeout(timeout)
     }
-  }, [gameState, questionIndex, currentQuestion?.type])
+  }, [gameState])
 
   const handleNextQuestion = () => {
-    setShowFeedback(false)
-    setSelectedAnswer(null)
-    setHiddenOptions([])
-    setMatchingAnswers({})
-    setOrderingAnswers([])
-    setActivePowerUp(null)
+    console.log("handleNextQuestion called, current questionIndex:", questionIndex)
+    console.log("Current game state:", gameState)
+    console.log("Total questions:", questions.length)
+    console.log("Current question ID:", currentQuestion?.id)
+    
+    // Prevent multiple calls during transition
+    if (gameState === "waiting") {
+      console.log("Already in transition, skipping handleNextQuestion call")
+      return
+    }
     
     if (questionIndex < questions.length - 1) {
       const nextIndex = questionIndex + 1
-      console.log(`Moving to question ${nextIndex + 1} of ${questions.length}`)
+      console.log(`Moving to next question: ${nextIndex + 1}/${questions.length}`)
+      console.log("Next question data:", questions[nextIndex])
+      
+      // Set game state to waiting to disable proctoring during transition
+      setGameState("waiting")
       setQuestionIndex(nextIndex)
-      setCurrentQuestion(questions[nextIndex])
-      setTimeRemaining(questions[nextIndex].timeLimit || 30)
-      setGameState("active") // Ensure we're back in active state
+      setSelectedAnswer(null)
+      setCurrentQuestion(null)
+      setShowFeedback(false)
+      setIsCorrect(false)
+      
+      // Reset new question type state
+      setMatchingAnswers({})
+      setOrderingAnswers([])
+      setSelectedLeftItem(null)
+      
+      // Set the next question after a brief delay
+      setTimeout(() => {
+        if (nextIndex < questions.length && questions[nextIndex]) {
+          console.log("Setting next question:", questions[nextIndex])
+          setCurrentQuestion(questions[nextIndex])
+          setGameState("active")
+          setTimeRemaining(questions[nextIndex].timeLimit)
+          setSelectedAnswer(null)
+        } else {
+          console.error("Invalid nextIndex or question not found:", nextIndex, questions.length)
+          setGameState("completed")
+        }
+      }, 500)
     } else {
-      // Quiz completed
-      console.log("Quiz completed - all questions answered")
+      console.log("All questions completed!")
       setGameState("completed")
-      // Redirect to results
-      router.push(`/participant/team-quiz-review/${quizCode}?name=${encodeURIComponent(playerName)}`)
     }
   }
 
@@ -608,6 +733,8 @@ export default function TeamParticipantQuiz() {
     console.log("Skip question triggered")
     console.log("Current game state:", gameState)
     if (gameState === "active") {
+      // Temporarily disable proctoring during skip action
+      
       console.log("Submitting skip answer")
       // Submit answer as incorrect when skipping
       const timeTaken = (currentQuestion?.timeLimit || 30) - timeRemaining
@@ -657,6 +784,11 @@ export default function TeamParticipantQuiz() {
       console.log(`Question skipped, Points: 0`)
       console.log(`Question ${questionIndex + 1} of ${questions.length} completed`)
       
+      // Re-enable proctoring after a short delay
+      setTimeout(() => {
+        
+      }, 2000)
+      
       // Auto-advance after 2 seconds
       setTimeout(() => {
         handleNextQuestion()
@@ -698,13 +830,32 @@ export default function TeamParticipantQuiz() {
   }
 
   const handleAnswerSelect = (answer: string | number) => {
+    console.log("handleAnswerSelect called with answer:", answer)
+    console.log("Current game state:", gameState)
+    console.log("Current question ID:", currentQuestion?.id)
+    
     if (gameState === "active") {
+      // Prevent multiple submissions for the same question
+      if (selectedAnswer !== null) {
+        console.log("Answer already selected, ignoring duplicate submission")
+        return
+      }
+      
       setSelectedAnswer(answer)
       
       // For MCQ and True/False questions, provide immediate feedback and auto-advance
       if (currentQuestion && (currentQuestion.type === "multiple-choice" || currentQuestion.type === "true-false")) {
         // Check if answer is correct
-        const isCorrect = answer === currentQuestion.correct_answer
+        let isCorrect = false
+        
+        if (currentQuestion.type === "multiple-choice") {
+          // For MCQ, answer is the index, we need to get the option text
+          const selectedOption = currentQuestion.options?.[answer as number]
+          isCorrect = selectedOption === currentQuestion.correct_answer
+        } else {
+          // For True/False, direct comparison
+          isCorrect = answer === currentQuestion.correct_answer
+        }
         
         // Calculate points and stats
         const timeTaken = (currentQuestion.timeLimit || 30) - timeRemaining
@@ -751,13 +902,23 @@ export default function TeamParticipantQuiz() {
         // Update participant stats
         updateParticipantStats(newStats)
         
-        console.log(`Answer submitted: ${answer}, Correct: ${isCorrect}, Points: ${isCorrect ? pointsAwarded : 0}`)
+        console.log(`Answer submitted: ${answer}, Selected option: ${currentQuestion.options?.[answer as number]}, Correct answer: ${currentQuestion.correct_answer}, Correct: ${isCorrect}, Points: ${isCorrect ? pointsAwarded : 0}`)
         console.log(`Question ${questionIndex + 1} of ${questions.length} completed`)
         
-        // Auto-advance after 2 seconds
-        setTimeout(() => {
-          handleNextQuestion()
-        }, 2000)
+        // Check if this was the last question
+        if (questionIndex + 1 >= questions.length) {
+          console.log("This was the last question, completing quiz...")
+          setTimeout(() => {
+            setGameState("completed")
+          }, 2000)
+        } else {
+          // Auto-advance after 2 seconds
+          setTimeout(() => {
+            console.log("Auto-advancing to next question")
+            console.log("Current question index:", questionIndex, "Total questions:", questions.length)
+            handleNextQuestion()
+          }, 2000)
+        }
       }
     }
   }
@@ -798,13 +959,33 @@ export default function TeamParticipantQuiz() {
     
     setOrderingAnswers(prev => {
       const newOrder = [...prev]
+      // Check if this item is already in the order
+      const existingIndex = newOrder.findIndex(item => item === currentQuestion?.orderingItems?.[itemIndex])
+      if (existingIndex !== -1) {
+        // Remove from existing position
+        newOrder.splice(existingIndex, 1)
+      }
+      // Add to new position
       newOrder[newPosition] = currentQuestion?.orderingItems?.[itemIndex] || ""
       return newOrder
     })
   }
 
+  const handleResetQuestion = () => {
+    if (gameState !== "active") return
+    
+    if (currentQuestion?.type === "matching-pairs") {
+      setMatchingAnswers({})
+      setSelectedLeftItem(null)
+    } else if (currentQuestion?.type === "ordering") {
+      setOrderingAnswers([])
+    }
+  }
+
   const handleSubmitNewQuestionType = () => {
     if (gameState !== "active") return
+    
+    // Temporarily disable proctoring during answer submission
     
     let answer: string | number | null = null
     let isCorrect = false
@@ -831,6 +1012,7 @@ export default function TeamParticipantQuiz() {
           description: "Please match all items before submitting.",
           variant: "destructive",
         })
+        // Re-enable proctoring since we're not submitting
         return
       }
     } else if (currentQuestion?.type === "ordering") {
@@ -853,12 +1035,23 @@ export default function TeamParticipantQuiz() {
           description: "Please arrange all items before submitting.",
           variant: "destructive",
         })
+        // Re-enable proctoring since we're not submitting
         return
       }
     }
     
     if (answer !== null) {
       handleSubmitAnswer(answer, isCorrect)
+      
+      // Re-enable proctoring after a short delay
+      setTimeout(() => {
+        
+      }, 2000)
+      
+      // Auto-advance after 2 seconds
+      setTimeout(() => {
+        handleNextQuestion()
+      }, 2000)
     }
   }
 
@@ -939,7 +1132,7 @@ export default function TeamParticipantQuiz() {
         efficiency: stats.accuracy
       }
 
-      await fetch("/api/sessions/update-stats", {
+      const response = await fetch("/api/sessions/update-stats", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -948,6 +1141,11 @@ export default function TeamParticipantQuiz() {
           stats: enhancedStats
         })
       })
+
+      if (response.ok) {
+        console.log("Stats updated successfully")
+        // Don't automatically fetch teams/participants to prevent loops
+      }
     } catch (error) {
       console.error("Error updating stats:", error)
     }
@@ -955,7 +1153,7 @@ export default function TeamParticipantQuiz() {
 
   const saveAnswer = async (questionId: string, selectedOption: string | number | null, isCorrect: boolean, timeTaken: number, pointsAwarded: number, streakAtTime: number) => {
     try {
-      await fetch("/api/sessions/answers", {
+      const response = await fetch("/api/sessions/answers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -969,6 +1167,11 @@ export default function TeamParticipantQuiz() {
           streakAtTime
         })
       })
+
+      if (response.ok) {
+        console.log("Answer saved successfully")
+        // Don't automatically fetch teams/participants to prevent loops
+      }
     } catch (error) {
       console.error("Error saving answer:", error)
     }
@@ -1014,36 +1217,18 @@ export default function TeamParticipantQuiz() {
       // Update participant stats
       updateParticipantStats(newStats)
       
-      // Auto-advance after 2 seconds
-      setTimeout(() => {
-        handleNextQuestion()
-      }, 2000)
-    }
-  }
-
-  const handleProctorModalClose = () => {
-    setShowProctorModal(false)
-    violationTriggeredRef.current = false
-    setProctorTimer(10)
-    
-    // Request fullscreen again
-    const requestFullscreen = async () => {
-      try {
-        const elem = document.documentElement
-        if (elem.requestFullscreen) {
-          await elem.requestFullscreen()
-        } else if ((elem as any).webkitRequestFullscreen) {
-          await (elem as any).webkitRequestFullscreen()
-        } else if ((elem as any).msRequestFullscreen) {
-          await (elem as any).msRequestFullscreen()
-        }
-      } catch (error) {
-        console.log("Fullscreen request failed:", error)
+      // Check if this was the last question
+      if (questionIndex + 1 >= questions.length) {
+        console.log("This was the last question (time up), completing quiz...")
+        setTimeout(() => {
+          setGameState("completed")
+        }, 2000)
+      } else {
+        // Auto-advance after 2 seconds
+        setTimeout(() => {
+          handleNextQuestion()
+        }, 2000)
       }
-    }
-    
-    if (gameState === "active" || gameState === "answered") {
-      requestFullscreen()
     }
   }
 
@@ -1137,83 +1322,37 @@ export default function TeamParticipantQuiz() {
     }
   }, [gameState])
 
+  // Handle quiz completion
+  useEffect(() => {
+    if (gameState === "completed") {
+      console.log("Quiz completed, redirecting to review page...")
+      setTimeout(() => {
+        router.push(`/participant/team-quiz-review/${quizCode}?name=${encodeURIComponent(playerName)}`)
+      }, 2000)
+    }
+  }, [gameState, quizCode, playerName, router])
+
+  // Proctoring is now handled by the useProctoring hook above
+
+  // Only show game content if questions are loaded
+  if (questions.length === 0) {
+    return <div>Loading questions...</div>
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
       <TooltipProvider>
         {/* Proctoring Warning Modal */}
-        {showProctoringWarning && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
-            <div className="bg-gray-800 rounded-lg shadow-2xl p-8 text-center max-w-md mx-auto border border-yellow-500">
-              <AlertTriangle className="w-16 h-16 text-yellow-400 mb-4 mx-auto" />
-              <h2 className="text-2xl font-bold mb-4 text-yellow-400">Proctoring System Active</h2>
-              <div className="text-left mb-6 space-y-3 text-gray-300">
-                <p>⚠️ This quiz uses a proctoring system to ensure fair play:</p>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>Fullscreen mode will be required</li>
-                  <li>Tab switching is not allowed</li>
-                  <li>Keyboard shortcuts are disabled</li>
-                  <li>Right-click is disabled</li>
-                  <li>3 violations will terminate the quiz</li>
-                </ul>
-              </div>
-              <Button 
-                onClick={() => {
-                  setShowProctoringWarning(false)
-                  // Request fullscreen
-                  document.documentElement.requestFullscreen().catch(err => {
-                    console.warn('Failed to enter fullscreen:', err)
-                  })
-                }} 
-                className="bg-yellow-600 hover:bg-yellow-700"
-              >
-                I Understand - Start Quiz
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Restriction Page */}
-        {showRestrictionPage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
-            <div className="bg-gray-800 rounded-lg shadow-2xl p-8 text-center max-w-md mx-auto border border-red-500">
-              <AlertTriangle className="w-16 h-16 text-red-400 mb-4 mx-auto" />
-              <h2 className="text-2xl font-bold mb-4 text-red-400">Access Restricted</h2>
-              <p className="mb-4 text-gray-300">
-                You have violated the proctoring system multiple times. Your access to this quiz has been restricted.
-              </p>
-              <p className="mb-6 text-sm text-gray-400">
-                You will be redirected to the dashboard in 5 seconds.
-              </p>
-              <Button 
-                onClick={() => {
-                  setShowRestrictionPage(false)
-                  router.push("/participant/dashboard")
-                }} 
-                className="bg-red-600 hover:bg-red-700"
-              >
-                Return to Dashboard
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Proctor Modal */}
-        {showProctorModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90">
-            <div className="bg-gray-800 rounded-lg shadow-2xl p-8 text-center max-w-md mx-auto border border-red-500">
-              <h2 className="text-2xl font-bold mb-4 text-red-400">Proctoring Violation</h2>
-              <p className="mb-2 text-gray-300">
-                You exited fullscreen or switched tabs/windows.<br />
-                <span className="text-sm text-gray-400">Violation {proctorViolations} of 3</span>
-              </p>
-              <p className="mb-4 text-sm text-gray-300">
-                You must resume the exam within <span className="font-bold text-red-400">{proctorTimer}</span> seconds or the exam will close.
-              </p>
-              <Button onClick={handleProctorModalClose} className="mt-2 bg-red-600 hover:bg-red-700">
-                Resume Exam
-              </Button>
-            </div>
-          </div>
+        {showWarning && isBrowser && (
+          <ProctoringWarning
+            message={warningMessage}
+            isVisible={showWarning}
+            onDismiss={() => {
+              // Warning will auto-dismiss after duration
+            }}
+            warningCount={warnings}
+            maxWarnings={proctoringConfig.maxWarnings}
+          />
         )}
 
         {/* Termination Modal */}
@@ -1229,146 +1368,139 @@ export default function TeamParticipantQuiz() {
           </div>
         )}
 
-        {/* Main Quiz Interface */}
-        <div className="container mx-auto px-4 py-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-4">
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-cyan-400" style={{ color: '#06b6d4' }}>Team Quiz</h1>
-                <p className="text-gray-400">Code: {quizCode}</p>
-              </div>
-              {currentTeam && (
-                <div className="flex items-center gap-2">
+        {/* Score Display Panel */}
+        {(gameState === "active" || gameState === "answered") && (
+          <div className="fixed top-4 right-4 bg-gray-800/90 border border-gray-600 rounded-lg p-3 w-64 z-10 backdrop-blur-sm">
+            <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm">
+              <Trophy className="w-3 h-3 text-yellow-400" />
+              Live Scores
+            </h3>
+            
+            {/* Your Team */}
+            {currentTeam && (
+              <div className="mb-3">
+                <div className="flex items-center gap-2 mb-1">
                   <div 
-                    className="w-4 h-4 rounded-full" 
+                    className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: currentTeam.color }}
                   />
-                  <span className="text-cyan-400 font-medium text-lg">
-                    {currentTeam.name}
-                  </span>
+                  <span className="text-white font-medium text-xs">Your Team ({currentTeam.name})</span>
                 </div>
-              )}
-              {!currentTeam && (
-                <div className="text-gray-500 text-sm">No team assigned</div>
-              )}
-            </div>
+                
+                {/* Team Score */}
+                <div className="bg-gray-700/80 rounded p-1 mb-1">
+                  <div className="text-center">
+                    <div className="text-sm font-bold text-white">
+                      {currentTeamScore}
+                    </div>
+                    <div className="text-xs text-gray-400">Total Points</div>
+                  </div>
+                </div>
+                
+                {/* Teammates */}
+                <div className="space-y-0.5">
+                  {currentTeam.members.map((member) => {
+                    const memberData = allParticipants.find((p: any) => p.users?.username === member)
+                    return (
+                      <div key={member} className="flex justify-between items-center text-xs">
+                        <span className={`${member === playerName ? 'text-blue-400 font-medium' : 'text-gray-300'}`}>
+                          {member === playerName ? `${member} (You)` : member}
+                        </span>
+                        <span className="text-gray-400">
+                          {memberData?.score || 0} pts
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
             
-            <div className="flex items-center gap-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-400">Player</p>
-                <p className="text-white font-medium">{playerName}</p>
-              </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-400">Score</p>
-                <p className="text-white font-medium">{playerStats.score}</p>
-              </div>
-              {(gameState === "active" || gameState === "answered") && (
-                <div className="text-center">
-                  <p className="text-sm text-gray-400">Violations</p>
-                  <p className={`font-medium ${proctorViolations >= 2 ? 'text-red-400' : 'text-yellow-400'}`}>
-                    {proctorViolations}/3
-                  </p>
+            {/* Enemy Teams */}
+            {enemyTeams.length > 0 && (
+              <div>
+                <div className="text-gray-400 text-xs mb-1">Other Teams</div>
+                <div className="space-y-1">
+                  {enemyTeams.map((team) => (
+                    <div key={team.id} className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full" 
+                        style={{ backgroundColor: team.color }}
+                      />
+                      <span className="text-gray-300 text-xs">{team.name}</span>
+                      <span className="text-gray-400 text-xs ml-auto">{team.score}</span>
+                    </div>
+                  ))}
                 </div>
-              )}
-              {(gameState === "active" || gameState === "answered") && (
-                <div className="text-center">
-                  <p className="text-sm text-gray-400">Proctoring</p>
-                  <p className="text-green-400 font-medium">Active</p>
-                </div>
-              )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Main Quiz Content */}
+        <div className="container mx-auto px-4 py-8">
+          {/* Connection Status */}
+          <div className="mb-4 text-center">
+            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+              connectionStatus === "connected" 
+                ? "bg-green-500/20 text-green-400 border border-green-500/30" 
+                : "bg-red-500/20 text-red-400 border border-red-500/30"
+            }`}>
+              <div className={`w-2 h-2 rounded-full ${
+                connectionStatus === "connected" ? "bg-green-400" : "bg-red-400"
+              }`} />
+              {connectionStatus === "connected" ? "Connected" : "Disconnected"}
             </div>
           </div>
 
-          {/* Game State Content */}
+          {/* Game State Display */}
           {gameState === "waiting" && (
             <div className="text-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
-              <h2 className="text-2xl font-bold text-white mb-2">Waiting for Quiz to Start</h2>
-              <p className="text-gray-400">The host will start the quiz shortly...</p>
-              
-              {/* Debug Information */}
-              <div className="mt-8 p-4 bg-gray-800 rounded-lg text-left max-w-md mx-auto">
-                <h3 className="text-lg font-semibold text-white mb-2">Debug Info:</h3>
-                <div className="text-sm text-gray-300 space-y-1">
-                  <p>Session Status: {sessionStatus}</p>
-                  <p>Game State: {gameState}</p>
-                  <p>Questions Loaded: {questions.length}</p>
-                  <p>Connection: {connectionStatus}</p>
-                  <p>Player: {playerName}</p>
-                  <p>Code: {quizCode}</p>
-                </div>
-                
-                {/* Manual Start Button for Testing */}
-                {questions.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-600">
-                    <p className="text-sm text-gray-400 mb-2">For Testing:</p>
-                    <Button 
-                      onClick={() => {
-                        console.log("Manual start triggered")
-                        setGameState("active")
-                        setCurrentQuestion(questions[0])
-                        setQuestionIndex(0)
-                        setTimeRemaining(questions[0].timeLimit || 30)
-                        setShowProctoringWarning(true)
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700 text-sm"
-                    >
-                      Start Quiz Manually
-                    </Button>
-                    
-                    <Button 
-                      onClick={async () => {
-                        try {
-                          const res = await fetch("/api/sessions/status", {
-                            method: "PATCH",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ code: quizCode, status: "active" })
-                          })
-                          if (res.ok) {
-                            console.log("Session activated manually")
-                            setSessionStatus("active")
-                          }
-                        } catch (error) {
-                          console.error("Error activating session:", error)
-                        }
-                      }}
-                      className="bg-green-600 hover:bg-green-700 text-sm ml-2"
-                    >
-                      Activate Session
-                    </Button>
-                  </div>
-                )}
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
+              <h2 className="text-2xl font-bold mb-2">Waiting for Host</h2>
+              <p className="text-gray-400">The quiz will start when the host begins the session.</p>
+              <div className="mt-4 text-sm text-gray-500">
+                Session Code: <span className="font-mono bg-gray-800 px-2 py-1 rounded">{quizCode}</span>
               </div>
             </div>
           )}
 
+          {/* Active Quiz */}
           {gameState === "active" && currentQuestion && (
-            <div className="space-y-6">
-              {/* Timer and Progress */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-blue-400" />
-                  <span className="text-white font-medium">{timeRemaining}s</span>
+            <div className="max-w-4xl mx-auto">
+              {/* Question Header */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-4">
+                    <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                      Question {questionIndex + 1} of {questions.length}
+                    </Badge>
+                    <Badge variant="secondary" className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+                      {currentQuestion.points} points
+                    </Badge>
+                    <Badge variant="secondary" className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+                      {currentQuestion.type.replace('-', ' ').toUpperCase()}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-red-400" />
+                    <span className="text-lg font-bold text-red-400">{timeRemaining}s</span>
+                  </div>
                 </div>
-                <Progress value={(timeRemaining / (currentQuestion.timeLimit || 30)) * 100} className="w-64" />
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-400" />
-                  <span className="text-white font-medium">{currentQuestion.points} pts</span>
-                </div>
+                
+                {/* Progress Bar */}
+                <Progress 
+                  value={(timeRemaining / (currentQuestion.timeLimit || 30)) * 100} 
+                  className="h-2 bg-gray-700"
+                />
               </div>
 
-              {/* Question */}
-              <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-black">
-                    Question {questionIndex + 1} of {questions.length}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg text-black mb-6">{currentQuestion.question}</p>
-
-                  {/* Question Type Specific UI */}
+              {/* Question Content */}
+              <Card className="bg-gray-800 border-gray-700 mb-6">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold mb-6">{currentQuestion.question}</h2>
+                  
+                  {/* Multiple Choice Questions */}
                   {currentQuestion.type === "multiple-choice" && currentQuestion.options && (
                     <div className="space-y-3">
                       {currentQuestion.options.map((option, index) => (
@@ -1376,160 +1508,190 @@ export default function TeamParticipantQuiz() {
                           key={index}
                           variant={selectedAnswer === index ? "default" : "outline"}
                           className={`w-full justify-start text-left h-auto p-4 ${
-                            hiddenOptions.includes(index) ? "hidden" : ""
+                            selectedAnswer === index 
+                              ? "bg-blue-600 hover:bg-blue-700" 
+                              : "bg-gray-700 hover:bg-gray-600 border-gray-600"
+                          } ${
+                            hiddenOptions.includes(index) ? "opacity-50 pointer-events-none" : ""
                           }`}
                           onClick={() => handleAnswerSelect(index)}
+                          disabled={hiddenOptions.includes(index)}
                         >
-                          <span className="mr-3 font-medium">{String.fromCharCode(65 + index)}.</span>
+                          <span className="font-medium mr-3">{String.fromCharCode(65 + index)}.</span>
                           {option}
                         </Button>
                       ))}
                     </div>
                   )}
 
+                  {/* True/False Questions */}
                   {currentQuestion.type === "true-false" && (
                     <div className="space-y-3">
                       <Button
                         variant={selectedAnswer === "true" ? "default" : "outline"}
-                        className="w-full justify-start text-left h-auto p-4"
+                        className={`w-full justify-start text-left h-auto p-4 ${
+                          selectedAnswer === "true" 
+                            ? "bg-blue-600 hover:bg-blue-700" 
+                            : "bg-gray-700 hover:bg-gray-600 border-gray-600"
+                        }`}
                         onClick={() => handleAnswerSelect("true")}
                       >
-                        <CheckCircle className="w-5 h-5 mr-3 text-green-400" />
+                        <CheckCircle className="w-5 h-5 mr-3" />
                         True
                       </Button>
                       <Button
                         variant={selectedAnswer === "false" ? "default" : "outline"}
-                        className="w-full justify-start text-left h-auto p-4"
+                        className={`w-full justify-start text-left h-auto p-4 ${
+                          selectedAnswer === "false" 
+                            ? "bg-blue-600 hover:bg-blue-700" 
+                            : "bg-gray-700 hover:bg-gray-600 border-gray-600"
+                        }`}
                         onClick={() => handleAnswerSelect("false")}
                       >
-                        <XCircle className="w-5 h-5 mr-3 text-red-400" />
+                        <XCircle className="w-5 h-5 mr-3" />
                         False
                       </Button>
                     </div>
                   )}
 
+                  {/* Matching Pairs Questions */}
                   {currentQuestion.type === "matching-pairs" && currentQuestion.matchingPairs && (
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <h3 className="font-medium text-white mb-3">Left Items</h3>
-                        {currentQuestion.matchingPairs.map((pair, index) => (
-                          <div
-                            key={index}
-                            className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                              selectedLeftItem === index
-                                ? "border-blue-400 bg-blue-900/20"
-                                : matchingAnswers[index] !== undefined
-                                ? "border-green-400 bg-green-900/20"
-                                : "border-gray-600 bg-gray-700 hover:border-gray-500"
-                            }`}
-                            onClick={() => handleMatchingPairSelect(index, -1)}
-                          >
-                            <span className="font-medium text-white">{index + 1}.</span> {pair.left}
-                            {matchingAnswers[index] !== undefined && (
-                              <span className="ml-2 text-green-400 text-sm">✓ Matched</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="space-y-3">
-                        <h3 className="font-medium text-white mb-3">Right Items</h3>
-                        {currentQuestion.matchingPairs.map((pair, index) => (
-                          <div
-                            key={index}
-                            className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                              matchedRightItems.has(index)
-                                ? "border-green-400 bg-green-900/20"
-                                : selectedLeftItem !== null && !matchedRightItems.has(index)
-                                ? "border-blue-400 bg-blue-900/20"
-                                : "border-gray-600 bg-gray-700 hover:border-gray-500"
-                            }`}
-                            onClick={() => {
-                              if (selectedLeftItem !== null && !matchedRightItems.has(index)) {
-                                handleMatchingPairSelect(selectedLeftItem, index)
-                              }
-                            }}
-                          >
-                            <span className="font-medium text-white">{index + 1}.</span> {pair.right}
-                            {matchedRightItems.has(index) && (
-                              <span className="ml-2 text-green-400 text-sm">✓ Matched</span>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      {/* Show current matches */}
-                      {Object.keys(matchingAnswers).length > 0 && (
-                        <div className="col-span-2 mt-4">
-                          <h4 className="font-medium text-white mb-2">Current Matches:</h4>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-6">
+                        {/* Left Items */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 text-blue-400">Left Items</h3>
                           <div className="space-y-2">
-                            {Object.entries(matchingAnswers).map(([leftIndex, rightIndex]) => {
-                              const leftItem = currentQuestion.matchingPairs?.[parseInt(leftIndex)]?.left
-                              const rightItem = currentQuestion.matchingPairs?.[rightIndex]?.right
-                              return (
-                                <div key={leftIndex} className="p-2 rounded bg-green-900/20 border border-green-400">
-                                  <span className="font-medium text-green-400">{parseInt(leftIndex) + 1}.</span> {leftItem} ↔ <span className="font-medium text-green-400">{rightIndex + 1}.</span> {rightItem}
-                                </div>
-                              )
-                            })}
-                          </div>
-                        </div>
-                      )}
-                      {/* Instructions */}
-                      <div className="col-span-2 mt-4 p-3 bg-blue-900/20 border border-blue-400 rounded">
-                        <p className="text-sm text-blue-300">
-                          <strong>Instructions:</strong> Click on a left item to select it (it will highlight in blue), then click on a right item to create a match. 
-                          All items must be matched before you can submit your answer.
-                        </p>
-                        {/* Debug info */}
-                        <div className="mt-2 text-xs text-blue-200">
-                          <p>Selected left item: {selectedLeftItem !== null ? selectedLeftItem + 1 : 'None'}</p>
-                          <p>Matches made: {Object.keys(matchingAnswers).length}/{currentQuestion.matchingPairs?.length || 0}</p>
-                          <p>Matched right items: {Array.from(matchedRightItems).map(i => i + 1).join(', ') || 'None'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {currentQuestion.type === "ordering" && currentQuestion.orderingItems && (
-                    <div className="space-y-3">
-                      <h3 className="font-medium text-white mb-3">Arrange in correct order:</h3>
-                      {currentQuestion.orderingItems.map((item, index) => (
-                        <div
-                          key={index}
-                          className="p-3 rounded-lg border-2 border-gray-600 bg-gray-700 cursor-pointer hover:border-gray-500"
-                          onClick={() => handleOrderingSelect(index, orderingAnswers.length)}
-                        >
-                          {item}
-                        </div>
-                      ))}
-                      {orderingAnswers.length > 0 && (
-                        <div className="mt-4">
-                          <h4 className="font-medium text-white mb-2">Your order:</h4>
-                          <div className="space-y-2">
-                            {orderingAnswers.map((answer, index) => (
-                              <div key={index} className="p-2 rounded bg-blue-900/20 border border-blue-400">
-                                {index + 1}. {answer}
+                            {currentQuestion.matchingPairs.map((pair, index) => (
+                              <div
+                                key={index}
+                                className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                                  selectedLeftItem === index
+                                    ? "border-blue-500 bg-blue-500/20"
+                                    : matchedRightItems.has(matchingAnswers[index])
+                                    ? "border-green-500 bg-green-500/20"
+                                    : "border-gray-600 bg-gray-700 hover:border-gray-500"
+                                }`}
+                                onClick={() => handleMatchingPairSelect(index, -1)}
+                              >
+                                {pair.left}
                               </div>
                             ))}
                           </div>
                         </div>
-                      )}
+
+                        {/* Right Items */}
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 text-green-400">Right Items</h3>
+                          <div className="space-y-2">
+                            {currentQuestion.matchingPairs.map((pair, index) => (
+                              <div
+                                key={index}
+                                className={`p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                                  matchedRightItems.has(index)
+                                    ? "border-green-500 bg-green-500/20"
+                                    : "border-gray-600 bg-gray-700 hover:border-gray-500"
+                                }`}
+                                onClick={() => handleMatchingPairSelect(-1, index)}
+                              >
+                                {pair.right}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={handleSubmitNewQuestionType}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Submit Answer
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleResetQuestion}
+                          className="border-gray-600 text-gray-400 hover:bg-gray-700"
+                        >
+                          Reset
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ordering Questions */}
+                  {currentQuestion.type === "ordering" && currentQuestion.orderingItems && (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 text-purple-400">Arrange in Correct Order</h3>
+                        
+                        {/* Current Order */}
+                        <div className="mb-4">
+                          <h4 className="text-sm font-medium text-gray-400 mb-2">Current Order:</h4>
+                          <div className="space-y-2">
+                            {orderingAnswers.map((item, index) => (
+                              <div key={index} className="flex items-center gap-3 p-2 bg-gray-700 rounded">
+                                <span className="text-sm font-medium text-gray-400 w-6">{index + 1}.</span>
+                                <span className="text-white">{item}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Available Items */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-400 mb-2">Available Items:</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {currentQuestion.orderingItems.map((item, index) => (
+                              <Button
+                                key={index}
+                                variant="outline"
+                                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                                onClick={() => {
+                                  const nextPosition = orderingAnswers.length
+                                  handleOrderingSelect(index, nextPosition)
+                                }}
+                                disabled={orderingAnswers.includes(item)}
+                              >
+                                {item}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Button
+                          onClick={handleSubmitNewQuestionType}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          Submit Answer
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={handleResetQuestion}
+                          className="border-gray-600 text-gray-400 hover:bg-gray-700"
+                        >
+                          Reset
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </CardContent>
               </Card>
 
               {/* Power-ups */}
-              <div className="flex justify-center gap-4">
+              <div className="flex justify-center gap-4 mb-6">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={powerUps.fiftyFifty <= 0 || gameState !== "active"}
                       onClick={() => usePowerUp("fiftyFifty")}
-                      className="flex items-center gap-2"
+                      disabled={powerUps.fiftyFifty <= 0 || gameState !== "active"}
+                      className="border-yellow-500 text-yellow-400 hover:bg-yellow-600"
                     >
-                      <Shield className="w-4 h-4" />
+                      <Shield className="w-4 h-4 mr-2" />
                       50:50 ({powerUps.fiftyFifty})
                     </Button>
                   </TooltipTrigger>
@@ -1543,16 +1705,16 @@ export default function TeamParticipantQuiz() {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={powerUps.extraTime <= 0 || gameState !== "active"}
                       onClick={() => usePowerUp("extraTime")}
-                      className="flex items-center gap-2"
+                      disabled={powerUps.extraTime <= 0 || gameState !== "active"}
+                      className="border-green-500 text-green-400 hover:bg-green-600"
                     >
-                      <Clock className="w-4 h-4" />
+                      <Clock className="w-4 h-4 mr-2" />
                       +15s ({powerUps.extraTime})
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Add 15 seconds to timer</p>
+                    <p>Add 15 seconds to the timer</p>
                   </TooltipContent>
                 </Tooltip>
 
@@ -1561,11 +1723,13 @@ export default function TeamParticipantQuiz() {
                     <Button
                       variant="outline"
                       size="sm"
-                      disabled={powerUps.doublePoints <= 0 || gameState !== "active"}
                       onClick={() => usePowerUp("doublePoints")}
-                      className="flex items-center gap-2"
+                      disabled={powerUps.doublePoints <= 0 || gameState !== "active"}
+                      className={`border-purple-500 text-purple-400 hover:bg-purple-600 ${
+                        activePowerUp === "doublePoints" ? "bg-purple-600" : ""
+                      }`}
                     >
-                      <Trophy className="w-4 h-4" />
+                      <Trophy className="w-4 h-4 mr-2" />
                       2x Points ({powerUps.doublePoints})
                     </Button>
                   </TooltipTrigger>
@@ -1575,27 +1739,13 @@ export default function TeamParticipantQuiz() {
                 </Tooltip>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-center gap-4">
-                {(currentQuestion.type === "matching-pairs" || currentQuestion.type === "ordering") ? (
-                  <Button
-                    onClick={handleSubmitNewQuestionType}
-                    disabled={
-                      (currentQuestion.type === "matching-pairs" && 
-                       Object.keys(matchingAnswers).length < (currentQuestion.matchingPairs?.length || 0)) ||
-                      (currentQuestion.type === "ordering" && 
-                       orderingAnswers.length < (currentQuestion.orderingItems?.length || 0))
-                    }
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
-                  >
-                    Submit Answer
-                  </Button>
-                ) : null}
-                
+              {/* Skip Button */}
+              <div className="text-center">
                 <Button
                   variant="outline"
                   onClick={handleSkipQuestion}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  disabled={gameState !== "active"}
+                  className="border-red-500 text-red-400 hover:bg-red-600"
                 >
                   Skip Question
                 </Button>
@@ -1603,62 +1753,36 @@ export default function TeamParticipantQuiz() {
             </div>
           )}
 
+          {/* Answer Feedback */}
           {gameState === "answered" && showFeedback && (
-            <div className="text-center py-20">
-              <div className={`text-6xl mb-4 ${isCorrect ? "text-green-400" : "text-red-400"}`}>
-                {isCorrect ? "✓" : "✗"}
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                {isCorrect ? "Correct!" : "Incorrect"}
-              </h2>
-              <p className="text-gray-400 mb-6">
-                {isCorrect ? "Great job!" : "Better luck next time!"}
-              </p>
-              
-              {/* Only show Next Question button for matching and ordering questions */}
-              {(currentQuestion?.type === "matching-pairs" || currentQuestion?.type === "ordering") && (
-                <div className="space-y-4">
-                  <Button 
-                    onClick={handleNextQuestion} 
-                    className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
-                  >
-                    {questionIndex < questions.length - 1 ? "Next Question" : "Finish Quiz"}
-                  </Button>
-                  
-                  <p className="text-sm text-gray-500">
-                    Auto-advancing in 30 seconds...
+            <div className="max-w-4xl mx-auto text-center">
+              <Card className={`border-2 ${
+                isCorrect ? "border-green-500 bg-green-500/10" : "border-red-500 bg-red-500/10"
+              }`}>
+                <CardContent className="p-8">
+                  <div className="mb-4">
+                    {isCorrect ? (
+                      <CheckCircle className="w-16 h-16 text-green-400 mx-auto" />
+                    ) : (
+                      <XCircle className="w-16 h-16 text-red-400 mx-auto" />
+                    )}
+                  </div>
+                  <h2 className={`text-2xl font-bold mb-2 ${
+                    isCorrect ? "text-green-400" : "text-red-400"
+                  }`}>
+                    {isCorrect ? "Correct!" : "Incorrect"}
+                  </h2>
+                  <p className="text-gray-300 mb-4">
+                    {isCorrect 
+                      ? `You earned ${currentQuestion?.points || 0} points!`
+                      : "Better luck next time!"
+                    }
                   </p>
-                </div>
-              )}
-              
-              {/* For MCQ and True/False, show auto-advance message */}
-              {(currentQuestion?.type === "multiple-choice" || currentQuestion?.type === "true-false") && (
-                <div className="space-y-4">
-                  <p className="text-sm text-gray-500">
-                    Auto-advancing to next question...
-                  </p>
-                </div>
-              )}
-              
-              {/* Debug Info for answered state */}
-              <div className="mt-8 p-4 bg-gray-800 rounded-lg text-left max-w-md mx-auto">
-                <h3 className="text-lg font-semibold text-white mb-2">Debug Info:</h3>
-                <div className="text-sm text-gray-300 space-y-1">
-                  <p>Question: {questionIndex + 1} of {questions.length}</p>
-                  <p>Question Type: {currentQuestion?.type}</p>
-                  <p>Game State: {gameState}</p>
-                  <p>Proctoring: Active</p>
-                  <p>Violations: {proctorViolations}/3</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {gameState === "completed" && (
-            <div className="text-center py-20">
-              <Trophy className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-white mb-2">Quiz Completed!</h2>
-              <p className="text-gray-400">Redirecting to results...</p>
+                  <div className="text-sm text-gray-400">
+                    Moving to next question...
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
         </div>

@@ -69,6 +69,11 @@ export type quizzes = $Result.DefaultSelection<Prisma.$quizzesPayload>
  */
 export type session_participants = $Result.DefaultSelection<Prisma.$session_participantsPayload>
 /**
+ * Model proctoring_violations
+ * 
+ */
+export type proctoring_violations = $Result.DefaultSelection<Prisma.$proctoring_violationsPayload>
+/**
  * Model users
  * 
  */
@@ -382,6 +387,16 @@ export class PrismaClient<
     * ```
     */
   get session_participants(): Prisma.session_participantsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.proctoring_violations`: Exposes CRUD operations for the **proctoring_violations** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Proctoring_violations
+    * const proctoring_violations = await prisma.proctoring_violations.findMany()
+    * ```
+    */
+  get proctoring_violations(): Prisma.proctoring_violationsDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.users`: Exposes CRUD operations for the **users** model.
@@ -843,6 +858,7 @@ export namespace Prisma {
     quiz_sessions: 'quiz_sessions',
     quizzes: 'quizzes',
     session_participants: 'session_participants',
+    proctoring_violations: 'proctoring_violations',
     users: 'users'
   };
 
@@ -862,7 +878,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "answers" | "options" | "matching_pairs" | "drag_drop_items" | "ordering_items" | "teams" | "participant_history" | "questions" | "quiz_sessions" | "quizzes" | "session_participants" | "users"
+      modelProps: "answers" | "options" | "matching_pairs" | "drag_drop_items" | "ordering_items" | "teams" | "participant_history" | "questions" | "quiz_sessions" | "quizzes" | "session_participants" | "proctoring_violations" | "users"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1592,6 +1608,72 @@ export namespace Prisma {
           }
         }
       }
+      proctoring_violations: {
+        payload: Prisma.$proctoring_violationsPayload<ExtArgs>
+        fields: Prisma.proctoring_violationsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.proctoring_violationsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.proctoring_violationsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload>
+          }
+          findFirst: {
+            args: Prisma.proctoring_violationsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.proctoring_violationsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload>
+          }
+          findMany: {
+            args: Prisma.proctoring_violationsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload>[]
+          }
+          create: {
+            args: Prisma.proctoring_violationsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload>
+          }
+          createMany: {
+            args: Prisma.proctoring_violationsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.proctoring_violationsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload>
+          }
+          update: {
+            args: Prisma.proctoring_violationsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload>
+          }
+          deleteMany: {
+            args: Prisma.proctoring_violationsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.proctoring_violationsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.proctoring_violationsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$proctoring_violationsPayload>
+          }
+          aggregate: {
+            args: Prisma.Proctoring_violationsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateProctoring_violations>
+          }
+          groupBy: {
+            args: Prisma.proctoring_violationsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<Proctoring_violationsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.proctoring_violationsCountArgs<ExtArgs>
+            result: $Utils.Optional<Proctoring_violationsCountAggregateOutputType> | number
+          }
+        }
+      }
       users: {
         payload: Prisma.$usersPayload<ExtArgs>
         fields: Prisma.usersFieldRefs
@@ -1753,6 +1835,7 @@ export namespace Prisma {
     quiz_sessions?: quiz_sessionsOmit
     quizzes?: quizzesOmit
     session_participants?: session_participantsOmit
+    proctoring_violations?: proctoring_violationsOmit
     users?: usersOmit
   }
 
@@ -2005,10 +2088,12 @@ export namespace Prisma {
 
   export type Session_participantsCountOutputType = {
     answers: number
+    proctoring_violations: number
   }
 
   export type Session_participantsCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     answers?: boolean | Session_participantsCountOutputTypeCountAnswersArgs
+    proctoring_violations?: boolean | Session_participantsCountOutputTypeCountProctoring_violationsArgs
   }
 
   // Custom InputTypes
@@ -2027,6 +2112,13 @@ export namespace Prisma {
    */
   export type Session_participantsCountOutputTypeCountAnswersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: answersWhereInput
+  }
+
+  /**
+   * Session_participantsCountOutputType without action
+   */
+  export type Session_participantsCountOutputTypeCountProctoring_violationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: proctoring_violationsWhereInput
   }
 
 
@@ -12570,6 +12662,7 @@ export namespace Prisma {
     accuracy?: boolean
     joined_at?: boolean
     answers?: boolean | session_participants$answersArgs<ExtArgs>
+    proctoring_violations?: boolean | session_participants$proctoring_violationsArgs<ExtArgs>
     quiz_sessions?: boolean | quiz_sessionsDefaultArgs<ExtArgs>
     users?: boolean | usersDefaultArgs<ExtArgs>
     _count?: boolean | Session_participantsCountOutputTypeDefaultArgs<ExtArgs>
@@ -12592,6 +12685,7 @@ export namespace Prisma {
   export type session_participantsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "session_id" | "user_id" | "join_code" | "team" | "score" | "streak" | "accuracy" | "joined_at", ExtArgs["result"]["session_participants"]>
   export type session_participantsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     answers?: boolean | session_participants$answersArgs<ExtArgs>
+    proctoring_violations?: boolean | session_participants$proctoring_violationsArgs<ExtArgs>
     quiz_sessions?: boolean | quiz_sessionsDefaultArgs<ExtArgs>
     users?: boolean | usersDefaultArgs<ExtArgs>
     _count?: boolean | Session_participantsCountOutputTypeDefaultArgs<ExtArgs>
@@ -12601,6 +12695,7 @@ export namespace Prisma {
     name: "session_participants"
     objects: {
       answers: Prisma.$answersPayload<ExtArgs>[]
+      proctoring_violations: Prisma.$proctoring_violationsPayload<ExtArgs>[]
       quiz_sessions: Prisma.$quiz_sessionsPayload<ExtArgs>
       users: Prisma.$usersPayload<ExtArgs>
     }
@@ -12955,6 +13050,7 @@ export namespace Prisma {
   export interface Prisma__session_participantsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     answers<T extends session_participants$answersArgs<ExtArgs> = {}>(args?: Subset<T, session_participants$answersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$answersPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    proctoring_violations<T extends session_participants$proctoring_violationsArgs<ExtArgs> = {}>(args?: Subset<T, session_participants$proctoring_violationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     quiz_sessions<T extends quiz_sessionsDefaultArgs<ExtArgs> = {}>(args?: Subset<T, quiz_sessionsDefaultArgs<ExtArgs>>): Prisma__quiz_sessionsClient<$Result.GetResult<Prisma.$quiz_sessionsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     users<T extends usersDefaultArgs<ExtArgs> = {}>(args?: Subset<T, usersDefaultArgs<ExtArgs>>): Prisma__usersClient<$Result.GetResult<Prisma.$usersPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
@@ -13362,6 +13458,30 @@ export namespace Prisma {
   }
 
   /**
+   * session_participants.proctoring_violations
+   */
+  export type session_participants$proctoring_violationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    where?: proctoring_violationsWhereInput
+    orderBy?: proctoring_violationsOrderByWithRelationInput | proctoring_violationsOrderByWithRelationInput[]
+    cursor?: proctoring_violationsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Proctoring_violationsScalarFieldEnum | Proctoring_violationsScalarFieldEnum[]
+  }
+
+  /**
    * session_participants without action
    */
   export type session_participantsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -13377,6 +13497,973 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: session_participantsInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model proctoring_violations
+   */
+
+  export type AggregateProctoring_violations = {
+    _count: Proctoring_violationsCountAggregateOutputType | null
+    _avg: Proctoring_violationsAvgAggregateOutputType | null
+    _sum: Proctoring_violationsSumAggregateOutputType | null
+    _min: Proctoring_violationsMinAggregateOutputType | null
+    _max: Proctoring_violationsMaxAggregateOutputType | null
+  }
+
+  export type Proctoring_violationsAvgAggregateOutputType = {
+    id: number | null
+    session_participant_id: number | null
+  }
+
+  export type Proctoring_violationsSumAggregateOutputType = {
+    id: number | null
+    session_participant_id: number | null
+  }
+
+  export type Proctoring_violationsMinAggregateOutputType = {
+    id: number | null
+    session_participant_id: number | null
+    violation_type: string | null
+    violation_reason: string | null
+    timestamp: Date | null
+  }
+
+  export type Proctoring_violationsMaxAggregateOutputType = {
+    id: number | null
+    session_participant_id: number | null
+    violation_type: string | null
+    violation_reason: string | null
+    timestamp: Date | null
+  }
+
+  export type Proctoring_violationsCountAggregateOutputType = {
+    id: number
+    session_participant_id: number
+    violation_type: number
+    violation_reason: number
+    timestamp: number
+    _all: number
+  }
+
+
+  export type Proctoring_violationsAvgAggregateInputType = {
+    id?: true
+    session_participant_id?: true
+  }
+
+  export type Proctoring_violationsSumAggregateInputType = {
+    id?: true
+    session_participant_id?: true
+  }
+
+  export type Proctoring_violationsMinAggregateInputType = {
+    id?: true
+    session_participant_id?: true
+    violation_type?: true
+    violation_reason?: true
+    timestamp?: true
+  }
+
+  export type Proctoring_violationsMaxAggregateInputType = {
+    id?: true
+    session_participant_id?: true
+    violation_type?: true
+    violation_reason?: true
+    timestamp?: true
+  }
+
+  export type Proctoring_violationsCountAggregateInputType = {
+    id?: true
+    session_participant_id?: true
+    violation_type?: true
+    violation_reason?: true
+    timestamp?: true
+    _all?: true
+  }
+
+  export type Proctoring_violationsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which proctoring_violations to aggregate.
+     */
+    where?: proctoring_violationsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of proctoring_violations to fetch.
+     */
+    orderBy?: proctoring_violationsOrderByWithRelationInput | proctoring_violationsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: proctoring_violationsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` proctoring_violations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` proctoring_violations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned proctoring_violations
+    **/
+    _count?: true | Proctoring_violationsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: Proctoring_violationsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: Proctoring_violationsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: Proctoring_violationsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: Proctoring_violationsMaxAggregateInputType
+  }
+
+  export type GetProctoring_violationsAggregateType<T extends Proctoring_violationsAggregateArgs> = {
+        [P in keyof T & keyof AggregateProctoring_violations]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateProctoring_violations[P]>
+      : GetScalarType<T[P], AggregateProctoring_violations[P]>
+  }
+
+
+
+
+  export type proctoring_violationsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: proctoring_violationsWhereInput
+    orderBy?: proctoring_violationsOrderByWithAggregationInput | proctoring_violationsOrderByWithAggregationInput[]
+    by: Proctoring_violationsScalarFieldEnum[] | Proctoring_violationsScalarFieldEnum
+    having?: proctoring_violationsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: Proctoring_violationsCountAggregateInputType | true
+    _avg?: Proctoring_violationsAvgAggregateInputType
+    _sum?: Proctoring_violationsSumAggregateInputType
+    _min?: Proctoring_violationsMinAggregateInputType
+    _max?: Proctoring_violationsMaxAggregateInputType
+  }
+
+  export type Proctoring_violationsGroupByOutputType = {
+    id: number
+    session_participant_id: number
+    violation_type: string
+    violation_reason: string
+    timestamp: Date
+    _count: Proctoring_violationsCountAggregateOutputType | null
+    _avg: Proctoring_violationsAvgAggregateOutputType | null
+    _sum: Proctoring_violationsSumAggregateOutputType | null
+    _min: Proctoring_violationsMinAggregateOutputType | null
+    _max: Proctoring_violationsMaxAggregateOutputType | null
+  }
+
+  type GetProctoring_violationsGroupByPayload<T extends proctoring_violationsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<Proctoring_violationsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof Proctoring_violationsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], Proctoring_violationsGroupByOutputType[P]>
+            : GetScalarType<T[P], Proctoring_violationsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type proctoring_violationsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    session_participant_id?: boolean
+    violation_type?: boolean
+    violation_reason?: boolean
+    timestamp?: boolean
+    session_participants?: boolean | session_participantsDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["proctoring_violations"]>
+
+
+
+  export type proctoring_violationsSelectScalar = {
+    id?: boolean
+    session_participant_id?: boolean
+    violation_type?: boolean
+    violation_reason?: boolean
+    timestamp?: boolean
+  }
+
+  export type proctoring_violationsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "session_participant_id" | "violation_type" | "violation_reason" | "timestamp", ExtArgs["result"]["proctoring_violations"]>
+  export type proctoring_violationsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    session_participants?: boolean | session_participantsDefaultArgs<ExtArgs>
+  }
+
+  export type $proctoring_violationsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "proctoring_violations"
+    objects: {
+      session_participants: Prisma.$session_participantsPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      session_participant_id: number
+      violation_type: string
+      violation_reason: string
+      timestamp: Date
+    }, ExtArgs["result"]["proctoring_violations"]>
+    composites: {}
+  }
+
+  type proctoring_violationsGetPayload<S extends boolean | null | undefined | proctoring_violationsDefaultArgs> = $Result.GetResult<Prisma.$proctoring_violationsPayload, S>
+
+  type proctoring_violationsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<proctoring_violationsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: Proctoring_violationsCountAggregateInputType | true
+    }
+
+  export interface proctoring_violationsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['proctoring_violations'], meta: { name: 'proctoring_violations' } }
+    /**
+     * Find zero or one Proctoring_violations that matches the filter.
+     * @param {proctoring_violationsFindUniqueArgs} args - Arguments to find a Proctoring_violations
+     * @example
+     * // Get one Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends proctoring_violationsFindUniqueArgs>(args: SelectSubset<T, proctoring_violationsFindUniqueArgs<ExtArgs>>): Prisma__proctoring_violationsClient<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Proctoring_violations that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {proctoring_violationsFindUniqueOrThrowArgs} args - Arguments to find a Proctoring_violations
+     * @example
+     * // Get one Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends proctoring_violationsFindUniqueOrThrowArgs>(args: SelectSubset<T, proctoring_violationsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__proctoring_violationsClient<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Proctoring_violations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {proctoring_violationsFindFirstArgs} args - Arguments to find a Proctoring_violations
+     * @example
+     * // Get one Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends proctoring_violationsFindFirstArgs>(args?: SelectSubset<T, proctoring_violationsFindFirstArgs<ExtArgs>>): Prisma__proctoring_violationsClient<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Proctoring_violations that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {proctoring_violationsFindFirstOrThrowArgs} args - Arguments to find a Proctoring_violations
+     * @example
+     * // Get one Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends proctoring_violationsFindFirstOrThrowArgs>(args?: SelectSubset<T, proctoring_violationsFindFirstOrThrowArgs<ExtArgs>>): Prisma__proctoring_violationsClient<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Proctoring_violations that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {proctoring_violationsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.findMany()
+     * 
+     * // Get first 10 Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const proctoring_violationsWithIdOnly = await prisma.proctoring_violations.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends proctoring_violationsFindManyArgs>(args?: SelectSubset<T, proctoring_violationsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Proctoring_violations.
+     * @param {proctoring_violationsCreateArgs} args - Arguments to create a Proctoring_violations.
+     * @example
+     * // Create one Proctoring_violations
+     * const Proctoring_violations = await prisma.proctoring_violations.create({
+     *   data: {
+     *     // ... data to create a Proctoring_violations
+     *   }
+     * })
+     * 
+     */
+    create<T extends proctoring_violationsCreateArgs>(args: SelectSubset<T, proctoring_violationsCreateArgs<ExtArgs>>): Prisma__proctoring_violationsClient<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Proctoring_violations.
+     * @param {proctoring_violationsCreateManyArgs} args - Arguments to create many Proctoring_violations.
+     * @example
+     * // Create many Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends proctoring_violationsCreateManyArgs>(args?: SelectSubset<T, proctoring_violationsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a Proctoring_violations.
+     * @param {proctoring_violationsDeleteArgs} args - Arguments to delete one Proctoring_violations.
+     * @example
+     * // Delete one Proctoring_violations
+     * const Proctoring_violations = await prisma.proctoring_violations.delete({
+     *   where: {
+     *     // ... filter to delete one Proctoring_violations
+     *   }
+     * })
+     * 
+     */
+    delete<T extends proctoring_violationsDeleteArgs>(args: SelectSubset<T, proctoring_violationsDeleteArgs<ExtArgs>>): Prisma__proctoring_violationsClient<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Proctoring_violations.
+     * @param {proctoring_violationsUpdateArgs} args - Arguments to update one Proctoring_violations.
+     * @example
+     * // Update one Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends proctoring_violationsUpdateArgs>(args: SelectSubset<T, proctoring_violationsUpdateArgs<ExtArgs>>): Prisma__proctoring_violationsClient<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Proctoring_violations.
+     * @param {proctoring_violationsDeleteManyArgs} args - Arguments to filter Proctoring_violations to delete.
+     * @example
+     * // Delete a few Proctoring_violations
+     * const { count } = await prisma.proctoring_violations.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends proctoring_violationsDeleteManyArgs>(args?: SelectSubset<T, proctoring_violationsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Proctoring_violations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {proctoring_violationsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends proctoring_violationsUpdateManyArgs>(args: SelectSubset<T, proctoring_violationsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Proctoring_violations.
+     * @param {proctoring_violationsUpsertArgs} args - Arguments to update or create a Proctoring_violations.
+     * @example
+     * // Update or create a Proctoring_violations
+     * const proctoring_violations = await prisma.proctoring_violations.upsert({
+     *   create: {
+     *     // ... data to create a Proctoring_violations
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Proctoring_violations we want to update
+     *   }
+     * })
+     */
+    upsert<T extends proctoring_violationsUpsertArgs>(args: SelectSubset<T, proctoring_violationsUpsertArgs<ExtArgs>>): Prisma__proctoring_violationsClient<$Result.GetResult<Prisma.$proctoring_violationsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Proctoring_violations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {proctoring_violationsCountArgs} args - Arguments to filter Proctoring_violations to count.
+     * @example
+     * // Count the number of Proctoring_violations
+     * const count = await prisma.proctoring_violations.count({
+     *   where: {
+     *     // ... the filter for the Proctoring_violations we want to count
+     *   }
+     * })
+    **/
+    count<T extends proctoring_violationsCountArgs>(
+      args?: Subset<T, proctoring_violationsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], Proctoring_violationsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Proctoring_violations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {Proctoring_violationsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends Proctoring_violationsAggregateArgs>(args: Subset<T, Proctoring_violationsAggregateArgs>): Prisma.PrismaPromise<GetProctoring_violationsAggregateType<T>>
+
+    /**
+     * Group by Proctoring_violations.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {proctoring_violationsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends proctoring_violationsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: proctoring_violationsGroupByArgs['orderBy'] }
+        : { orderBy?: proctoring_violationsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, proctoring_violationsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetProctoring_violationsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the proctoring_violations model
+   */
+  readonly fields: proctoring_violationsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for proctoring_violations.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__proctoring_violationsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    session_participants<T extends session_participantsDefaultArgs<ExtArgs> = {}>(args?: Subset<T, session_participantsDefaultArgs<ExtArgs>>): Prisma__session_participantsClient<$Result.GetResult<Prisma.$session_participantsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the proctoring_violations model
+   */
+  interface proctoring_violationsFieldRefs {
+    readonly id: FieldRef<"proctoring_violations", 'Int'>
+    readonly session_participant_id: FieldRef<"proctoring_violations", 'Int'>
+    readonly violation_type: FieldRef<"proctoring_violations", 'String'>
+    readonly violation_reason: FieldRef<"proctoring_violations", 'String'>
+    readonly timestamp: FieldRef<"proctoring_violations", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * proctoring_violations findUnique
+   */
+  export type proctoring_violationsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * Filter, which proctoring_violations to fetch.
+     */
+    where: proctoring_violationsWhereUniqueInput
+  }
+
+  /**
+   * proctoring_violations findUniqueOrThrow
+   */
+  export type proctoring_violationsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * Filter, which proctoring_violations to fetch.
+     */
+    where: proctoring_violationsWhereUniqueInput
+  }
+
+  /**
+   * proctoring_violations findFirst
+   */
+  export type proctoring_violationsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * Filter, which proctoring_violations to fetch.
+     */
+    where?: proctoring_violationsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of proctoring_violations to fetch.
+     */
+    orderBy?: proctoring_violationsOrderByWithRelationInput | proctoring_violationsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for proctoring_violations.
+     */
+    cursor?: proctoring_violationsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` proctoring_violations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` proctoring_violations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of proctoring_violations.
+     */
+    distinct?: Proctoring_violationsScalarFieldEnum | Proctoring_violationsScalarFieldEnum[]
+  }
+
+  /**
+   * proctoring_violations findFirstOrThrow
+   */
+  export type proctoring_violationsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * Filter, which proctoring_violations to fetch.
+     */
+    where?: proctoring_violationsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of proctoring_violations to fetch.
+     */
+    orderBy?: proctoring_violationsOrderByWithRelationInput | proctoring_violationsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for proctoring_violations.
+     */
+    cursor?: proctoring_violationsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` proctoring_violations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` proctoring_violations.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of proctoring_violations.
+     */
+    distinct?: Proctoring_violationsScalarFieldEnum | Proctoring_violationsScalarFieldEnum[]
+  }
+
+  /**
+   * proctoring_violations findMany
+   */
+  export type proctoring_violationsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * Filter, which proctoring_violations to fetch.
+     */
+    where?: proctoring_violationsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of proctoring_violations to fetch.
+     */
+    orderBy?: proctoring_violationsOrderByWithRelationInput | proctoring_violationsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing proctoring_violations.
+     */
+    cursor?: proctoring_violationsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` proctoring_violations from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` proctoring_violations.
+     */
+    skip?: number
+    distinct?: Proctoring_violationsScalarFieldEnum | Proctoring_violationsScalarFieldEnum[]
+  }
+
+  /**
+   * proctoring_violations create
+   */
+  export type proctoring_violationsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a proctoring_violations.
+     */
+    data: XOR<proctoring_violationsCreateInput, proctoring_violationsUncheckedCreateInput>
+  }
+
+  /**
+   * proctoring_violations createMany
+   */
+  export type proctoring_violationsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many proctoring_violations.
+     */
+    data: proctoring_violationsCreateManyInput | proctoring_violationsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * proctoring_violations update
+   */
+  export type proctoring_violationsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a proctoring_violations.
+     */
+    data: XOR<proctoring_violationsUpdateInput, proctoring_violationsUncheckedUpdateInput>
+    /**
+     * Choose, which proctoring_violations to update.
+     */
+    where: proctoring_violationsWhereUniqueInput
+  }
+
+  /**
+   * proctoring_violations updateMany
+   */
+  export type proctoring_violationsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update proctoring_violations.
+     */
+    data: XOR<proctoring_violationsUpdateManyMutationInput, proctoring_violationsUncheckedUpdateManyInput>
+    /**
+     * Filter which proctoring_violations to update
+     */
+    where?: proctoring_violationsWhereInput
+    /**
+     * Limit how many proctoring_violations to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * proctoring_violations upsert
+   */
+  export type proctoring_violationsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the proctoring_violations to update in case it exists.
+     */
+    where: proctoring_violationsWhereUniqueInput
+    /**
+     * In case the proctoring_violations found by the `where` argument doesn't exist, create a new proctoring_violations with this data.
+     */
+    create: XOR<proctoring_violationsCreateInput, proctoring_violationsUncheckedCreateInput>
+    /**
+     * In case the proctoring_violations was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<proctoring_violationsUpdateInput, proctoring_violationsUncheckedUpdateInput>
+  }
+
+  /**
+   * proctoring_violations delete
+   */
+  export type proctoring_violationsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
+    /**
+     * Filter which proctoring_violations to delete.
+     */
+    where: proctoring_violationsWhereUniqueInput
+  }
+
+  /**
+   * proctoring_violations deleteMany
+   */
+  export type proctoring_violationsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which proctoring_violations to delete
+     */
+    where?: proctoring_violationsWhereInput
+    /**
+     * Limit how many proctoring_violations to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * proctoring_violations without action
+   */
+  export type proctoring_violationsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the proctoring_violations
+     */
+    select?: proctoring_violationsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the proctoring_violations
+     */
+    omit?: proctoring_violationsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: proctoring_violationsInclude<ExtArgs> | null
   }
 
 
@@ -14620,6 +15707,17 @@ export namespace Prisma {
   export type Session_participantsScalarFieldEnum = (typeof Session_participantsScalarFieldEnum)[keyof typeof Session_participantsScalarFieldEnum]
 
 
+  export const Proctoring_violationsScalarFieldEnum: {
+    id: 'id',
+    session_participant_id: 'session_participant_id',
+    violation_type: 'violation_type',
+    violation_reason: 'violation_reason',
+    timestamp: 'timestamp'
+  };
+
+  export type Proctoring_violationsScalarFieldEnum = (typeof Proctoring_violationsScalarFieldEnum)[keyof typeof Proctoring_violationsScalarFieldEnum]
+
+
   export const UsersScalarFieldEnum: {
     id: 'id',
     username: 'username',
@@ -14724,6 +15822,14 @@ export namespace Prisma {
   };
 
   export type session_participantsOrderByRelevanceFieldEnum = (typeof session_participantsOrderByRelevanceFieldEnum)[keyof typeof session_participantsOrderByRelevanceFieldEnum]
+
+
+  export const proctoring_violationsOrderByRelevanceFieldEnum: {
+    violation_type: 'violation_type',
+    violation_reason: 'violation_reason'
+  };
+
+  export type proctoring_violationsOrderByRelevanceFieldEnum = (typeof proctoring_violationsOrderByRelevanceFieldEnum)[keyof typeof proctoring_violationsOrderByRelevanceFieldEnum]
 
 
   export const usersOrderByRelevanceFieldEnum: {
@@ -15530,6 +16636,7 @@ export namespace Prisma {
     accuracy?: FloatNullableFilter<"session_participants"> | number | null
     joined_at?: DateTimeNullableFilter<"session_participants"> | Date | string | null
     answers?: AnswersListRelationFilter
+    proctoring_violations?: Proctoring_violationsListRelationFilter
     quiz_sessions?: XOR<Quiz_sessionsScalarRelationFilter, quiz_sessionsWhereInput>
     users?: XOR<UsersScalarRelationFilter, usersWhereInput>
   }
@@ -15545,6 +16652,7 @@ export namespace Prisma {
     accuracy?: SortOrderInput | SortOrder
     joined_at?: SortOrderInput | SortOrder
     answers?: answersOrderByRelationAggregateInput
+    proctoring_violations?: proctoring_violationsOrderByRelationAggregateInput
     quiz_sessions?: quiz_sessionsOrderByWithRelationInput
     users?: usersOrderByWithRelationInput
     _relevance?: session_participantsOrderByRelevanceInput
@@ -15564,6 +16672,7 @@ export namespace Prisma {
     accuracy?: FloatNullableFilter<"session_participants"> | number | null
     joined_at?: DateTimeNullableFilter<"session_participants"> | Date | string | null
     answers?: AnswersListRelationFilter
+    proctoring_violations?: Proctoring_violationsListRelationFilter
     quiz_sessions?: XOR<Quiz_sessionsScalarRelationFilter, quiz_sessionsWhereInput>
     users?: XOR<UsersScalarRelationFilter, usersWhereInput>
   }, "id">
@@ -15598,6 +16707,64 @@ export namespace Prisma {
     streak?: IntNullableWithAggregatesFilter<"session_participants"> | number | null
     accuracy?: FloatNullableWithAggregatesFilter<"session_participants"> | number | null
     joined_at?: DateTimeNullableWithAggregatesFilter<"session_participants"> | Date | string | null
+  }
+
+  export type proctoring_violationsWhereInput = {
+    AND?: proctoring_violationsWhereInput | proctoring_violationsWhereInput[]
+    OR?: proctoring_violationsWhereInput[]
+    NOT?: proctoring_violationsWhereInput | proctoring_violationsWhereInput[]
+    id?: IntFilter<"proctoring_violations"> | number
+    session_participant_id?: IntFilter<"proctoring_violations"> | number
+    violation_type?: StringFilter<"proctoring_violations"> | string
+    violation_reason?: StringFilter<"proctoring_violations"> | string
+    timestamp?: DateTimeFilter<"proctoring_violations"> | Date | string
+    session_participants?: XOR<Session_participantsScalarRelationFilter, session_participantsWhereInput>
+  }
+
+  export type proctoring_violationsOrderByWithRelationInput = {
+    id?: SortOrder
+    session_participant_id?: SortOrder
+    violation_type?: SortOrder
+    violation_reason?: SortOrder
+    timestamp?: SortOrder
+    session_participants?: session_participantsOrderByWithRelationInput
+    _relevance?: proctoring_violationsOrderByRelevanceInput
+  }
+
+  export type proctoring_violationsWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: proctoring_violationsWhereInput | proctoring_violationsWhereInput[]
+    OR?: proctoring_violationsWhereInput[]
+    NOT?: proctoring_violationsWhereInput | proctoring_violationsWhereInput[]
+    session_participant_id?: IntFilter<"proctoring_violations"> | number
+    violation_type?: StringFilter<"proctoring_violations"> | string
+    violation_reason?: StringFilter<"proctoring_violations"> | string
+    timestamp?: DateTimeFilter<"proctoring_violations"> | Date | string
+    session_participants?: XOR<Session_participantsScalarRelationFilter, session_participantsWhereInput>
+  }, "id">
+
+  export type proctoring_violationsOrderByWithAggregationInput = {
+    id?: SortOrder
+    session_participant_id?: SortOrder
+    violation_type?: SortOrder
+    violation_reason?: SortOrder
+    timestamp?: SortOrder
+    _count?: proctoring_violationsCountOrderByAggregateInput
+    _avg?: proctoring_violationsAvgOrderByAggregateInput
+    _max?: proctoring_violationsMaxOrderByAggregateInput
+    _min?: proctoring_violationsMinOrderByAggregateInput
+    _sum?: proctoring_violationsSumOrderByAggregateInput
+  }
+
+  export type proctoring_violationsScalarWhereWithAggregatesInput = {
+    AND?: proctoring_violationsScalarWhereWithAggregatesInput | proctoring_violationsScalarWhereWithAggregatesInput[]
+    OR?: proctoring_violationsScalarWhereWithAggregatesInput[]
+    NOT?: proctoring_violationsScalarWhereWithAggregatesInput | proctoring_violationsScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"proctoring_violations"> | number
+    session_participant_id?: IntWithAggregatesFilter<"proctoring_violations"> | number
+    violation_type?: StringWithAggregatesFilter<"proctoring_violations"> | string
+    violation_reason?: StringWithAggregatesFilter<"proctoring_violations"> | string
+    timestamp?: DateTimeWithAggregatesFilter<"proctoring_violations"> | Date | string
   }
 
   export type usersWhereInput = {
@@ -16356,6 +17523,7 @@ export namespace Prisma {
     accuracy?: number | null
     joined_at?: Date | string | null
     answers?: answersCreateNestedManyWithoutSession_participantsInput
+    proctoring_violations?: proctoring_violationsCreateNestedManyWithoutSession_participantsInput
     quiz_sessions: quiz_sessionsCreateNestedOneWithoutSession_participantsInput
     users: usersCreateNestedOneWithoutSession_participantsInput
   }
@@ -16371,6 +17539,7 @@ export namespace Prisma {
     accuracy?: number | null
     joined_at?: Date | string | null
     answers?: answersUncheckedCreateNestedManyWithoutSession_participantsInput
+    proctoring_violations?: proctoring_violationsUncheckedCreateNestedManyWithoutSession_participantsInput
   }
 
   export type session_participantsUpdateInput = {
@@ -16381,6 +17550,7 @@ export namespace Prisma {
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     answers?: answersUpdateManyWithoutSession_participantsNestedInput
+    proctoring_violations?: proctoring_violationsUpdateManyWithoutSession_participantsNestedInput
     quiz_sessions?: quiz_sessionsUpdateOneRequiredWithoutSession_participantsNestedInput
     users?: usersUpdateOneRequiredWithoutSession_participantsNestedInput
   }
@@ -16396,6 +17566,7 @@ export namespace Prisma {
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     answers?: answersUncheckedUpdateManyWithoutSession_participantsNestedInput
+    proctoring_violations?: proctoring_violationsUncheckedUpdateManyWithoutSession_participantsNestedInput
   }
 
   export type session_participantsCreateManyInput = {
@@ -16429,6 +17600,58 @@ export namespace Prisma {
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type proctoring_violationsCreateInput = {
+    violation_type: string
+    violation_reason: string
+    timestamp?: Date | string
+    session_participants: session_participantsCreateNestedOneWithoutProctoring_violationsInput
+  }
+
+  export type proctoring_violationsUncheckedCreateInput = {
+    id?: number
+    session_participant_id: number
+    violation_type: string
+    violation_reason: string
+    timestamp?: Date | string
+  }
+
+  export type proctoring_violationsUpdateInput = {
+    violation_type?: StringFieldUpdateOperationsInput | string
+    violation_reason?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+    session_participants?: session_participantsUpdateOneRequiredWithoutProctoring_violationsNestedInput
+  }
+
+  export type proctoring_violationsUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    session_participant_id?: IntFieldUpdateOperationsInput | number
+    violation_type?: StringFieldUpdateOperationsInput | string
+    violation_reason?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type proctoring_violationsCreateManyInput = {
+    id?: number
+    session_participant_id: number
+    violation_type: string
+    violation_reason: string
+    timestamp?: Date | string
+  }
+
+  export type proctoring_violationsUpdateManyMutationInput = {
+    violation_type?: StringFieldUpdateOperationsInput | string
+    violation_reason?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type proctoring_violationsUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    session_participant_id?: IntFieldUpdateOperationsInput | number
+    violation_type?: StringFieldUpdateOperationsInput | string
+    violation_reason?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type usersCreateInput = {
@@ -17350,9 +18573,19 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
+  export type Proctoring_violationsListRelationFilter = {
+    every?: proctoring_violationsWhereInput
+    some?: proctoring_violationsWhereInput
+    none?: proctoring_violationsWhereInput
+  }
+
   export type Quiz_sessionsScalarRelationFilter = {
     is?: quiz_sessionsWhereInput
     isNot?: quiz_sessionsWhereInput
+  }
+
+  export type proctoring_violationsOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type session_participantsOrderByRelevanceInput = {
@@ -17429,6 +18662,71 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type DateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
+  export type proctoring_violationsOrderByRelevanceInput = {
+    fields: proctoring_violationsOrderByRelevanceFieldEnum | proctoring_violationsOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type proctoring_violationsCountOrderByAggregateInput = {
+    id?: SortOrder
+    session_participant_id?: SortOrder
+    violation_type?: SortOrder
+    violation_reason?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type proctoring_violationsAvgOrderByAggregateInput = {
+    id?: SortOrder
+    session_participant_id?: SortOrder
+  }
+
+  export type proctoring_violationsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    session_participant_id?: SortOrder
+    violation_type?: SortOrder
+    violation_reason?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type proctoring_violationsMinOrderByAggregateInput = {
+    id?: SortOrder
+    session_participant_id?: SortOrder
+    violation_type?: SortOrder
+    violation_reason?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type proctoring_violationsSumOrderByAggregateInput = {
+    id?: SortOrder
+    session_participant_id?: SortOrder
+  }
+
+  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
   export type Enumusers_roleFilter<$PrismaModel = never> = {
@@ -18156,6 +19454,13 @@ export namespace Prisma {
     connect?: answersWhereUniqueInput | answersWhereUniqueInput[]
   }
 
+  export type proctoring_violationsCreateNestedManyWithoutSession_participantsInput = {
+    create?: XOR<proctoring_violationsCreateWithoutSession_participantsInput, proctoring_violationsUncheckedCreateWithoutSession_participantsInput> | proctoring_violationsCreateWithoutSession_participantsInput[] | proctoring_violationsUncheckedCreateWithoutSession_participantsInput[]
+    connectOrCreate?: proctoring_violationsCreateOrConnectWithoutSession_participantsInput | proctoring_violationsCreateOrConnectWithoutSession_participantsInput[]
+    createMany?: proctoring_violationsCreateManySession_participantsInputEnvelope
+    connect?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+  }
+
   export type quiz_sessionsCreateNestedOneWithoutSession_participantsInput = {
     create?: XOR<quiz_sessionsCreateWithoutSession_participantsInput, quiz_sessionsUncheckedCreateWithoutSession_participantsInput>
     connectOrCreate?: quiz_sessionsCreateOrConnectWithoutSession_participantsInput
@@ -18173,6 +19478,13 @@ export namespace Prisma {
     connectOrCreate?: answersCreateOrConnectWithoutSession_participantsInput | answersCreateOrConnectWithoutSession_participantsInput[]
     createMany?: answersCreateManySession_participantsInputEnvelope
     connect?: answersWhereUniqueInput | answersWhereUniqueInput[]
+  }
+
+  export type proctoring_violationsUncheckedCreateNestedManyWithoutSession_participantsInput = {
+    create?: XOR<proctoring_violationsCreateWithoutSession_participantsInput, proctoring_violationsUncheckedCreateWithoutSession_participantsInput> | proctoring_violationsCreateWithoutSession_participantsInput[] | proctoring_violationsUncheckedCreateWithoutSession_participantsInput[]
+    connectOrCreate?: proctoring_violationsCreateOrConnectWithoutSession_participantsInput | proctoring_violationsCreateOrConnectWithoutSession_participantsInput[]
+    createMany?: proctoring_violationsCreateManySession_participantsInputEnvelope
+    connect?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
   }
 
   export type NullableFloatFieldUpdateOperationsInput = {
@@ -18195,6 +19507,20 @@ export namespace Prisma {
     update?: answersUpdateWithWhereUniqueWithoutSession_participantsInput | answersUpdateWithWhereUniqueWithoutSession_participantsInput[]
     updateMany?: answersUpdateManyWithWhereWithoutSession_participantsInput | answersUpdateManyWithWhereWithoutSession_participantsInput[]
     deleteMany?: answersScalarWhereInput | answersScalarWhereInput[]
+  }
+
+  export type proctoring_violationsUpdateManyWithoutSession_participantsNestedInput = {
+    create?: XOR<proctoring_violationsCreateWithoutSession_participantsInput, proctoring_violationsUncheckedCreateWithoutSession_participantsInput> | proctoring_violationsCreateWithoutSession_participantsInput[] | proctoring_violationsUncheckedCreateWithoutSession_participantsInput[]
+    connectOrCreate?: proctoring_violationsCreateOrConnectWithoutSession_participantsInput | proctoring_violationsCreateOrConnectWithoutSession_participantsInput[]
+    upsert?: proctoring_violationsUpsertWithWhereUniqueWithoutSession_participantsInput | proctoring_violationsUpsertWithWhereUniqueWithoutSession_participantsInput[]
+    createMany?: proctoring_violationsCreateManySession_participantsInputEnvelope
+    set?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+    disconnect?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+    delete?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+    connect?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+    update?: proctoring_violationsUpdateWithWhereUniqueWithoutSession_participantsInput | proctoring_violationsUpdateWithWhereUniqueWithoutSession_participantsInput[]
+    updateMany?: proctoring_violationsUpdateManyWithWhereWithoutSession_participantsInput | proctoring_violationsUpdateManyWithWhereWithoutSession_participantsInput[]
+    deleteMany?: proctoring_violationsScalarWhereInput | proctoring_violationsScalarWhereInput[]
   }
 
   export type quiz_sessionsUpdateOneRequiredWithoutSession_participantsNestedInput = {
@@ -18225,6 +19551,38 @@ export namespace Prisma {
     update?: answersUpdateWithWhereUniqueWithoutSession_participantsInput | answersUpdateWithWhereUniqueWithoutSession_participantsInput[]
     updateMany?: answersUpdateManyWithWhereWithoutSession_participantsInput | answersUpdateManyWithWhereWithoutSession_participantsInput[]
     deleteMany?: answersScalarWhereInput | answersScalarWhereInput[]
+  }
+
+  export type proctoring_violationsUncheckedUpdateManyWithoutSession_participantsNestedInput = {
+    create?: XOR<proctoring_violationsCreateWithoutSession_participantsInput, proctoring_violationsUncheckedCreateWithoutSession_participantsInput> | proctoring_violationsCreateWithoutSession_participantsInput[] | proctoring_violationsUncheckedCreateWithoutSession_participantsInput[]
+    connectOrCreate?: proctoring_violationsCreateOrConnectWithoutSession_participantsInput | proctoring_violationsCreateOrConnectWithoutSession_participantsInput[]
+    upsert?: proctoring_violationsUpsertWithWhereUniqueWithoutSession_participantsInput | proctoring_violationsUpsertWithWhereUniqueWithoutSession_participantsInput[]
+    createMany?: proctoring_violationsCreateManySession_participantsInputEnvelope
+    set?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+    disconnect?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+    delete?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+    connect?: proctoring_violationsWhereUniqueInput | proctoring_violationsWhereUniqueInput[]
+    update?: proctoring_violationsUpdateWithWhereUniqueWithoutSession_participantsInput | proctoring_violationsUpdateWithWhereUniqueWithoutSession_participantsInput[]
+    updateMany?: proctoring_violationsUpdateManyWithWhereWithoutSession_participantsInput | proctoring_violationsUpdateManyWithWhereWithoutSession_participantsInput[]
+    deleteMany?: proctoring_violationsScalarWhereInput | proctoring_violationsScalarWhereInput[]
+  }
+
+  export type session_participantsCreateNestedOneWithoutProctoring_violationsInput = {
+    create?: XOR<session_participantsCreateWithoutProctoring_violationsInput, session_participantsUncheckedCreateWithoutProctoring_violationsInput>
+    connectOrCreate?: session_participantsCreateOrConnectWithoutProctoring_violationsInput
+    connect?: session_participantsWhereUniqueInput
+  }
+
+  export type DateTimeFieldUpdateOperationsInput = {
+    set?: Date | string
+  }
+
+  export type session_participantsUpdateOneRequiredWithoutProctoring_violationsNestedInput = {
+    create?: XOR<session_participantsCreateWithoutProctoring_violationsInput, session_participantsUncheckedCreateWithoutProctoring_violationsInput>
+    connectOrCreate?: session_participantsCreateOrConnectWithoutProctoring_violationsInput
+    upsert?: session_participantsUpsertWithoutProctoring_violationsInput
+    connect?: session_participantsWhereUniqueInput
+    update?: XOR<XOR<session_participantsUpdateToOneWithWhereWithoutProctoring_violationsInput, session_participantsUpdateWithoutProctoring_violationsInput>, session_participantsUncheckedUpdateWithoutProctoring_violationsInput>
   }
 
   export type participant_historyCreateNestedManyWithoutUsersInput = {
@@ -18663,6 +20021,31 @@ export namespace Prisma {
     _max?: NestedFloatNullableFilter<$PrismaModel>
   }
 
+  export type NestedDateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
+  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
   export type NestedEnumusers_roleFilter<$PrismaModel = never> = {
     equals?: $Enums.users_role | Enumusers_roleFieldRefInput<$PrismaModel>
     in?: $Enums.users_role[]
@@ -18687,6 +20070,7 @@ export namespace Prisma {
     streak?: number | null
     accuracy?: number | null
     joined_at?: Date | string | null
+    proctoring_violations?: proctoring_violationsCreateNestedManyWithoutSession_participantsInput
     quiz_sessions: quiz_sessionsCreateNestedOneWithoutSession_participantsInput
     users: usersCreateNestedOneWithoutSession_participantsInput
   }
@@ -18701,6 +20085,7 @@ export namespace Prisma {
     streak?: number | null
     accuracy?: number | null
     joined_at?: Date | string | null
+    proctoring_violations?: proctoring_violationsUncheckedCreateNestedManyWithoutSession_participantsInput
   }
 
   export type session_participantsCreateOrConnectWithoutAnswersInput = {
@@ -18764,6 +20149,7 @@ export namespace Prisma {
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    proctoring_violations?: proctoring_violationsUpdateManyWithoutSession_participantsNestedInput
     quiz_sessions?: quiz_sessionsUpdateOneRequiredWithoutSession_participantsNestedInput
     users?: usersUpdateOneRequiredWithoutSession_participantsNestedInput
   }
@@ -18778,6 +20164,7 @@ export namespace Prisma {
     streak?: NullableIntFieldUpdateOperationsInput | number | null
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    proctoring_violations?: proctoring_violationsUncheckedUpdateManyWithoutSession_participantsNestedInput
   }
 
   export type questionsUpsertWithoutAnswersInput = {
@@ -19748,6 +21135,7 @@ export namespace Prisma {
     accuracy?: number | null
     joined_at?: Date | string | null
     answers?: answersCreateNestedManyWithoutSession_participantsInput
+    proctoring_violations?: proctoring_violationsCreateNestedManyWithoutSession_participantsInput
     users: usersCreateNestedOneWithoutSession_participantsInput
   }
 
@@ -19761,6 +21149,7 @@ export namespace Prisma {
     accuracy?: number | null
     joined_at?: Date | string | null
     answers?: answersUncheckedCreateNestedManyWithoutSession_participantsInput
+    proctoring_violations?: proctoring_violationsUncheckedCreateNestedManyWithoutSession_participantsInput
   }
 
   export type session_participantsCreateOrConnectWithoutQuiz_sessionsInput = {
@@ -20217,6 +21606,29 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type proctoring_violationsCreateWithoutSession_participantsInput = {
+    violation_type: string
+    violation_reason: string
+    timestamp?: Date | string
+  }
+
+  export type proctoring_violationsUncheckedCreateWithoutSession_participantsInput = {
+    id?: number
+    violation_type: string
+    violation_reason: string
+    timestamp?: Date | string
+  }
+
+  export type proctoring_violationsCreateOrConnectWithoutSession_participantsInput = {
+    where: proctoring_violationsWhereUniqueInput
+    create: XOR<proctoring_violationsCreateWithoutSession_participantsInput, proctoring_violationsUncheckedCreateWithoutSession_participantsInput>
+  }
+
+  export type proctoring_violationsCreateManySession_participantsInputEnvelope = {
+    data: proctoring_violationsCreateManySession_participantsInput | proctoring_violationsCreateManySession_participantsInput[]
+    skipDuplicates?: boolean
+  }
+
   export type quiz_sessionsCreateWithoutSession_participantsInput = {
     code: string
     status?: $Enums.quiz_sessions_status | null
@@ -20285,6 +21697,33 @@ export namespace Prisma {
     data: XOR<answersUpdateManyMutationInput, answersUncheckedUpdateManyWithoutSession_participantsInput>
   }
 
+  export type proctoring_violationsUpsertWithWhereUniqueWithoutSession_participantsInput = {
+    where: proctoring_violationsWhereUniqueInput
+    update: XOR<proctoring_violationsUpdateWithoutSession_participantsInput, proctoring_violationsUncheckedUpdateWithoutSession_participantsInput>
+    create: XOR<proctoring_violationsCreateWithoutSession_participantsInput, proctoring_violationsUncheckedCreateWithoutSession_participantsInput>
+  }
+
+  export type proctoring_violationsUpdateWithWhereUniqueWithoutSession_participantsInput = {
+    where: proctoring_violationsWhereUniqueInput
+    data: XOR<proctoring_violationsUpdateWithoutSession_participantsInput, proctoring_violationsUncheckedUpdateWithoutSession_participantsInput>
+  }
+
+  export type proctoring_violationsUpdateManyWithWhereWithoutSession_participantsInput = {
+    where: proctoring_violationsScalarWhereInput
+    data: XOR<proctoring_violationsUpdateManyMutationInput, proctoring_violationsUncheckedUpdateManyWithoutSession_participantsInput>
+  }
+
+  export type proctoring_violationsScalarWhereInput = {
+    AND?: proctoring_violationsScalarWhereInput | proctoring_violationsScalarWhereInput[]
+    OR?: proctoring_violationsScalarWhereInput[]
+    NOT?: proctoring_violationsScalarWhereInput | proctoring_violationsScalarWhereInput[]
+    id?: IntFilter<"proctoring_violations"> | number
+    session_participant_id?: IntFilter<"proctoring_violations"> | number
+    violation_type?: StringFilter<"proctoring_violations"> | string
+    violation_reason?: StringFilter<"proctoring_violations"> | string
+    timestamp?: DateTimeFilter<"proctoring_violations"> | Date | string
+  }
+
   export type quiz_sessionsUpsertWithoutSession_participantsInput = {
     update: XOR<quiz_sessionsUpdateWithoutSession_participantsInput, quiz_sessionsUncheckedUpdateWithoutSession_participantsInput>
     create: XOR<quiz_sessionsCreateWithoutSession_participantsInput, quiz_sessionsUncheckedCreateWithoutSession_participantsInput>
@@ -20347,6 +21786,72 @@ export namespace Prisma {
     participant_history?: participant_historyUncheckedUpdateManyWithoutUsersNestedInput
     quiz_sessions?: quiz_sessionsUncheckedUpdateManyWithoutUsersNestedInput
     quizzes?: quizzesUncheckedUpdateManyWithoutUsersNestedInput
+  }
+
+  export type session_participantsCreateWithoutProctoring_violationsInput = {
+    join_code?: string | null
+    team?: string | null
+    score?: number | null
+    streak?: number | null
+    accuracy?: number | null
+    joined_at?: Date | string | null
+    answers?: answersCreateNestedManyWithoutSession_participantsInput
+    quiz_sessions: quiz_sessionsCreateNestedOneWithoutSession_participantsInput
+    users: usersCreateNestedOneWithoutSession_participantsInput
+  }
+
+  export type session_participantsUncheckedCreateWithoutProctoring_violationsInput = {
+    id?: number
+    session_id: number
+    user_id: number
+    join_code?: string | null
+    team?: string | null
+    score?: number | null
+    streak?: number | null
+    accuracy?: number | null
+    joined_at?: Date | string | null
+    answers?: answersUncheckedCreateNestedManyWithoutSession_participantsInput
+  }
+
+  export type session_participantsCreateOrConnectWithoutProctoring_violationsInput = {
+    where: session_participantsWhereUniqueInput
+    create: XOR<session_participantsCreateWithoutProctoring_violationsInput, session_participantsUncheckedCreateWithoutProctoring_violationsInput>
+  }
+
+  export type session_participantsUpsertWithoutProctoring_violationsInput = {
+    update: XOR<session_participantsUpdateWithoutProctoring_violationsInput, session_participantsUncheckedUpdateWithoutProctoring_violationsInput>
+    create: XOR<session_participantsCreateWithoutProctoring_violationsInput, session_participantsUncheckedCreateWithoutProctoring_violationsInput>
+    where?: session_participantsWhereInput
+  }
+
+  export type session_participantsUpdateToOneWithWhereWithoutProctoring_violationsInput = {
+    where?: session_participantsWhereInput
+    data: XOR<session_participantsUpdateWithoutProctoring_violationsInput, session_participantsUncheckedUpdateWithoutProctoring_violationsInput>
+  }
+
+  export type session_participantsUpdateWithoutProctoring_violationsInput = {
+    join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
+    score?: NullableIntFieldUpdateOperationsInput | number | null
+    streak?: NullableIntFieldUpdateOperationsInput | number | null
+    accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    answers?: answersUpdateManyWithoutSession_participantsNestedInput
+    quiz_sessions?: quiz_sessionsUpdateOneRequiredWithoutSession_participantsNestedInput
+    users?: usersUpdateOneRequiredWithoutSession_participantsNestedInput
+  }
+
+  export type session_participantsUncheckedUpdateWithoutProctoring_violationsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    session_id?: IntFieldUpdateOperationsInput | number
+    user_id?: IntFieldUpdateOperationsInput | number
+    join_code?: NullableStringFieldUpdateOperationsInput | string | null
+    team?: NullableStringFieldUpdateOperationsInput | string | null
+    score?: NullableIntFieldUpdateOperationsInput | number | null
+    streak?: NullableIntFieldUpdateOperationsInput | number | null
+    accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
+    joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    answers?: answersUncheckedUpdateManyWithoutSession_participantsNestedInput
   }
 
   export type participant_historyCreateWithoutUsersInput = {
@@ -20454,6 +21959,7 @@ export namespace Prisma {
     accuracy?: number | null
     joined_at?: Date | string | null
     answers?: answersCreateNestedManyWithoutSession_participantsInput
+    proctoring_violations?: proctoring_violationsCreateNestedManyWithoutSession_participantsInput
     quiz_sessions: quiz_sessionsCreateNestedOneWithoutSession_participantsInput
   }
 
@@ -20467,6 +21973,7 @@ export namespace Prisma {
     accuracy?: number | null
     joined_at?: Date | string | null
     answers?: answersUncheckedCreateNestedManyWithoutSession_participantsInput
+    proctoring_violations?: proctoring_violationsUncheckedCreateNestedManyWithoutSession_participantsInput
   }
 
   export type session_participantsCreateOrConnectWithoutUsersInput = {
@@ -20719,6 +22226,7 @@ export namespace Prisma {
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     answers?: answersUpdateManyWithoutSession_participantsNestedInput
+    proctoring_violations?: proctoring_violationsUpdateManyWithoutSession_participantsNestedInput
     users?: usersUpdateOneRequiredWithoutSession_participantsNestedInput
   }
 
@@ -20732,6 +22240,7 @@ export namespace Prisma {
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     answers?: answersUncheckedUpdateManyWithoutSession_participantsNestedInput
+    proctoring_violations?: proctoring_violationsUncheckedUpdateManyWithoutSession_participantsNestedInput
   }
 
   export type session_participantsUncheckedUpdateManyWithoutQuiz_sessionsInput = {
@@ -20924,6 +22433,13 @@ export namespace Prisma {
     answered_at?: Date | string | null
   }
 
+  export type proctoring_violationsCreateManySession_participantsInput = {
+    id?: number
+    violation_type: string
+    violation_reason: string
+    timestamp?: Date | string
+  }
+
   export type answersUpdateWithoutSession_participantsInput = {
     selected_option?: NullableStringFieldUpdateOperationsInput | string | null
     is_correct?: NullableBoolFieldUpdateOperationsInput | boolean | null
@@ -20954,6 +22470,26 @@ export namespace Prisma {
     points_awarded?: NullableIntFieldUpdateOperationsInput | number | null
     streak_at_time?: NullableIntFieldUpdateOperationsInput | number | null
     answered_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type proctoring_violationsUpdateWithoutSession_participantsInput = {
+    violation_type?: StringFieldUpdateOperationsInput | string
+    violation_reason?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type proctoring_violationsUncheckedUpdateWithoutSession_participantsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    violation_type?: StringFieldUpdateOperationsInput | string
+    violation_reason?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type proctoring_violationsUncheckedUpdateManyWithoutSession_participantsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    violation_type?: StringFieldUpdateOperationsInput | string
+    violation_reason?: StringFieldUpdateOperationsInput | string
+    timestamp?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type participant_historyCreateManyUsersInput = {
@@ -21102,6 +22638,7 @@ export namespace Prisma {
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     answers?: answersUpdateManyWithoutSession_participantsNestedInput
+    proctoring_violations?: proctoring_violationsUpdateManyWithoutSession_participantsNestedInput
     quiz_sessions?: quiz_sessionsUpdateOneRequiredWithoutSession_participantsNestedInput
   }
 
@@ -21115,6 +22652,7 @@ export namespace Prisma {
     accuracy?: NullableFloatFieldUpdateOperationsInput | number | null
     joined_at?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     answers?: answersUncheckedUpdateManyWithoutSession_participantsNestedInput
+    proctoring_violations?: proctoring_violationsUncheckedUpdateManyWithoutSession_participantsNestedInput
   }
 
   export type session_participantsUncheckedUpdateManyWithoutUsersInput = {
