@@ -49,25 +49,12 @@ export default function TeamQuizReview() {
 
   // Prevent back button navigation
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault()
-      e.returnValue = ''
-    }
-
-    const handlePopState = (e: PopStateEvent) => {
-      e.preventDefault()
+    window.history.pushState(null, '', window.location.href)
+    window.onpopstate = function () {
       window.history.pushState(null, '', window.location.href)
     }
-
-    // Push current state to prevent back navigation
-    window.history.pushState(null, '', window.location.href)
-    
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    window.addEventListener('popstate', handlePopState)
-
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-      window.removeEventListener('popstate', handlePopState)
+      window.onpopstate = null
     }
   }, [])
 

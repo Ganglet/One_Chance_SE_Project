@@ -12,11 +12,13 @@ import { useToast } from "@/hooks/use-toast"
 interface Question {
   id: string
   question: string
-  type: "multiple-choice" | "true-false" | "short-answer"
+  type: "multiple-choice" | "multiple_choice" | "true-false" | "true_false" | "matching-pairs" | "matching_pairs" | "ordering" | "short-answer" | "short_answer"
   options?: string[]
   timeLimit: number
   points: number
   correct_answer?: string
+  matchingPairs?: Array<{ left: string; right: string }>
+  orderingItems?: string[]
 }
 
 interface Answer {
@@ -63,6 +65,16 @@ export default function ParticipantReview() {
   const [sessionInfo, setSessionInfo] = useState<any>(null)
 
   useEffect(() => {
+    window.history.pushState(null, '', window.location.href)
+    window.onpopstate = function () {
+      window.history.pushState(null, '', window.location.href)
+    }
+    return () => {
+      window.onpopstate = null
+    }
+  }, [])
+
+  useEffect(() => {
     async function fetchReviewData() {
       try {
         setLoading(true)
@@ -88,7 +100,14 @@ export default function ParticipantReview() {
         let questionsData: any = null
         if (questionsRes.ok) {
           questionsData = await questionsRes.json()
-          setQuestions(questionsData.questions || [])
+          // Ensure options is always an array of strings
+          const processedQuestions = (questionsData.questions || []).map((q: any) => ({
+            ...q,
+            options: q.options ? q.options.map((opt: any) => typeof opt === 'string' ? opt : opt.option_text) : [],
+            matchingPairs: q.matching_pairs?.map((pair: any) => ({ left: pair.left_item, right: pair.right_item })) || q.matchingPairs || [],
+            orderingItems: q.ordering_items?.map((item: any) => item.item_text) || q.orderingItems || [],
+          }))
+          setQuestions(processedQuestions)
         } else {
           console.warn("Failed to fetch questions:", questionsRes.status)
         }
@@ -216,6 +235,28 @@ export default function ParticipantReview() {
       </div>
     )
   }
+
+  // Add a helper to map type to user-friendly label
+  const getTypeLabel = (type: string) => {
+    switch (type) {
+      case "multiple-choice":
+      case "multiple_choice":
+        return "Multiple Choice";
+      case "true-false":
+      case "true_false":
+        return "True/False";
+      case "matching-pairs":
+      case "matching_pairs":
+        return "Matching Pairs";
+      case "ordering":
+        return "Ordering";
+      case "short-answer":
+      case "short_answer":
+        return "Short Answer";
+      default:
+        return type;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 fade-in-up">
@@ -358,7 +399,7 @@ export default function ParticipantReview() {
                                   Question {index + 1}
                                 </Badge>
                                 <Badge variant="outline" className="text-xs">
-                                  {question.type}
+                                  {getTypeLabel(question.type)}
                                 </Badge>
                                 {answer && (
                                   <Badge variant="outline" className="text-xs">
@@ -372,7 +413,7 @@ export default function ParticipantReview() {
                               </h3>
                               
                               {/* Options for multiple choice */}
-                              {question.type === "multiple-choice" && question.options && (
+                              { (question.type === "multiple-choice" || question.type === "multiple_choice") && question.options && (
                                 <div className="space-y-2 mb-4">
                                   {question.options.map((option, optionIndex) => (
                                     <div
@@ -403,7 +444,7 @@ export default function ParticipantReview() {
                               )}
 
                               {/* True/False options */}
-                              {question.type === "true-false" && (
+                              { (question.type === "true-false" || question.type === "true_false") && (
                                 <div className="space-y-2 mb-4">
                                   {["True", "False"].map((option) => (
                                     <div
@@ -427,6 +468,78 @@ export default function ParticipantReview() {
                                       </div>
                                     </div>
                                   ))}
+                                </div>
+                              )}
+
+                              {/* Matching pairs */}
+                              { (question.type === "matching-pairs" || question.type === "matching_pairs") && (
+                                <div className="space-y-2 mb-4">
+                                  <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                      <div className="font-semibold mb-2">Left</div>
+                                      {question.matchingPairs?.map((pair, idx) => (
+                                        <div key={idx} className="p-2 border rounded mb-1 bg-gray-50 dark:bg-gray-800">{pair.left}</div>
+                                      ))}
+                                    </div>
+                                    <div>
+                                      <div className="font-semibold mb-2">Matched Right (Your Answer)</div>
+                                      {question.matchingPairs?.map((pair, idx) => {
+                                        let userMatchIdx = undefined;
+                                        if (answer && answer.selected_option) {
+                                          try {
+                                            const userMap = JSON.parse(answer.selected_option);
+                                            userMatchIdx = userMap[idx];
+                                          } catch {}
+                                        }
+                                        const userRight = typeof userMatchIdx === 'number' && question.matchingPairs?.[userMatchIdx]?.right;
+                                        return (
+                                          <div key={idx} className="p-2 border rounded mb-1 bg-gray-50 dark:bg-gray-800">
+                                            {userRight || <span className="italic text-gray-400">Not matched</span>}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                    <div>
+                                      <div className="font-semibold mb-2">Correct Right</div>
+                                      {(() => {
+                                        let correctPairs: Array<{ left: string; right: string }> = [];
+                                        try {
+                                          correctPairs = JSON.parse(question.correct_answer || '[]');
+                                        } catch {}
+                                        return correctPairs.map((pair, idx) => (
+                                          <div key={idx} className="p-2 border rounded mb-1 bg-green-50 dark:bg-green-900/30">{pair.right}</div>
+                                        ));
+                                      })()}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Ordering */}
+                              { question.type === "ordering" && question.orderingItems && (
+                                <div className="space-y-2 mb-4">
+                                  <div className="font-semibold mb-2">Your Order</div>
+                                  {(() => {
+                                    let userOrder: string[] = [];
+                                    if (answer && answer.selected_option) {
+                                      try {
+                                        userOrder = JSON.parse(answer.selected_option);
+                                      } catch {}
+                                    }
+                                    return userOrder.map((item, idx) => (
+                                      <div key={idx} className="p-2 border rounded mb-1 bg-gray-50 dark:bg-gray-800">{item}</div>
+                                    ));
+                                  })()}
+                                  <div className="font-semibold mb-2 mt-4">Correct Order</div>
+                                  {(() => {
+                                    let correctOrder: string[] = [];
+                                    try {
+                                      correctOrder = JSON.parse(question.correct_answer || '[]');
+                                    } catch {}
+                                    return correctOrder.map((item, idx) => (
+                                      <div key={idx} className="p-2 border rounded mb-1 bg-green-50 dark:bg-green-900/30">{item}</div>
+                                    ));
+                                  })()}
                                 </div>
                               )}
 

@@ -72,6 +72,9 @@ export default function ParticipantQuiz() {
     correctAnswers: 0,
   })
 
+  // Add state to track best streak separately
+  const [bestStreak, setBestStreak] = useState(0)
+
   const [questions, setQuestions] = useState<Question[]>([])
   const [questionIndex, setQuestionIndex] = useState(0)
   const [participants, setParticipants] = useState<Array<{id: string, name: string, score: number}>>([])
@@ -210,8 +213,34 @@ export default function ParticipantQuiz() {
             return processedQuestion
           })
           
-          console.log("Processed questions:", processedQuestions)
-          setQuestions(processedQuestions)
+          // Apply option shuffling to each question based on its type
+          const questionsWithShuffledOptions = processedQuestions.map((question: Question) => {
+            let shuffledQuestion = question
+            
+            // Shuffle MCQ options
+            if (question.type === "multiple-choice" || question.type === "multiple_choice") {
+              shuffledQuestion = shuffleMCQOptions(shuffledQuestion)
+              console.log(`Shuffled MCQ options for question ${question.id}:`, shuffledQuestion.options)
+            }
+            
+            // Shuffle matching pairs right items
+            if (question.type === "matching-pairs" || question.type === "matching_pairs") {
+              shuffledQuestion = shuffleMatchingPairs(shuffledQuestion)
+              console.log(`Shuffled matching pairs for question ${question.id}:`, shuffledQuestion.matchingPairs)
+            }
+            
+            // Shuffle ordering items
+            if (question.type === "ordering") {
+              shuffledQuestion = shuffleOrderingItems(shuffledQuestion)
+              console.log(`Shuffled ordering items for question ${question.id}:`, shuffledQuestion.orderingItems)
+            }
+            
+            return shuffledQuestion
+          })
+          
+          // Shuffle questions for this participant to prevent memorization
+          const shuffledQuestions = shuffleArray([...questionsWithShuffledOptions])
+          setQuestions(shuffledQuestions)
         } else {
           console.error("Failed to fetch questions:", res.status, res.statusText)
           const errorData = await res.json().catch(() => ({}))
@@ -225,6 +254,90 @@ export default function ParticipantQuiz() {
     }
     fetchQuestions()
   }, [quizCode])
+
+  // Fisher-Yates shuffle algorithm for randomizing question order
+  const shuffleArray = (array: Question[]): Question[] => {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }
+
+  // Shuffle options for MCQ questions
+  const shuffleMCQOptions = (question: Question): Question => {
+    if (!question.options || question.type !== "multiple-choice" && question.type !== "multiple_choice") {
+      return question
+    }
+
+    // Create pairs of option text and their indices
+    const optionPairs = question.options.map((option, index) => ({ option, originalIndex: index }))
+    
+    // Shuffle the pairs
+    for (let i = optionPairs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[optionPairs[i], optionPairs[j]] = [optionPairs[j], optionPairs[i]]
+    }
+    
+    // Keep the correct_answer as text, don't convert to index
+    return {
+      ...question,
+      options: optionPairs.map(pair => pair.option)
+      // correct_answer remains as the original text value
+    }
+  }
+
+  // Shuffle right items for matching pairs questions
+  const shuffleMatchingPairs = (question: Question): Question => {
+    if (!question.matchingPairs || question.type !== "matching-pairs" && question.type !== "matching_pairs") {
+      return question
+    }
+
+    // Create pairs of right items and their indices
+    const rightItemPairs = question.matchingPairs.map((pair, index) => ({ 
+      rightItem: pair.right, 
+      originalIndex: index 
+    }))
+    
+    // Shuffle the right items
+    for (let i = rightItemPairs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[rightItemPairs[i], rightItemPairs[j]] = [rightItemPairs[j], rightItemPairs[i]]
+    }
+    
+    // Create new matching pairs with shuffled right items
+    const shuffledMatchingPairs = question.matchingPairs.map((pair, index) => ({
+      left: pair.left,
+      right: rightItemPairs[index].rightItem
+    }))
+    
+    return {
+      ...question,
+      matchingPairs: shuffledMatchingPairs
+    }
+  }
+
+  // Shuffle items for ordering questions
+  const shuffleOrderingItems = (question: Question): Question => {
+    if (!question.orderingItems || question.type !== "ordering") {
+      return question
+    }
+
+    // Create pairs of items and their indices
+    const itemPairs = question.orderingItems.map((item, index) => ({ item, originalIndex: index }))
+    
+    // Shuffle the items
+    for (let i = itemPairs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[itemPairs[i], itemPairs[j]] = [itemPairs[j], itemPairs[i]]
+    }
+    
+    return {
+      ...question,
+      orderingItems: itemPairs.map(pair => pair.item)
+    }
+  }
 
   // Fetch participants for this session
   useEffect(() => {
@@ -681,29 +794,32 @@ export default function ParticipantQuiz() {
       const allMatched = matchedRightItems.size === currentQuestion.matchingPairs?.length
       if (allMatched) {
         answer = matchingAnswers
-        
-        // Check against the correct answer from the database
         try {
           const correctPairs = JSON.parse(String(currentQuestion.correct_answer || '[]'))
-          if (Array.isArray(correctPairs) && correctPairs.length > 0) {
-            // For matching pairs, we need to check if the user's matches align with the correct pairs
-            // The correct_answer contains the original pairs, so we need to verify the matching logic
-            isCorrect = currentQuestion.matchingPairs?.every((pair, index) => {
-              const userMatch = matchingAnswers[index]
-              if (userMatch === undefined) return false
-              
-              // Check if the user matched this left item with the correct right item
-              const userRightItem = currentQuestion.matchingPairs?.[userMatch]?.right
-              return userRightItem === pair.right
-            }) || false
+          if (Array.isArray(correctPairs) && correctPairs.length > 0 && currentQuestion.matchingPairs) {
+            // Build a map from left to right for correct answer
+            const correctMap = new Map(
+              correctPairs.map((pair: { left: string; right: string }) => [pair.left, pair.right])
+            );
+            // Build a map from left to right for user answer
+            let userMap = new Map();
+            Object.entries(matchingAnswers).forEach(([leftIdx, rightIdx]) => {
+              const left = currentQuestion.matchingPairs?.[parseInt(leftIdx)]?.left;
+              const right = currentQuestion.matchingPairs?.[rightIdx]?.right;
+              if (left && right) userMap.set(left, right);
+            });
+            // Compare both maps
+            isCorrect = currentQuestion.matchingPairs.every((pair) => {
+              return userMap.get(pair.left) === correctMap.get(pair.left);
+            });
           } else {
             // Fallback: assume correct if all pairs are matched
-            isCorrect = true
+            isCorrect = true;
           }
         } catch (error) {
-          console.error("Error parsing correct pairs:", error)
+          console.error("Error parsing correct pairs:", error);
           // Fallback: assume correct if all pairs are matched
-          isCorrect = true
+          isCorrect = true;
         }
       }
     } else if (currentQuestion?.type === "ordering") {
@@ -752,7 +868,14 @@ export default function ParticipantQuiz() {
     if (currentQuestion?.type === "multiple-choice" || currentQuestion?.type === "multiple_choice") {
       // For multiple choice, selectedAnswer is the index, correct_answer is the text
       const selectedOption = currentQuestion.options?.[answerToUse as number]
+      // Compare the selected option text with the correct answer text
       correct = selectedOption === currentQuestion.correct_answer
+      console.log("MCQ Answer validation:", {
+        selectedIndex: answerToUse,
+        selectedOption,
+        correctAnswer: currentQuestion.correct_answer,
+        correct
+      })
     } else if (currentQuestion?.type === "true-false" || currentQuestion?.type === "true_false") {
       correct = answerToUse === currentQuestion.correct_answer
     } else if (currentQuestion?.type === "short-answer" || currentQuestion?.type === "short_answer") {
@@ -795,8 +918,8 @@ export default function ParticipantQuiz() {
       // Save updated stats to database
       updateParticipantStats(newStats)
 
-      // Save individual answer to database
-      saveAnswer(currentQuestion!.id, answerToUse, correct, currentQuestion!.timeLimit - timeRemaining, points, playerStats.streak)
+      // Save individual answer to database with the new streak value
+      saveAnswer(currentQuestion!.id, answerToUse, correct, currentQuestion!.timeLimit - timeRemaining, points, newStats.streak)
     } else {
       const newStats = {
         score: playerStats.score,
@@ -812,8 +935,8 @@ export default function ParticipantQuiz() {
       // Save updated stats to database
       updateParticipantStats(newStats)
 
-      // Save individual answer to database
-      saveAnswer(currentQuestion!.id, answerToUse, correct, currentQuestion!.timeLimit - timeRemaining, 0, playerStats.streak)
+      // Save individual answer to database with the new streak value (0)
+      saveAnswer(currentQuestion!.id, answerToUse, correct, currentQuestion!.timeLimit - timeRemaining, 0, newStats.streak)
     }
 
     // Show feedback for 1 second then automatically move to next question
