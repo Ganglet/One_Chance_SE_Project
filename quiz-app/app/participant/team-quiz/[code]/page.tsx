@@ -60,8 +60,9 @@ export default function TeamParticipantQuiz() {
   const [timeRemaining, setTimeRemaining] = useState(30)
   const [showFeedback, setShowFeedback] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
-  const [powerUps, setPowerUps] = useState({ fiftyFifty: 1, extraTime: 1, doublePoints: 1 })
+  const [powerUps, setPowerUps] = useState({ fiftyFifty: 1, extraTime: 1, doublePoints: 1, doubleOrNothing: 1, streakSaver: 1 })
   const [activePowerUp, setActivePowerUp] = useState<string | null>(null)
+  const [activeStreakSaver, setActiveStreakSaver] = useState<boolean>(false)
   const [hiddenOptions, setHiddenOptions] = useState<number[]>([])
   
   // State for new question types
@@ -872,9 +873,8 @@ export default function TeamParticipantQuiz() {
       // Submit answer as incorrect when skipping
       const timeTaken = (currentQuestion?.timeLimit || 30) - timeRemaining
       const basePoints = currentQuestion?.points || 10
-      const pointsMultiplier = activePowerUp === "doublePoints" ? 2 : 1
-      const streakBonus = Math.floor(playerStats.streak / 3) * 5
-      const pointsAwarded = 0 // No points for skipping
+      // Double or Negative: skipping counts as wrong → negative base points
+      const pointsAwarded = activePowerUp === "doubleOrNothing" ? -basePoints : 0
       
       // Update time statistics
       const newTotalTime = (playerStats.totalTimeTaken || 0) + timeTaken
@@ -882,10 +882,12 @@ export default function TeamParticipantQuiz() {
       const newSlowestAnswer = Math.max((playerStats.slowestAnswer || 0), timeTaken)
       const newAverageTime = Math.round(newTotalTime / (playerStats.totalAnswered + 1))
       
+      const preservedStreak = activeStreakSaver && playerStats.streak >= 3 ? playerStats.streak : 0
+      const newScore = Math.max(0, playerStats.score + pointsAwarded)
       const newStats = {
         ...playerStats,
-        score: playerStats.score, // No points added
-        streak: 0, // Reset streak
+        score: newScore,
+        streak: preservedStreak,
         totalAnswered: playerStats.totalAnswered + 1,
         correctAnswers: playerStats.correctAnswers, // No correct answer
         accuracy: Math.round((playerStats.correctAnswers / (playerStats.totalAnswered + 1)) * 100),
@@ -907,8 +909,8 @@ export default function TeamParticipantQuiz() {
         null,
         false,
         timeTaken,
-        0,
-        playerStats.streak
+        pointsAwarded,
+        newStats.streak
       )
       
       // Update participant stats
@@ -917,6 +919,10 @@ export default function TeamParticipantQuiz() {
       console.log(`Question skipped, Points: 0`)
       console.log(`Question ${questionIndex + 1} of ${questions.length} completed`)
       
+      // Clear power-ups after skip (consume Streak Saver now that it was used on a miss)
+      if (activePowerUp) setActivePowerUp(null)
+      if (activeStreakSaver) setActiveStreakSaver(false)
+
       // Re-enable proctoring after a short delay
       setTimeout(() => {
         
@@ -957,7 +963,18 @@ export default function TeamParticipantQuiz() {
         break
       case "doublePoints":
         setActivePowerUp("doublePoints")
-        setTimeout(() => setActivePowerUp(null), 30000) // 30 seconds
+        break
+      case "doubleOrNothing":
+        setActivePowerUp("doubleOrNothing")
+        break
+      case "streakSaver":
+        if (playerStats.streak < 3) {
+          // Refund if not eligible
+          setPowerUps(prev => ({ ...prev, streakSaver: prev.streakSaver + 1 }))
+          toast({ title: "Streak too low", description: "Need a streak of 3+ to use Streak Saver." })
+          return
+        }
+        setActiveStreakSaver(true)
         break
     }
   }
@@ -1217,9 +1234,12 @@ export default function TeamParticipantQuiz() {
     
     const timeTaken = (currentQuestion?.timeLimit || 30) - timeRemaining
     const basePoints = currentQuestion?.points || 10
-    const pointsMultiplier = activePowerUp === "doublePoints" ? 2 : 1
-    const streakBonus = Math.floor(playerStats.streak / 3) * 5
-    const pointsAwarded = (basePoints + streakBonus) * pointsMultiplier
+    let pointsAwarded = 0
+    if (finalIsCorrect) {
+      pointsAwarded = basePoints * (activePowerUp === "doublePoints" || activePowerUp === "doubleOrNothing" ? 2 : 1)
+    } else {
+      pointsAwarded = activePowerUp === "doubleOrNothing" ? -basePoints : 0
+    }
     
     // Update time statistics
     const newTotalTime = (playerStats.totalTimeTaken || 0) + timeTaken
@@ -1227,10 +1247,14 @@ export default function TeamParticipantQuiz() {
     const newSlowestAnswer = Math.max((playerStats.slowestAnswer || 0), timeTaken)
     const newAverageTime = Math.round(newTotalTime / (playerStats.totalAnswered + 1))
     
+    const preservedStreak = !finalIsCorrect && activeStreakSaver && playerStats.streak >= 3
+      ? playerStats.streak
+      : (finalIsCorrect ? playerStats.streak + 1 : 0)
+    const newScore = Math.max(0, playerStats.score + pointsAwarded)
     const newStats = {
       ...playerStats,
-      score: playerStats.score + (finalIsCorrect ? pointsAwarded : 0),
-      streak: finalIsCorrect ? playerStats.streak + 1 : 0,
+      score: newScore,
+      streak: preservedStreak,
       totalAnswered: playerStats.totalAnswered + 1,
       correctAnswers: playerStats.correctAnswers + (finalIsCorrect ? 1 : 0),
       accuracy: Math.round(((playerStats.correctAnswers + (finalIsCorrect ? 1 : 0)) / (playerStats.totalAnswered + 1)) * 100),
@@ -1246,13 +1270,17 @@ export default function TeamParticipantQuiz() {
     setShowFeedback(true)
     setGameState("answered")
     
+    // Clear active power-up; only consume Streak Saver on a miss
+    if (activePowerUp) setActivePowerUp(null)
+    if (!finalIsCorrect && activeStreakSaver) setActiveStreakSaver(false)
+
     // Save answer to server
     saveAnswer(
       currentQuestion?.id || "",
       finalAnswer,
       finalIsCorrect,
       timeTaken,
-      finalIsCorrect ? pointsAwarded : 0,
+      pointsAwarded,
       newStats.streak
     )
     
@@ -1887,6 +1915,46 @@ export default function TeamParticipantQuiz() {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Double points for 30 seconds</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => usePowerUp("doubleOrNothing")}
+                      disabled={powerUps.doubleOrNothing <= 0 || gameState !== "active"}
+                      className={`border-red-500 text-red-400 hover:bg-red-600 ${
+                        activePowerUp === "doubleOrNothing" ? "bg-red-600" : ""
+                      }`}
+                    >
+                      <Trophy className="w-4 h-4 mr-2" />
+                      Double or Negative ({powerUps.doubleOrNothing})
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Double points if correct; lose base points if wrong</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => usePowerUp("streakSaver")}
+                      disabled={powerUps.streakSaver <= 0 || gameState !== "active" || playerStats.streak < 3 || activeStreakSaver}
+                      className={`border-emerald-500 text-emerald-400 hover:bg-emerald-600 ${
+                        activeStreakSaver ? "bg-emerald-600" : ""
+                      }`}
+                    >
+                      <Shield className="w-4 h-4 mr-2" />
+                      Streak Saver ({powerUps.streakSaver})
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Preserve your current streak (3+) on one miss</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
