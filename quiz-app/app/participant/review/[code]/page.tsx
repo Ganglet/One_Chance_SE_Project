@@ -46,7 +46,9 @@ export default function ParticipantReview() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { toast } = useToast()
-  const playerName = searchParams.get("name") || "Anonymous"
+  const playerName = (typeof window !== 'undefined' && (new URLSearchParams(window.location.search)).get('name'))
+    || (typeof window !== 'undefined' ? localStorage.getItem('username') : null)
+    || 'Anonymous'
   const quizCode = params.code as string
 
   const [loading, setLoading] = useState(true)

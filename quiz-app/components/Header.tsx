@@ -1,11 +1,33 @@
 "use client"
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 export function Header() {
   const pathname = usePathname()
+  const router = useRouter()
   const isLoginPage = pathname === '/'
+  const isHostRoute = pathname.startsWith('/host')
+  const isHostDashboard = pathname === '/dashboard'
+  const isParticipantRoute = pathname.startsWith('/participant')
+  const showProfileIcon = !isLoginPage && !isHostRoute && !isHostDashboard
+
+  const logoHref = isParticipantRoute
+    ? '/participant/dashboard'
+    : (isHostRoute || isHostDashboard)
+      ? '/dashboard'
+      : '/dashboard'
+
+  const handleProfileClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (pathname.startsWith('/participant')) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('open-profile'))
+      }
+    } else {
+      router.push('/participant/dashboard?profile=1')
+    }
+  }
   
   return (
     <header style={{
@@ -18,7 +40,7 @@ export function Header() {
       borderBottom: '2px solid #e6c200', // gold
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'flex-start',
+      justifyContent: 'space-between', // changed from flex-start to space-between
     }}>
       {isLoginPage ? (
         // On login page, show logo without link
@@ -30,14 +52,22 @@ export function Header() {
           />
         </div>
       ) : (
-        // On other pages, show logo with link
-        <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center' }}>
+        // On other pages, show logo with route-aware link
+        <Link href={logoHref} style={{ display: 'flex', alignItems: 'center' }}>
           <img
             src="/college_logo.png"
             alt="NMIMS Logo"
             style={{ height: 56, width: 'auto', marginLeft: 24, marginRight: 16, objectFit: 'contain', background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
           />
         </Link>
+      )}
+      {/* User icon (right side) - open participant quiz history */}
+      {showProfileIcon && (
+        <div style={{ marginRight: 32 }}>
+          <a href="/participant/dashboard" aria-label="My Profile" onClick={handleProfileClick} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src="/vecteezy_people-user-team-png-transparent_9662771.png" alt="User" style={{ height: 36, width: 36, borderRadius: '50%', background: '#eee', objectFit: 'cover' }} />
+          </a>
+        </div>
       )}
     </header>
   )

@@ -39,8 +39,21 @@ export default function ParticipantQuiz() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const playerName = searchParams.get("name") || "Anonymous"
+  const [playerName, setPlayerName] = useState<string>("")
   const quizCode = params.code as string
+
+  // Prefer ?name for display/identity; fall back to stored username
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const fromQuery = searchParams.get('name')
+      if (fromQuery && fromQuery.trim()) {
+        setPlayerName(fromQuery.trim())
+      } else {
+        const u = localStorage.getItem('username')
+        if (u) setPlayerName(u)
+      }
+    }
+  }, [searchParams])
 
   const [gameState, setGameState] = useState<"waiting" | "active" | "answered" | "results" | "completed">("waiting")
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
@@ -134,6 +147,8 @@ export default function ParticipantQuiz() {
   useEffect(() => {
     async function checkSessionStatus() {
       try {
+        // Wait until we know the participant's name to avoid creating an "Anonymous" record
+        if (!playerName || !playerName.trim()) return
         const res = await fetch(`/api/sessions?code=${quizCode}`)
         if (res.ok) {
           const data = await res.json()
@@ -176,6 +191,27 @@ export default function ParticipantQuiz() {
     
     checkSessionStatus()
   }, [quizCode, playerName])
+
+  // When disqualified by proctoring, notify server so host can see it
+  useEffect(() => {
+    const markDisqualified = async () => {
+      if (!isDisqualified || !playerName || !playerName.trim()) return
+      try {
+        await fetch('/api/sessions/update-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: quizCode,
+            username: playerName,
+            stats: { accuracy: -1, score: 0, streak: 0 }
+          })
+        })
+      } catch (e) {
+        console.log('Failed to mark disqualified')
+      }
+    }
+    markDisqualified()
+  }, [isDisqualified, playerName, quizCode])
 
   // Fetch questions for this session on mount
   useEffect(() => {

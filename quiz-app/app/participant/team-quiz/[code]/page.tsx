@@ -50,7 +50,7 @@ export default function TeamParticipantQuiz() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const playerName = searchParams.get("name") || "Anonymous"
+  const [playerName, setPlayerName] = useState<string>("Anonymous")
   const teamName = searchParams.get("team") || "Anonymous Team"
   const quizCode = params.code as string
 
@@ -154,7 +154,7 @@ export default function TeamParticipantQuiz() {
           
           // Check if current user is already a participant
           const isParticipant = data.session.session_participants?.some((p: any) => 
-            p.users && p.users.username === playerName
+            p.users && p.users.username === (playerName || localStorage.getItem('username'))
           ) || false
           
           if (!isParticipant) {
@@ -165,7 +165,7 @@ export default function TeamParticipantQuiz() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                   code: quizCode, 
-                  username: playerName 
+                  username: (playerName || localStorage.getItem('username') || 'Anonymous') 
                 })
               })
               

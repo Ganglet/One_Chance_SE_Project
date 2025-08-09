@@ -196,10 +196,16 @@ export default function TestProctoring() {
             <CardTitle>Debug Information</CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            <p><span className="text-gray-400">Document Focus:</span> {document.hasFocus() ? 'Yes' : 'No'}</p>
-            <p><span className="text-gray-400">Fullscreen Element:</span> {document.fullscreenElement ? 'Yes' : 'No'}</p>
-            <p><span className="text-gray-400">Fullscreen Enabled:</span> {document.fullscreenEnabled ? 'Yes' : 'No'}</p>
-            <p><span className="text-gray-400">Document Hidden:</span> {document.hidden ? 'Yes' : 'No'}</p>
+            {typeof document === 'undefined' ? (
+              <p className="text-gray-400">Debug info available in browser only.</p>
+            ) : (
+              <>
+                <p><span className="text-gray-400">Document Focus:</span> {document.hasFocus() ? 'Yes' : 'No'}</p>
+                <p><span className="text-gray-400">Fullscreen Element:</span> {document.fullscreenElement ? 'Yes' : 'No'}</p>
+                <p><span className="text-gray-400">Fullscreen Enabled:</span> {document.fullscreenEnabled ? 'Yes' : 'No'}</p>
+                <p><span className="text-gray-400">Document Hidden:</span> {document.hidden ? 'Yes' : 'No'}</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>

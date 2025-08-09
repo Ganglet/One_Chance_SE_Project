@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,13 @@ export default function JoinQuiz() {
   const [isJoining, setIsJoining] = useState(false)
 
   const quizCode = params.code as string
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Prefill with logged-in username but allow editing
+      setPlayerName(localStorage.getItem('username') || '')
+    }
+  }, [])
 
   // Mock quiz data
   const quizData = {
@@ -34,15 +41,15 @@ export default function JoinQuiz() {
       const res = await fetch("/api/sessions/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: quizCode, username: playerName })
+        body: JSON.stringify({ code: quizCode, username: playerName.trim() })
       })
       if (!res.ok) {
         setIsJoining(false)
         alert("Failed to join session: " + (await res.text()))
         return
       }
-      // Redirect to quiz interface
-      router.push(`/participant/quiz/${quizCode}?name=${encodeURIComponent(playerName)}`)
+      // Redirect to quiz interface with display name
+      router.push(`/participant/quiz/${quizCode}?name=${encodeURIComponent(playerName.trim())}`)
     } catch (err) {
       setIsJoining(false)
       alert("Network error: " + err)
@@ -107,29 +114,19 @@ export default function JoinQuiz() {
                 onChange={(e) => setPlayerName(e.target.value)}
                 placeholder="Enter your name"
                 maxLength={20}
-                onKeyPress={(e) => {
+                onKeyDown={(e) => {
                   if (e.key === "Enter" && playerName.trim()) {
                     handleJoinQuiz()
                   }
                 }}
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400">This name will be displayed on the leaderboard</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">This name will be shown to the host and other participants</p>
             </div>
 
             {/* Join Button */}
             <Button onClick={handleJoinQuiz} disabled={!playerName.trim() || isJoining} className="w-full" size="lg">
               {isJoining ? "Joining..." : "Join Quiz"}
             </Button>
-
-            {/* Features */}
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              <p className="mb-2">Quiz Features:</p>
-              <div className="flex justify-center gap-4 text-xs">
-                <span>🏆 Live Leaderboard</span>
-                <span>⚡ Power-ups</span>
-                <span>🔥 Streak Bonuses</span>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

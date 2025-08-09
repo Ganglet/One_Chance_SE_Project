@@ -54,7 +54,7 @@ export default function ParticipantLobby() {
         
         if (data.session.status === "completed" || data.session.status === "paused") {
           // Redirect to review page if session is completed or paused
-          router.push(`/participant/review/${joinCode}?name=${encodeURIComponent(playerName)}`)
+          router.push(`/participant/review/${joinCode}`)
           return
         }
         
@@ -142,9 +142,17 @@ export default function ParticipantLobby() {
     return () => clearInterval(interval)
   }, [hasJoined, joinCode, playerName, router])
 
+  useEffect(() => {
+    // Load username from localStorage as a default value but allow editing
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('username') || ''
+      setPlayerName(stored)
+    }
+  }, [])
+
   const handleJoinLobby = async () => {
     if (!playerName.trim()) {
-      setError("Please enter your name")
+      setError("Please enter your name to join.")
       return
     }
 
@@ -229,16 +237,13 @@ export default function ParticipantLobby() {
 
         <div className="max-w-4xl mx-auto">
           {!hasJoined ? (
-            /* Join Form */
             <Card className="card-hover fade-in-up" style={{ animationDelay: '0.1s' }}>
               <CardHeader className="text-center">
                 <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4 scale-in">
                   <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 </div>
                 <CardTitle className="text-2xl">Join Quiz Session</CardTitle>
-                <CardDescription>
-                  Enter your name to join the quiz lobby
-                </CardDescription>
+                <CardDescription>Enter your name to join the quiz lobby</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -250,57 +255,25 @@ export default function ParticipantLobby() {
                     placeholder="Enter your name"
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
-                    className="text-center text-lg transition-element"
-                    maxLength={20}
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleJoinLobby()
-                      }
-                    }}
                   />
                 </div>
-                
-                {error && (
-                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                    <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={handleJoinLobby} 
-                  className="w-full transition-element" 
-                  size="lg"
-                  disabled={!playerName.trim() || joining}
-                >
-                  {joining ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Joining...
-                    </>
-                  ) : (
-                    <>
-                      <Users className="w-4 h-4 mr-2" />
-                      Join Lobby
-                    </>
-                  )}
+                <Button onClick={handleJoinLobby} disabled={joining || !playerName.trim()} className="w-full" size="lg">
+                  {joining ? 'Joining...' : 'Join Lobby'}
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            /* Lobby View */
-            <div className="space-y-6">
-              {/* Welcome Card */}
-              <Card className="card-hover fade-in-up" style={{ animationDelay: '0.1s' }}>
-                <CardHeader className="text-center">
-                  <CardTitle className="flex items-center justify-center gap-2">
-                    <UserCheck className="w-5 h-5 text-green-600" />
-                    Welcome, {playerName}!
-                  </CardTitle>
-                  <CardDescription>
-                    You've successfully joined the quiz lobby. Wait for the host to start the quiz.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
+            /* Waiting Room */
+            <Card className="card-hover fade-in-up" style={{ animationDelay: '0.2s' }}>
+              <CardHeader className="text-center">
+                <CardTitle className="flex items-center justify-center gap-2">
+                  <UserCheck className="w-5 h-5 text-green-600" />
+                  Welcome, {playerName}!
+                </CardTitle>
+                <CardDescription>
+                  You've successfully joined the quiz lobby. Wait for the host to start the quiz.
+                </CardDescription>
+              </CardHeader>
 
               {/* Participants List */}
               <Card className="card-hover fade-in-up" style={{ animationDelay: '0.2s' }}>
@@ -414,7 +387,7 @@ export default function ParticipantLobby() {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </Card>
           )}
         </div>
       </div>

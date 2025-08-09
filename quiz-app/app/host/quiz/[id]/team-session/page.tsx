@@ -833,6 +833,17 @@ export default function TeamQuizSession() {
     )
   }
 
+  const renderDisqualifiedTag = (p: any) => {
+    if (p.accuracy === -1) {
+      return (
+        <span className="ml-2 inline-block text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-300">
+          Disqualified
+        </span>
+      )
+    }
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-slate-900">
       <div className="container mx-auto px-4 py-8">
@@ -1070,6 +1081,7 @@ export default function TeamQuizSession() {
                                 {index + 1}
                               </span>
                               <span className="font-medium text-gray-900">{participant.name}</span>
+                              {renderDisqualifiedTag(participant)}
                               {participant.team && (
                                 <span className="text-xs text-gray-600">({participant.team})</span>
                               )}

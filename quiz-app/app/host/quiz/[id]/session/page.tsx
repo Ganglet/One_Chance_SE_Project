@@ -702,6 +702,17 @@ export default function QuizSession() {
     `
   }
 
+  const renderDisqualifiedTag = (p: any) => {
+    if (p.accuracy === -1) {
+      return (
+        <span className="ml-2 inline-block text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-300">
+          Disqualified
+        </span>
+      )
+    }
+    return null
+  }
+
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
@@ -942,6 +953,7 @@ export default function QuizSession() {
                                 {index + 1}
                               </span>
                               <span className="font-medium">{participant.name}</span>
+                              {renderDisqualifiedTag(participant)}
                             </div>
                             <div className="text-right">
                               <span className="font-bold text-green-600">{participant.efficiency}%</span>
@@ -982,7 +994,7 @@ export default function QuizSession() {
                               {index + 1}
                             </div>
                             <div>
-                              <h3 className="font-semibold text-lg">{participant.name}</h3>
+                              <h3 className="font-semibold text-lg">{participant.name} {renderDisqualifiedTag(participant)}</h3>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
                                 Rank #{index + 1} • {participant.score} points
                               </p>
