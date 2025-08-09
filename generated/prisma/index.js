@@ -333,7 +333,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "E:\\SE_5_proj\\generated\\prisma",
+      "value": "e:\\SE_5_proj\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -351,12 +351,12 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "E:\\SE_5_proj\\prisma\\schema.prisma",
+    "sourceFilePath": "e:\\SE_5_proj\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
     "rootEnvPath": null,
-    "schemaEnvPath": "../../quiz-app/.env"
+    "schemaEnvPath": "../../.env"
   },
   "relativePath": "../../prisma",
   "clientVersion": "6.12.0",
@@ -384,8 +384,8 @@ const fs = require('fs')
 config.dirname = __dirname
 if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
   const alternativePaths = [
-    "../generated/prisma",
     "generated/prisma",
+    "prisma",
   ]
   
   const alternativePath = alternativePaths.find((altPath) => {
@@ -415,11 +415,11 @@ Object.assign(exports, Prisma)
 
 // file annotations for bundling tools to include these files
 path.join(__dirname, "query_engine-windows.dll.node");
-path.join(process.cwd(), "../generated/prisma/query_engine-windows.dll.node")
+path.join(process.cwd(), "generated/prisma/query_engine-windows.dll.node")
 
 // file annotations for bundling tools to include these files
 path.join(__dirname, "libquery_engine-darwin.dylib.node");
-path.join(process.cwd(), "../generated/prisma/libquery_engine-darwin.dylib.node")
+path.join(process.cwd(), "generated/prisma/libquery_engine-darwin.dylib.node")
 // file annotations for bundling tools to include these files
 path.join(__dirname, "schema.prisma");
-path.join(process.cwd(), "../generated/prisma/schema.prisma")
+path.join(process.cwd(), "generated/prisma/schema.prisma")
