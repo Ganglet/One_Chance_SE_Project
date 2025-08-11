@@ -576,7 +576,11 @@ export default function ParticipantReview() {
                                     {isCorrect ? 'Correct' : 'Incorrect'}
                                   </span>
                                   {answer && (
-                                    <span className="text-gray-600 dark:text-gray-400">
+                                    <span className={
+                                      answer.points_awarded < 0
+                                        ? "text-red-600 dark:text-red-400 font-bold"
+                                        : "text-gray-600 dark:text-gray-400"
+                                    }>
                                       Points: {answer.points_awarded}
                                     </span>
                                   )}

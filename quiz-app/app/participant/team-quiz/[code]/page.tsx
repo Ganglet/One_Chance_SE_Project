@@ -882,7 +882,7 @@ export default function TeamParticipantQuiz() {
       const newSlowestAnswer = Math.max((playerStats.slowestAnswer || 0), timeTaken)
       const newAverageTime = Math.round(newTotalTime / (playerStats.totalAnswered + 1))
       
-      const preservedStreak = activeStreakSaver && playerStats.streak >= 3 ? playerStats.streak : 0
+      const preservedStreak = activeStreakSaver && playerStats.streak >= 1 ? playerStats.streak : 0
       const newScore = Math.max(0, playerStats.score + pointsAwarded)
       const newStats = {
         ...playerStats,
@@ -1247,7 +1247,7 @@ export default function TeamParticipantQuiz() {
     const newSlowestAnswer = Math.max((playerStats.slowestAnswer || 0), timeTaken)
     const newAverageTime = Math.round(newTotalTime / (playerStats.totalAnswered + 1))
     
-    const preservedStreak = !finalIsCorrect && activeStreakSaver && playerStats.streak >= 3
+    const preservedStreak = !finalIsCorrect && activeStreakSaver && playerStats.streak >= 1
       ? playerStats.streak
       : (finalIsCorrect ? playerStats.streak + 1 : 0)
     const newScore = Math.max(0, playerStats.score + pointsAwarded)

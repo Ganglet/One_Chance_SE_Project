@@ -649,7 +649,7 @@ export default function ParticipantQuiz() {
       // Update stats for skipped question (count as incorrect)
       const basePoints = currentQuestion.timeLimit ? currentQuestion.points : 0
       const pointsChange = activePowerUp === "doubleOrNothing" ? - (currentQuestion.points || 0) : 0
-      const preservedStreak = activeStreakSaver && playerStats.streak >= 3 ? playerStats.streak : 0
+      const preservedStreak = activeStreakSaver && playerStats.streak >= 1 ? playerStats.streak : 0
       const newStats = {
         score: Math.max(0, playerStats.score + pointsChange),
         streak: preservedStreak,
@@ -752,10 +752,10 @@ export default function ParticipantQuiz() {
         break
       case "streakSaver": {
         // Only allow if player currently has a qualifying streak (>= 3)
-        if (playerStats.streak < 3) {
+        if (playerStats.streak < 1) {
           // Refund usage if not eligible and notify
           setPowerUps((prev) => ({ ...prev, streakSaver: prev.streakSaver + 1 }))
-          toast({ title: "Streak too low", description: "You need a streak of 3+ to use Streak Saver." })
+          toast({ title: "Streak too low", description: "You need a streak of 1+ to use Streak Saver." })
           return
         }
         setActiveStreakSaver(true)
@@ -984,7 +984,7 @@ export default function ParticipantQuiz() {
 
       // Determine next streak with potential streak saver
       let nextStreak = 0
-      if (activeStreakSaver && playerStats.streak >= 3) {
+      if (activeStreakSaver && playerStats.streak >= 1) {
         nextStreak = playerStats.streak
       }
 
@@ -1119,7 +1119,7 @@ export default function ParticipantQuiz() {
     const basePoints = currentQuestion!.points
     // Apply double or negative penalty on timeout and preserve streak if active
     const pointsChange = activePowerUp === "doubleOrNothing" ? -basePoints : 0
-    const nextStreak = activeStreakSaver && playerStats.streak >= 3 ? playerStats.streak : 0
+    const nextStreak = activeStreakSaver && playerStats.streak >= 1 ? playerStats.streak : 0
 
     if (activePowerUp) setActivePowerUp(null)
     if (activeStreakSaver) setActiveStreakSaver(false)
@@ -1410,7 +1410,7 @@ export default function ParticipantQuiz() {
                     variant="outline"
                     size="sm"
                     onClick={() => usePowerUp("streakSaver")}
-                    disabled={powerUps.streakSaver <= 0 || gameState !== "active" || playerStats.streak < 3 || activeStreakSaver}
+                    disabled={powerUps.streakSaver <= 0 || gameState !== "active" || playerStats.streak < 1 || activeStreakSaver}
                     className={activeStreakSaver ? "bg-green-100 dark:bg-green-900" : ""}
                   >
                     Streak Saver ({powerUps.streakSaver})
