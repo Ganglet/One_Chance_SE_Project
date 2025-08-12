@@ -332,7 +332,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\anshu\\OneDrive\\Desktop\\SE_Project\\generated\\prisma",
+      "value": "/Users/angshumansmac/Desktop/BTECH/Sem5/SE/SE_Project_Copy2/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -341,7 +341,7 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "darwin-arm64",
         "native": true
       },
       {
@@ -350,11 +350,12 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\anshu\\OneDrive\\Desktop\\SE_Project\\prisma\\schema.prisma",
+    "sourceFilePath": "/Users/angshumansmac/Desktop/BTECH/Sem5/SE/SE_Project_Copy2/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null
+    "rootEnvPath": null,
+    "schemaEnvPath": "../../quiz-app/.env"
   },
   "relativePath": "../../prisma",
   "clientVersion": "6.12.0",

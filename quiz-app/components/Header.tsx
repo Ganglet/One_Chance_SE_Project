@@ -10,20 +10,20 @@ export function Header() {
   const isHostRoute = pathname.startsWith('/host')
   const isHostDashboard = pathname === '/dashboard'
   const isParticipantRoute = pathname.startsWith('/participant')
+  const isTestProctoringParticipant = pathname.startsWith('/participant/test-proctoring')
+  const isTestProctoringHost = pathname.startsWith('/host/test-proctoring')
   const showProfileIcon = !isLoginPage && !isHostRoute && !isHostDashboard
 
-  const logoHref = isParticipantRoute
+  const logoHref = isParticipantRoute || isTestProctoringParticipant
     ? '/participant/dashboard'
-    : (isHostRoute || isHostDashboard)
+    : (isHostRoute || isHostDashboard || isTestProctoringHost)
       ? '/dashboard'
       : '/dashboard'
 
   const handleProfileClick = (e: React.MouseEvent) => {
     e.preventDefault()
     if (pathname.startsWith('/participant')) {
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('open-profile'))
-      }
+      router.push('/participant/quiz-history')
     } else {
       router.push('/participant/dashboard?profile=1')
     }
@@ -64,7 +64,7 @@ export function Header() {
       {/* User icon (right side) - open participant quiz history */}
       {showProfileIcon && (
         <div style={{ marginRight: 32 }}>
-          <a href="/participant/dashboard" aria-label="My Profile" onClick={handleProfileClick} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <a href="/participant/quiz-history" aria-label="My Profile" onClick={handleProfileClick} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
             <img src="/vecteezy_people-user-team-png-transparent_9662771.png" alt="User" style={{ height: 36, width: 36, borderRadius: '50%', background: '#eee', objectFit: 'cover' }} />
           </a>
         </div>

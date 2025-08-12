@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Trophy, BarChart3, Zap, Clock, UserCheck, X, User } from "lucide-react";
+import { Users, Trophy, BarChart3, Zap, Clock, UserCheck, X, User, ShieldCheck, Download } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 // Note: Avoid useSearchParams here to prevent Suspense requirement during prerender
 
@@ -18,6 +18,7 @@ export default function ParticipantDashboard() {
   const [selectedQuiz, setSelectedQuiz] = useState<any | null>(null);
   const router = useRouter();
   const tiltRef = useRef<HTMLDivElement>(null);
+  const hasMountedRef = useRef<boolean>(false);
 
   // 3D tilt effect handlers (same as before)
   const handleTilt = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -81,6 +82,55 @@ export default function ParticipantDashboard() {
     if (showProfile) fetchHistory();
   }, [showProfile]);
 
+  // Also load history on initial mount to power dynamic cards
+  useEffect(() => {
+    if (hasMountedRef.current) return;
+    hasMountedRef.current = true;
+    (async () => {
+      try {
+        setLoadingHistory(true);
+        const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+        if (!userId) {
+          setQuizHistory([]);
+          return;
+        }
+        const res = await fetch(`/api/participants/history?userId=${userId}`);
+        if (!res.ok) {
+          setQuizHistory([]);
+          return;
+        }
+        const data = await res.json();
+        setQuizHistory(Array.isArray(data.history) ? data.history : []);
+      } catch (e) {
+        setQuizHistory([]);
+      } finally {
+        setLoadingHistory(false);
+      }
+    })();
+  }, []);
+
+  // Derived stats for dynamic cards
+  const totalJoined = quizHistory.length;
+  const teamJoined = quizHistory.filter((q: any) => q.teamMode).length;
+  const soloJoined = Math.max(0, totalJoined - teamJoined);
+  const latestQuiz = quizHistory.reduce((latest: any | null, q: any) => {
+    const qDate = new Date(q.date).getTime();
+    if (!latest) return q;
+    const lDate = new Date(latest.date).getTime();
+    return qDate > lDate ? q : latest;
+  }, null as any | null);
+  const latestPlayedLabel = latestQuiz ? new Date(latestQuiz.date).toLocaleString() : "—";
+  const [showPowerups, setShowPowerups] = useState(false);
+
+  const focusJoinInput = () => {
+    if (typeof window === 'undefined') return;
+    const el = document.getElementById('joinCode') as HTMLInputElement | null;
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      requestAnimationFrame(() => el.focus());
+    }
+  };
+
   // Listen for header-triggered open event
   useEffect(() => {
     const open = () => setShowProfile(true);
@@ -134,6 +184,32 @@ export default function ParticipantDashboard() {
             Join quizzes with real-time participation, advanced scoring, and comprehensive analytics
           </p>
         </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-5xl mx-auto mb-10">
+          <Card className="border border-blue-200 dark:border-blue-800 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-gray-500">Quizzes Joined</CardTitle></CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div className="text-3xl font-bold">{totalJoined}</div>
+              <Users className="w-6 h-6 text-blue-500" />
+            </CardContent>
+          </Card>
+          <Card className="border border-purple-200 dark:border-purple-800 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-gray-500">Solo Sessions</CardTitle></CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div className="text-3xl font-bold">{soloJoined}</div>
+              <Users className="w-6 h-6 text-purple-500" />
+            </CardContent>
+          </Card>
+          <Card className="border border-emerald-200 dark:border-emerald-800 hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2"><CardTitle className="text-sm text-gray-500">Last Played</CardTitle></CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div className="text-lg font-semibold truncate max-w-[70%]" title={latestPlayedLabel}>{latestPlayedLabel}</div>
+              <Clock className="w-6 h-6 text-emerald-500" />
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Profile Dropdown/Modal */}
         {showProfile && (
           <div className="fixed inset-0 bg-black/30 z-40 flex items-center justify-center" onClick={() => setShowProfile(false)}>
@@ -180,6 +256,7 @@ export default function ParticipantDashboard() {
             </div>
           </div>
         )}
+
         {/* Participant Card */}
         <div className="grid gap-8 max-w-4xl mx-auto md:grid-cols-1">
           <Card
@@ -214,6 +291,89 @@ export default function ParticipantDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* USP Section */}
+        <div className="mt-16 max-w-6xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">What makes this platform stand out</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">Secure, collaborative, and insight-driven experience</p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                    <ShieldCheck className="w-6 h-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Proctoring System</CardTitle>
+                    <CardDescription>Fullscreen enforcement, tab switch and focus detection</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => router.push('/participant/test-proctoring')} className="gap-2">
+                  <ShieldCheck className="w-4 h-4" /> Try Proctoring Demo
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-cyan-100 dark:bg-cyan-900 flex items-center justify-center">
+                    <Users className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Team Quiz</CardTitle>
+                    <CardDescription>Seamless team-mode sessions with live coordination</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={focusJoinInput} variant="secondary" className="gap-2">
+                  <Users className="w-4 h-4" /> Join Team Quiz with Code
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Unique Powerups</CardTitle>
+                    <CardDescription>Boost your performance with strategic powerups</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => setShowPowerups(true)} className="gap-2">
+                  <Zap className="w-4 h-4" /> View Powerups
+                </Button>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                    <Download className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div>
+                    <CardTitle>CSV Exports</CardTitle>
+                    <CardDescription>Hosts can export complete analytics as CSV</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button disabled variant="outline" className="gap-2 opacity-70 cursor-not-allowed" aria-disabled>
+                  <Download className="w-4 h-4" /> Host-only
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         {/* Features Section */}
         <div className="mt-16 max-w-6xl mx-auto">
           <div className="text-center mb-12 fade-in-up" style={{ animationDelay: "0.4s" }}>
@@ -282,6 +442,43 @@ export default function ParticipantDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Powerups Modal */}
+      {showPowerups && (
+        <div className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center" onClick={() => setShowPowerups(false)}>
+          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold">Powerups</h3>
+              <button onClick={() => setShowPowerups(false)} aria-label="Close"><X className="w-5 h-5" /></button>
+            </div>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <div className="font-medium">50/50</div>
+                <div className="text-gray-600 dark:text-gray-400">Removes two incorrect options for the current question.</div>
+              </li>
+              <li>
+                <div className="font-medium">Extra Time</div>
+                <div className="text-gray-600 dark:text-gray-400">Adds extra time to the current question's timer.</div>
+              </li>
+              <li>
+                <div className="font-medium">2x Points</div>
+                <div className="text-gray-600 dark:text-gray-400">Doubles the points if the answer is correct.</div>
+              </li>
+              <li>
+                <div className="font-medium">Double or Negative</div>
+                <div className="text-gray-600 dark:text-gray-400">High risk, high reward: double points for correct, negative for wrong.</div>
+              </li>
+              <li>
+                <div className="font-medium">Streak Saver</div>
+                <div className="text-gray-600 dark:text-gray-400">Protects your current streak from being reset once.</div>
+              </li>
+            </ul>
+            <div className="mt-6 text-right">
+              <Button onClick={() => setShowPowerups(false)}>Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
