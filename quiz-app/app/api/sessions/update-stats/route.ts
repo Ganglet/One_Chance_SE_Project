@@ -4,7 +4,7 @@ import { prisma } from '../../../../lib/db'
 // POST /api/sessions/update-stats - Update participant statistics
 export async function POST(req: NextRequest) {
   try {
-    const { code, username, stats } = await req.json()
+    const { code, username, stats, disqualificationReason } = await req.json()
     
     if (!code || !username || !stats) {
       return NextResponse.json({ error: 'code, username, and stats required' }, { status: 400 })
@@ -40,19 +40,34 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Participant not found in session' }, { status: 404 })
     }
 
-    // Update the participant with only the fields that exist in the database schema
+    // Prepare update data
+    const updateData: any = {
+      score: stats.score || participant.score,
+      streak: stats.streak || participant.streak,
+      accuracy: stats.accuracy || participant.accuracy,
+    }
+
+    // If this is a disqualification, log it for the host
+    if (stats.accuracy === -1) {
+      console.log(`🚫 PARTICIPANT DISQUALIFIED: ${username} in session ${code}`)
+      if (disqualificationReason) {
+        console.log(`📋 Disqualification reason: ${disqualificationReason}`)
+      }
+      
+      // You could also store this in a separate table for audit purposes
+      // For now, we'll use the accuracy field as a flag
+    }
+
+    // Update the participant
     const updatedParticipant = await prisma.session_participants.update({
       where: { id: participant.id },
-      data: {
-        score: stats.score || participant.score,
-        streak: stats.streak || participant.streak,
-        accuracy: stats.accuracy || participant.accuracy,
-      },
+      data: updateData,
     })
 
     return NextResponse.json({ 
       success: true, 
-      participant: updatedParticipant 
+      participant: updatedParticipant,
+      isDisqualified: stats.accuracy === -1
     })
   } catch (error) {
     console.error('Error updating participant stats:', error)

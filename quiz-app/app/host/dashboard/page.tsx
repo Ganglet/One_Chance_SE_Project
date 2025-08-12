@@ -752,8 +752,8 @@ export default function HostDashboard() {
           </Button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid md:grid-cols-4 gap-6 mb-8">
+        {/* Quiz Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <Card className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -761,42 +761,61 @@ export default function HostDashboard() {
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Quizzes</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">{quizzes.length}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                  <Trophy className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                  <Trophy className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
+
           <Card className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Quizzes</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {quizzes.filter(q => q.status === "active").length}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900 rounded-lg flex items-center justify-center">
-                  <Play className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                  <Play className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
+
           <Card className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Stopped Quizzes</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {quizzes.filter(q => q.status === "stopped").length}
+                    {quizzes.filter(q => q.status === "completed").length}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-lg flex items-center justify-center">
-                  <RotateCcw className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                  <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          <Card className="card-hover">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Draft</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {quizzes.filter(q => q.status === "draft" || q.status === "inactive").length}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                  <Circle className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card className="card-hover">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">

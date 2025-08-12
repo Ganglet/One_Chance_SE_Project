@@ -214,6 +214,35 @@ export default function TeamParticipantQuiz() {
     checkSessionStatus()
   }, [quizCode, playerName])
 
+  // When disqualified by proctoring, notify server so host can see it
+  useEffect(() => {
+    const markDisqualified = async () => {
+      if (!isDisqualified || !playerName || !playerName.trim()) return
+      try {
+        // Get the specific violation that caused disqualification
+        let disqualificationReason = 'Multiple proctoring violations'
+        if (warnings >= 3) {
+          disqualificationReason = `Exceeded maximum warnings (${warnings}/${3})`
+        }
+        
+        await fetch('/api/sessions/update-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: quizCode,
+            username: playerName,
+            stats: { accuracy: -1, score: 0, streak: 0 },
+            disqualificationReason: disqualificationReason
+          })
+        })
+        console.log('Successfully marked as disqualified')
+      } catch (e) {
+        console.log('Failed to mark disqualified:', e)
+      }
+    }
+    markDisqualified()
+  }, [isDisqualified, playerName, quizCode, warnings])
+
   // Fetch questions
   useEffect(() => {
     async function fetchQuestions() {
@@ -1513,6 +1542,35 @@ export default function TeamParticipantQuiz() {
   }, [gameState, quizCode, playerName, router])
 
   // Proctoring is now handled by the useProctoring hook above
+
+  // When disqualified by proctoring, notify server so host can see it
+  useEffect(() => {
+    const markDisqualified = async () => {
+      if (!isDisqualified || !playerName || !playerName.trim()) return
+      try {
+        // Get the specific violation that caused disqualification
+        let disqualificationReason = 'Multiple proctoring violations'
+        if (warnings >= 3) {
+          disqualificationReason = `Exceeded maximum warnings (${warnings}/${3})`
+        }
+        
+        await fetch('/api/sessions/update-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: quizCode,
+            username: playerName,
+            stats: { accuracy: -1, score: 0, streak: 0 },
+            disqualificationReason: disqualificationReason
+          })
+        })
+        console.log('Successfully marked as disqualified')
+      } catch (e) {
+        console.log('Failed to mark disqualified:', e)
+      }
+    }
+    markDisqualified()
+  }, [isDisqualified, playerName, quizCode, warnings])
 
   // Only show game content if questions are loaded
   if (questions.length === 0) {

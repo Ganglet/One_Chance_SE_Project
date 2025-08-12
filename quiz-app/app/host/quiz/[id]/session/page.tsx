@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, BarChart3, CheckCircle, RotateCcw, X, Download } from "lucide-react"
+import { Trophy, BarChart3, CheckCircle, RotateCcw, X, Download, XCircle, Users } from "lucide-react"
 import { useParams, useSearchParams } from "next/navigation"
 import { useRouter } from "next/navigation"
 import { 
@@ -79,6 +79,9 @@ export default function QuizSession() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const [isTeamQuiz, setIsTeamQuiz] = useState(false)
+  const [showSessionCompleted, setShowSessionCompleted] = useState(false)
+  const [showTerminationModal, setShowTerminationModal] = useState(false)
+  const [disqualificationNotifications, setDisqualificationNotifications] = useState<Array<{id: string, participantName: string, timestamp: Date}>>([])
 
   // Function to format correct answers for display
   const formatCorrectAnswer = (correctAnswer: string | number, questionType: string) => {
@@ -162,31 +165,44 @@ export default function QuizSession() {
         if (pres.ok) {
           const pdata = await pres.json()
           console.log("Participants data:", pdata)
-          setParticipants(
-            pdata.participants.map((p: any) => ({
-              id: p.user_id.toString(),
-              name: p.users.username,
-              score: p.score || 0,
-              streak: p.streak || 0,
-              accuracy: p.accuracy || 0,
-              answered: p.answered || false,
-              timeRemaining: undefined, // We'll implement this later
-              // Enhanced statistics
-              totalAnswers: p.totalAnswers || 0,
-              correctAnswers: p.correctAnswers || 0,
-              incorrectAnswers: p.incorrectAnswers || 0,
-              averageTimeTaken: p.averageTimeTaken || 0,
-              totalTimeTaken: p.totalTimeTaken || 0,
-              totalPointsEarned: p.totalPointsEarned || 0,
-              fastestAnswer: p.fastestAnswer || 0,
-              slowestAnswer: p.slowestAnswer || 0,
-              questionsAnswered: p.questionsAnswered || 0,
-              questionsCorrect: p.questionsCorrect || 0,
-              questionsIncorrect: p.questionsIncorrect || 0,
-              averagePointsPerQuestion: p.averagePointsPerQuestion || 0,
-              efficiency: p.efficiency || 0,
+          const newParticipants = pdata.participants.map((p: any) => ({
+            id: p.user_id.toString(),
+            name: p.users.username,
+            score: p.score || 0,
+            streak: p.streak || 0,
+            accuracy: p.accuracy || 0,
+            answered: p.answered || false,
+            timeRemaining: undefined, // We'll implement this later
+            // Enhanced statistics
+            totalAnswers: p.totalAnswers || 0,
+            correctAnswers: p.correctAnswers || 0,
+            incorrectAnswers: p.incorrectAnswers || 0,
+            averageTimeTaken: p.averageTimeTaken || 0,
+            totalTimeTaken: p.totalTimeTaken || 0,
+            totalPointsEarned: p.totalPointsEarned || 0,
+            fastestAnswer: p.fastestAnswer || 0,
+            slowestAnswer: p.slowestAnswer || 0,
+            questionsAnswered: p.questionsAnswered || 0,
+            questionsCorrect: p.questionsCorrect || 0,
+            questionsIncorrect: p.questionsIncorrect || 0,
+            averagePointsPerQuestion: p.averagePointsPerQuestion || 0,
+            efficiency: p.efficiency || 0,
+          }))
+
+          // Check for new disqualifications
+          const currentDisqualified = participants.filter(p => p.accuracy === -1).map(p => p.id)
+          const newDisqualified = newParticipants.filter(p => p.accuracy === -1 && !currentDisqualified.includes(p.id))
+          
+          if (newDisqualified.length > 0) {
+            const newNotifications = newDisqualified.map(p => ({
+              id: `${p.id}-${Date.now()}`,
+              participantName: p.name,
+              timestamp: new Date()
             }))
-          )
+            setDisqualificationNotifications(prev => [...prev, ...newNotifications])
+          }
+
+          setParticipants(newParticipants)
         } else {
           console.error("Failed to fetch participants:", pres.status, pres.statusText)
         }
@@ -786,9 +802,80 @@ export default function QuizSession() {
           </div>
         </div>
 
+        {/* Disqualification Notifications */}
+        {disqualificationNotifications.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <h3 className="font-semibold text-red-800 dark:text-red-200">Recent Disqualifications</h3>
+            </div>
+            <div className="space-y-2">
+              {disqualificationNotifications.slice(-3).map((notification) => (
+                <div key={notification.id} className="flex items-center justify-between text-sm">
+                  <span className="text-red-700 dark:text-red-300">
+                    <strong>{notification.participantName}</strong> was disqualified
+                  </span>
+                  <span className="text-red-500 dark:text-red-400">
+                    {notification.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Session Summary Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600 dark:text-blue-400">Total Participants</p>
+                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{participants.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-600 dark:text-green-400">Active Participants</p>
+                      <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                        {participants.filter(p => p.accuracy !== -1).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
+                      <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-red-600 dark:text-red-400">Disqualified</p>
+                      <p className="text-2xl font-bold text-red-700 dark:text-red-300">
+                        {participants.filter(p => p.accuracy === -1).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Questions Preview */}
             <Card className={isTeamQuiz ? 'bg-gray-800 border-cyan-500/30' : ''}>
               <CardHeader>
@@ -966,6 +1053,52 @@ export default function QuizSession() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Disqualified Participants Section */}
+            {participants.filter(p => p.accuracy === -1).length > 0 && (
+              <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-300">
+                    <XCircle className="w-5 h-5" />
+                    Disqualified Participants
+                  </CardTitle>
+                  <CardDescription className="text-red-600 dark:text-red-400">
+                    Participants disqualified due to proctoring violations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {participants
+                      .filter(p => p.accuracy === -1)
+                      .map((participant, index) => (
+                        <div key={participant.id} className="flex items-center justify-between p-4 bg-red-100 dark:bg-red-800/30 rounded-lg border border-red-200 dark:border-red-700">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-200 dark:bg-red-700 flex items-center justify-center">
+                              <XCircle className="w-4 h-4 text-red-600 dark:text-red-300" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-red-800 dark:text-red-200">
+                                {participant.name}
+                              </h4>
+                              <p className="text-sm text-red-600 dark:text-red-400">
+                                Disqualified due to proctoring violations
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant="destructive" className="bg-red-600 text-white">
+                              Disqualified
+                            </Badge>
+                            <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                              Final Score: {participant.score}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Detailed Participant Analytics */}
             <Card>

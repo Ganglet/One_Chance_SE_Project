@@ -92,6 +92,7 @@ export default function TeamQuizSession() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showSessionCompleted, setShowSessionCompleted] = useState(false)
+  const [disqualificationNotifications, setDisqualificationNotifications] = useState<Array<{id: string, participantName: string, timestamp: Date}>>([])
   const router = useRouter()
   const { toast } = useToast()
 
@@ -184,32 +185,45 @@ export default function TeamQuizSession() {
             console.log("First participant sample:", pdata.participants[0])
           }
           
-          setParticipants(
-            pdata.participants.map((p: any) => ({
-              id: p.user_id.toString(),
-              name: p.users.username,
-              score: p.score || 0,
-              streak: p.streak || 0,
-              accuracy: p.accuracy || 0,
-              answered: p.answered || false,
-              timeRemaining: undefined,
-              team: p.team || null,
-              // Enhanced statistics - use actual database values
-              totalAnswers: p.totalAnswers || p.total_answers || 0,
-              correctAnswers: p.correctAnswers || p.correct_answers || 0,
-              incorrectAnswers: p.incorrectAnswers || p.incorrect_answers || 0,
-              averageTimeTaken: p.averageTimeTaken || p.average_time_taken || 0,
-              totalTimeTaken: p.totalTimeTaken || p.total_time_taken || 0,
-              totalPointsEarned: p.totalPointsEarned || p.total_points_earned || p.score || 0,
-              fastestAnswer: p.fastestAnswer || p.fastest_answer || 0,
-              slowestAnswer: p.slowestAnswer || p.slowest_answer || 0,
-              questionsAnswered: p.questionsAnswered || p.questions_answered || p.totalAnswers || p.total_answers || 0,
-              questionsCorrect: p.questionsCorrect || p.questions_correct || p.correctAnswers || p.correct_answers || 0,
-              questionsIncorrect: p.questionsIncorrect || p.questions_incorrect || p.incorrectAnswers || p.incorrect_answers || 0,
-              averagePointsPerQuestion: p.averagePointsPerQuestion || p.average_points_per_question || 0,
-              efficiency: p.efficiency || p.accuracy || 0,
+          const newParticipants = pdata.participants.map((p: any) => ({
+            id: p.user_id.toString(),
+            name: p.users.username,
+            score: p.score || 0,
+            streak: p.streak || 0,
+            accuracy: p.accuracy || 0,
+            answered: p.answered || false,
+            timeRemaining: undefined,
+            team: p.team || null,
+            // Enhanced statistics - use actual database values
+            totalAnswers: p.totalAnswers || p.total_answers || 0,
+            correctAnswers: p.correctAnswers || p.correct_answers || 0,
+            incorrectAnswers: p.incorrectAnswers || p.incorrect_answers || 0,
+            averageTimeTaken: p.averageTimeTaken || p.average_time_taken || 0,
+            totalTimeTaken: p.totalTimeTaken || p.total_time_taken || 0,
+            totalPointsEarned: p.totalPointsEarned || p.total_points_earned || p.score || 0,
+            fastestAnswer: p.fastestAnswer || p.fastest_answer || 0,
+            slowestAnswer: p.slowestAnswer || p.slowest_answer || 0,
+            questionsAnswered: p.questionsAnswered || p.questions_answered || p.totalAnswers || p.total_answers || 0,
+            questionsCorrect: p.questionsCorrect || p.questions_correct || p.correctAnswers || p.correct_answers || 0,
+            questionsIncorrect: p.questionsIncorrect || p.questions_incorrect || p.incorrectAnswers || p.incorrect_answers || 0,
+            averagePointsPerQuestion: p.averagePointsPerQuestion || p.average_points_per_question || 0,
+            efficiency: p.efficiency || p.accuracy || 0,
+          }))
+
+          // Check for new disqualifications
+          const currentDisqualified = participants.filter(p => p.accuracy === -1).map(p => p.id)
+          const newDisqualified = newParticipants.filter(p => p.accuracy === -1 && !currentDisqualified.includes(p.id))
+          
+          if (newDisqualified.length > 0) {
+            const newNotifications = newDisqualified.map(p => ({
+              id: `${p.id}-${Date.now()}`,
+              participantName: p.name,
+              timestamp: new Date()
             }))
-          )
+            setDisqualificationNotifications(prev => [...prev, ...newNotifications])
+          }
+
+          setParticipants(newParticipants)
         } else {
           console.error("Failed to fetch participants:", pres.status, pres.statusText)
           const errorText = await pres.text()
@@ -915,9 +929,80 @@ export default function TeamQuizSession() {
           </div>
         </div>
 
+        {/* Recent Disqualifications */}
+        {disqualificationNotifications.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <XCircle className="w-5 h-5 text-red-600" />
+              <h3 className="font-semibold text-red-800">Recent Disqualifications</h3>
+            </div>
+            <div className="space-y-2">
+              {disqualificationNotifications.slice(-3).map((notification) => (
+                <div key={notification.id} className="flex items-center justify-between text-sm">
+                  <span className="text-red-700">
+                    <strong>{notification.participantName}</strong> was disqualified
+                  </span>
+                  <span className="text-red-500">
+                    {notification.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Session Summary Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="bg-white border-blue-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600">Total Participants</p>
+                      <p className="text-2xl font-bold text-blue-700">{participants.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-green-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-600">Active Participants</p>
+                      <p className="text-2xl font-bold text-green-700">
+                        {participants.filter(p => p.accuracy !== -1).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-red-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                      <XCircle className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-red-600">Disqualified</p>
+                      <p className="text-2xl font-bold text-red-700">
+                        {participants.filter(p => p.accuracy === -1).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Team Leaderboard */}
             <Card className="bg-white border-gray-200 shadow-lg">
               <CardHeader>
@@ -1134,6 +1219,53 @@ export default function TeamQuizSession() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Disqualified Participants Section */}
+            {participants.filter(p => p.accuracy === -1).length > 0 && (
+              <Card className="bg-white border-red-200 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl text-red-700 flex items-center gap-2">
+                    <XCircle className="w-5 h-5" />
+                    Disqualified Participants
+                  </CardTitle>
+                  <CardDescription className="text-red-600">
+                    Participants disqualified due to proctoring violations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {participants
+                      .filter(p => p.accuracy === -1)
+                      .map((participant, index) => (
+                        <div key={participant.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center">
+                              <XCircle className="w-4 h-4 text-red-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-red-800">
+                                {participant.name}
+                              </h4>
+                              <p className="text-sm text-red-600">
+                                Disqualified due to proctoring violations
+                                {participant.team && ` • Team: ${participant.team}`}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant="destructive" className="bg-red-600 text-white">
+                              Disqualified
+                            </Badge>
+                            <p className="text-xs text-red-500 mt-1">
+                              Final Score: {participant.score}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Detailed Participant Analytics */}
             <Card className="bg-white border-gray-200 shadow-lg">

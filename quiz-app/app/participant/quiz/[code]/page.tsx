@@ -198,21 +198,29 @@ export default function ParticipantQuiz() {
     const markDisqualified = async () => {
       if (!isDisqualified || !playerName || !playerName.trim()) return
       try {
+        // Get the specific violation that caused disqualification
+        let disqualificationReason = 'Multiple proctoring violations'
+        if (warnings >= 3) {
+          disqualificationReason = `Exceeded maximum warnings (${warnings}/${3})`
+        }
+        
         await fetch('/api/sessions/update-stats', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             code: quizCode,
             username: playerName,
-            stats: { accuracy: -1, score: 0, streak: 0 }
+            stats: { accuracy: -1, score: 0, streak: 0 },
+            disqualificationReason: disqualificationReason
           })
         })
+        console.log('Successfully marked as disqualified')
       } catch (e) {
-        console.log('Failed to mark disqualified')
+        console.log('Failed to mark disqualified:', e)
       }
     }
     markDisqualified()
-  }, [isDisqualified, playerName, quizCode])
+  }, [isDisqualified, playerName, quizCode, warnings])
 
   // Fetch questions for this session on mount
   useEffect(() => {
