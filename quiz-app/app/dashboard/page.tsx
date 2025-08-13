@@ -238,8 +238,8 @@ export default function DashboardRoute() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Button onClick={() => router.push('/host/dashboard')} variant="secondary" className="gap-2">
-                  <Users className="w-4 h-4" /> Go to Host Dashboard
+                <Button onClick={() => router.push('/host/create-quiz')} variant="secondary" className="gap-2">
+                  <Users className="w-4 h-4" /> Create Team Quiz
                 </Button>
               </CardContent>
             </Card>
@@ -256,7 +256,7 @@ export default function DashboardRoute() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Button onClick={() => router.push('/host/dashboard')} className="gap-2">
+                <Button onClick={() => router.push(latestQuiz ? `/host/quiz/${latestQuiz.id}/statistics` : '/host/dashboard')} className="gap-2">
                   <BarChart3 className="w-4 h-4" /> View Analytics
                 </Button>
               </CardContent>

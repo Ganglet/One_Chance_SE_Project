@@ -258,7 +258,7 @@ export default function TeamQuizReview() {
           <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-red-400 mb-4">Error Loading Results</h1>
           <p className="text-gray-300 mb-6">{error}</p>
-          <Button onClick={() => router.push("/dashboard")} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => router.push("/participant/dashboard")} className="bg-blue-600 hover:bg-blue-700">
             Back to Dashboard
           </Button>
         </div>
@@ -499,7 +499,7 @@ export default function TeamQuizReview() {
           {/* Action Buttons */}
           <div className="flex justify-center gap-4">
             <Button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/participant/dashboard")}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Back to Dashboard

@@ -13,6 +13,7 @@ export function Header() {
   const isTestProctoringParticipant = pathname.startsWith('/participant/test-proctoring')
   const isTestProctoringHost = pathname.startsWith('/host/test-proctoring')
   const showProfileIcon = !isLoginPage && !isHostRoute && !isHostDashboard
+  const showBackButton = !isLoginPage && pathname !== '/dashboard' && pathname !== '/participant/dashboard'
 
   const logoHref = isParticipantRoute || isTestProctoringParticipant
     ? '/participant/dashboard'
@@ -53,13 +54,32 @@ export function Header() {
         </div>
       ) : (
         // On other pages, show logo with route-aware link
-        <Link href={logoHref} style={{ display: 'flex', alignItems: 'center' }}>
-          <img
-            src="/college_logo.png"
-            alt="NMIMS Logo"
-            style={{ height: 56, width: 'auto', marginLeft: 24, marginRight: 16, objectFit: 'contain', background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
-          />
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Link href={logoHref} style={{ display: 'flex', alignItems: 'center' }}>
+            <img
+              src="/college_logo.png"
+              alt="NMIMS Logo"
+              style={{ height: 56, width: 'auto', marginLeft: 24, marginRight: 16, objectFit: 'contain', background: '#fff', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}
+            />
+          </Link>
+          {showBackButton && (
+            <button
+              onClick={() => router.back()}
+              style={{
+                marginLeft: 8,
+                padding: '8px 12px',
+                border: '1px solid #e6c200',
+                borderRadius: 8,
+                background: '#fff8db',
+                color: '#7a5d00',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              ⟵ Back
+            </button>
+          )}
+        </div>
       )}
       {/* User icon (right side) - open participant quiz history */}
       {showProfileIcon && (

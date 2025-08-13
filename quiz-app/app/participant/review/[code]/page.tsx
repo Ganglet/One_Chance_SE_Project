@@ -210,7 +210,7 @@ export default function ParticipantReview() {
   }
 
   const handleGoHome = () => {
-    router.push("/")
+    router.push("/participant/dashboard")
   }
 
   if (loading) {
@@ -265,6 +265,9 @@ export default function ParticipantReview() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 slide-in-left">
+          <Button variant="ghost" onClick={() => router.back()} className="mr-4">
+            ⟵ Back
+          </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Quiz Review</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">

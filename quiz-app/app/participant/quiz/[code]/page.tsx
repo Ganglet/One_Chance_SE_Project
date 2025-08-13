@@ -231,8 +231,16 @@ export default function ParticipantQuiz() {
           const data = await res.json()
           console.log("Fetched questions:", data.questions)
           
+          // Deduplicate by question id first to prevent repeats, then process
+          const uniqueByIdMap = new Map<string, any>()
+          for (const q of data.questions) {
+            const key = String(q.id)
+            if (!uniqueByIdMap.has(key)) uniqueByIdMap.set(key, q)
+          }
+          const uniqueQuestionsRaw = Array.from(uniqueByIdMap.values())
+
           // Process questions to match the expected format
-          const processedQuestions = data.questions.map((q: any) => {
+          const processedQuestions = uniqueQuestionsRaw.map((q: any) => {
             console.log("Processing question:", q)
             console.log("Question options:", q.options)
             
@@ -259,7 +267,7 @@ export default function ParticipantQuiz() {
           })
           
           // Apply option shuffling to each question based on its type
-          const questionsWithShuffledOptions = processedQuestions.map((question: Question) => {
+          const questionsWithShuffledOptions = processedQuestions.map((question: any) => {
             let shuffledQuestion = question
             
             // Shuffle MCQ options
@@ -285,7 +293,35 @@ export default function ParticipantQuiz() {
           
           // Shuffle questions for this participant to prevent memorization
           const shuffledQuestions = shuffleArray([...questionsWithShuffledOptions])
-          setQuestions(shuffledQuestions)
+          
+          // Additional deduplication check to ensure no duplicates remain
+          const finalQuestions = shuffledQuestions.filter((question: any, index, array) => 
+            array.findIndex((q: any) => q.id === question.id) === index
+          )
+          
+          setQuestions(finalQuestions)
+          
+          // Check for duplicate questions
+          const questionIds = finalQuestions.map((q: any) => q.id)
+          const uniqueIds = new Set(questionIds)
+          if (questionIds.length !== uniqueIds.size) {
+            console.error("DUPLICATE QUESTIONS DETECTED!", {
+              totalQuestions: questionIds.length,
+              uniqueQuestions: uniqueIds.size,
+              questionIds,
+              duplicateIds: questionIds.filter((id, index) => questionIds.indexOf(id) !== index)
+            })
+          }
+          
+          console.log("Final questions set:", finalQuestions.map((q: any) => q.id), finalQuestions.length)
+          
+          // Initialize the first question if we have questions and are in waiting state
+          if (finalQuestions.length > 0 && gameState === "waiting") {
+            console.log("Initializing first question")
+            setCurrentQuestion(finalQuestions[0])
+            setQuestionIndex(0)
+            setTimeRemaining(finalQuestions[0].timeLimit)
+          }
         } else {
           console.error("Failed to fetch questions:", res.status, res.statusText)
           const errorData = await res.json().catch(() => ({}))
@@ -655,8 +691,8 @@ export default function ParticipantQuiz() {
       console.log(`Skipping to next question: ${nextIndex + 1}/${questions.length}`)
       
       // Update stats for skipped question (count as incorrect)
-      const basePoints = currentQuestion.timeLimit ? currentQuestion.points : 0
-      const pointsChange = activePowerUp === "doubleOrNothing" ? - (currentQuestion.points || 0) : 0
+      const basePoints = currentQuestion?.timeLimit ? currentQuestion.points : 0
+      const pointsChange = activePowerUp === "doubleOrNothing" ? - (currentQuestion?.points || 0) : 0
       const preservedStreak = activeStreakSaver && playerStats.streak >= 1 ? playerStats.streak : 0
       const newStats = {
         score: Math.max(0, playerStats.score + pointsChange),

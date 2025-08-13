@@ -141,6 +141,7 @@ export default function CreateQuiz() {
               ? "ordering"
               : "ordering",
           correctAnswer: formattedCorrectAnswer,
+          category: undefined,
         };
       });
       const res = await fetch('/api/quizzes', {
@@ -220,10 +221,7 @@ export default function CreateQuiz() {
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="negative-marking">Negative Marking</Label>
-                  <Switch id="negative-marking" checked={negativeMarking} onCheckedChange={setNegativeMarking} />
-                </div>
+                {/* Negative Marking removed as requested */}
 
                 {/* Team Mode Button */}
                 <div className="space-y-2">
@@ -303,24 +301,7 @@ export default function CreateQuiz() {
                         </Select>
                       </div>
 
-                      <div className="space-y-2">
-                        <Label>Category</Label>
-                        <Select
-                          value={question.category}
-                          onValueChange={(value) => updateQuestion(question.id, { category: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="General">General</SelectItem>
-                            <SelectItem value="Science">Science</SelectItem>
-                            <SelectItem value="History">History</SelectItem>
-                            <SelectItem value="Sports">Sports</SelectItem>
-                            <SelectItem value="Technology">Technology</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      {/* Category removed as requested */}
                     </div>
 
                     <div className="space-y-2">

@@ -348,9 +348,14 @@ export default function ParticipantDashboard() {
                 </div>
               </CardHeader>
               <CardContent>
-                <Button onClick={() => setShowPowerups(true)} className="gap-2">
-                  <Zap className="w-4 h-4" /> View Powerups
-                </Button>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <Button onClick={() => setShowPowerups(true)} className="gap-2 w-full md:w-auto order-2 md:order-1">
+                    <Zap className="w-4 h-4" /> View Powerups
+                  </Button>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 md:text-right order-1 md:order-2">
+                    Use wisely to boost your score during a quiz
+                  </div>
+                </div>
               </CardContent>
             </Card>
             <Card className="hover:shadow-md transition-shadow">
@@ -448,29 +453,29 @@ export default function ParticipantDashboard() {
         <div className="fixed inset-0 z-40 bg-black/40 flex items-center justify-center" onClick={() => setShowPowerups(false)}>
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold">Powerups</h3>
+              <h3 className="text-2xl font-extrabold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600">Powerups</h3>
               <button onClick={() => setShowPowerups(false)} aria-label="Close"><X className="w-5 h-5" /></button>
             </div>
-            <ul className="space-y-3 text-sm">
-              <li>
-                <div className="font-medium">50/50</div>
-                <div className="text-gray-600 dark:text-gray-400">Removes two incorrect options for the current question.</div>
+            <ul className="space-y-4">
+              <li className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="text-lg font-bold tracking-wide">50/50</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Removes two incorrect options for the current question.</div>
               </li>
-              <li>
-                <div className="font-medium">Extra Time</div>
-                <div className="text-gray-600 dark:text-gray-400">Adds extra time to the current question's timer.</div>
+              <li className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="text-lg font-bold tracking-wide">Extra Time</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Adds extra time to the current question's timer.</div>
               </li>
-              <li>
-                <div className="font-medium">2x Points</div>
-                <div className="text-gray-600 dark:text-gray-400">Doubles the points if the answer is correct.</div>
+              <li className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="text-lg font-bold tracking-wide">2x Points</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Doubles the points if the answer is correct.</div>
               </li>
-              <li>
-                <div className="font-medium">Double or Negative</div>
-                <div className="text-gray-600 dark:text-gray-400">High risk, high reward: double points for correct, negative for wrong.</div>
+              <li className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="text-lg font-bold tracking-wide">Double or Negative</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">High risk, high reward: double points for correct, negative for wrong.</div>
               </li>
-              <li>
-                <div className="font-medium">Streak Saver</div>
-                <div className="text-gray-600 dark:text-gray-400">Protects your current streak from being reset once.</div>
+              <li className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                <div className="text-lg font-bold tracking-wide">Streak Saver</div>
+                <div className="text-gray-600 dark:text-gray-400 text-sm">Protects your current streak from being reset once.</div>
               </li>
             </ul>
             <div className="mt-6 text-right">

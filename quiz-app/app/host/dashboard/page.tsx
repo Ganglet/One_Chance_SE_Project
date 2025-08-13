@@ -788,29 +788,13 @@ export default function HostDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Stopped</p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {quizzes.filter(q => q.status === "completed").length}
+                    {quizzes.filter(q => q.status === "stopped").length}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-hover">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Draft</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {quizzes.filter(q => q.status === "draft" || q.status === "inactive").length}
-                  </p>
-                </div>
-                <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
-                  <Circle className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900 rounded-lg flex items-center justify-center">
+                  <RotateCcw className="w-6 h-6 text-amber-600 dark:text-amber-400" />
                 </div>
               </div>
             </CardContent>

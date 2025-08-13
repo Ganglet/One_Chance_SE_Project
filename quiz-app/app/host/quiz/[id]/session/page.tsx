@@ -60,7 +60,7 @@ interface Participant {
 interface Question {
   id: string
   question: string
-  type: "multiple-choice" | "true-false" | "short-answer"
+  type: "multiple-choice" | "true-false" | "short-answer" | "matching-pairs" | "ordering" | "drag-drop"
   options?: string[]
   correctAnswer: string | number
   timeLimit: number
@@ -190,11 +190,11 @@ export default function QuizSession() {
           }))
 
           // Check for new disqualifications
-          const currentDisqualified = participants.filter(p => p.accuracy === -1).map(p => p.id)
-          const newDisqualified = newParticipants.filter(p => p.accuracy === -1 && !currentDisqualified.includes(p.id))
+          const currentDisqualified = participants.filter((p: Participant) => p.accuracy === -1).map((p: Participant) => p.id)
+          const newDisqualified = newParticipants.filter((p: Participant) => p.accuracy === -1 && !currentDisqualified.includes(p.id))
           
           if (newDisqualified.length > 0) {
-            const newNotifications = newDisqualified.map(p => ({
+            const newNotifications = newDisqualified.map((p: Participant) => ({
               id: `${p.id}-${Date.now()}`,
               participantName: p.name,
               timestamp: new Date()
@@ -225,7 +225,10 @@ export default function QuizSession() {
             id: q.id.toString(),
             question: q.question,
             type: q.type === 'multiple_choice' ? 'multiple-choice' : 
-                  q.type === 'true_false' ? 'true-false' : 'short-answer',
+                  q.type === 'true_false' ? 'true-false' : 
+                  q.type === 'matching_pairs' ? 'matching-pairs' :
+                  q.type === 'ordering' ? 'ordering' :
+                  q.type === 'drag_drop' ? 'drag-drop' : 'short-answer',
             options: q.options?.map((opt: any) => opt.option_text) || [],
             correctAnswer: q.correct_answer || '',
             timeLimit: q.time_limit || 30,
@@ -907,6 +910,33 @@ export default function QuizSession() {
                         <div className="flex gap-4">
                           <div className="flex-1 p-2 border rounded bg-gray-50 dark:bg-gray-800 text-center">True</div>
                           <div className="flex-1 p-2 border rounded bg-gray-50 dark:bg-gray-800 text-center">False</div>
+                        </div>
+                      )}
+
+                      {question.type === "matching-pairs" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Matching pairs question</p>
+                          <div className="p-2 border rounded bg-gray-50 dark:bg-gray-800">
+                            <span className="text-sm">Match items from left column to right column</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {question.type === "ordering" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Ordering question</p>
+                          <div className="p-2 border rounded bg-gray-50 dark:bg-gray-800">
+                            <span className="text-sm">Arrange items in the correct order</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {question.type === "drag-drop" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Drag and drop question</p>
+                          <div className="p-2 border rounded bg-gray-50 dark:bg-gray-800">
+                            <span className="text-sm">Drag items to their correct categories</span>
+                          </div>
                         </div>
                       )}
 
@@ -2042,12 +2072,14 @@ export default function QuizSession() {
                       data={(() => {
                         const multipleChoice = questions.filter(q => q.type === 'multiple-choice').length;
                         const trueFalse = questions.filter(q => q.type === 'true-false').length;
-                        const shortAnswer = questions.filter(q => q.type === 'short-answer').length;
+                        const matchingPairs = questions.filter(q => q.type === 'matching-pairs').length;
+                        const ordering = questions.filter(q => q.type === 'ordering').length;
                         
                         return [
                           { name: 'Multiple Choice', value: multipleChoice, color: '#3b82f6' },
                           { name: 'True/False', value: trueFalse, color: '#10b981' },
-                          { name: 'Short Answer', value: shortAnswer, color: '#f59e0b' }
+                          { name: 'Matching Pairs', value: matchingPairs, color: '#f59e0b' },
+                          { name: 'Ordering', value: ordering, color: '#ff7300' }
                         ].filter(item => item.value > 0);
                       })()}
                       cx="50%"
@@ -2061,12 +2093,14 @@ export default function QuizSession() {
                       {(() => {
                         const multipleChoice = questions.filter(q => q.type === 'multiple-choice').length;
                         const trueFalse = questions.filter(q => q.type === 'true-false').length;
-                        const shortAnswer = questions.filter(q => q.type === 'short-answer').length;
+                        const matchingPairs = questions.filter(q => q.type === 'matching-pairs').length;
+                        const ordering = questions.filter(q => q.type === 'ordering').length;
                         
                         const data = [
                           { name: 'Multiple Choice', value: multipleChoice, color: '#3b82f6' },
                           { name: 'True/False', value: trueFalse, color: '#10b981' },
-                          { name: 'Short Answer', value: shortAnswer, color: '#f59e0b' }
+                          { name: 'Matching Pairs', value: matchingPairs, color: '#f59e0b' },
+                          { name: 'Ordering', value: ordering, color: '#ff7300' }
                         ].filter(item => item.value > 0);
                         
                         return data.map((entry, index) => (

@@ -30,8 +30,18 @@ export async function GET(req: NextRequest) {
     })
     if (!quiz) return NextResponse.json({ error: 'Quiz not found' }, { status: 404 })
     
+    // Deduplicate questions by ID to avoid accidental repeats
+    const uniqueQuestions = Array.from(new Map(quiz.questions.map((q: any) => [q.id, q])).values())
+    
+    // Additional validation to ensure no duplicates remain
+    const finalQuestions = uniqueQuestions.filter((question, index, array) => 
+      array.findIndex(q => q.id === question.id) === index
+    )
+    
+    console.log(`Fetched ${finalQuestions.length} unique questions for session ${code}`)
+    
     // Return questions regardless of session status - host needs to see questions even in waiting status
-    return NextResponse.json({ questions: quiz.questions })
+    return NextResponse.json({ questions: finalQuestions })
   } catch (error) {
     console.error('Error fetching questions:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

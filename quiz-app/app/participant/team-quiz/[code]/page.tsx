@@ -50,9 +50,22 @@ export default function TeamParticipantQuiz() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const [playerName, setPlayerName] = useState<string>("Anonymous")
+  const [playerName, setPlayerName] = useState<string>("")
   const teamName = searchParams.get("team") || "Anonymous Team"
   const quizCode = params.code as string
+
+  // Prefer ?name for display/identity; fall back to stored username
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const fromQuery = searchParams.get('name')
+      if (fromQuery && fromQuery.trim()) {
+        setPlayerName(fromQuery.trim())
+      } else {
+        const u = localStorage.getItem('username')
+        if (u) setPlayerName(u)
+      }
+    }
+  }, [searchParams])
 
   const [gameState, setGameState] = useState<"waiting" | "active" | "answered" | "results" | "completed">("waiting")
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
@@ -155,7 +168,7 @@ export default function TeamParticipantQuiz() {
           
           // Check if current user is already a participant
           const isParticipant = data.session.session_participants?.some((p: any) => 
-            p.users && p.users.username === (playerName || localStorage.getItem('username'))
+            p.users && p.users.username === playerName
           ) || false
           
           if (!isParticipant) {
@@ -166,7 +179,7 @@ export default function TeamParticipantQuiz() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                   code: quizCode, 
-                  username: (playerName || localStorage.getItem('username') || 'Anonymous') 
+                  username: playerName || 'Anonymous'
                 })
               })
               
@@ -243,6 +256,50 @@ export default function TeamParticipantQuiz() {
     markDisqualified()
   }, [isDisqualified, playerName, quizCode, warnings])
 
+  // Monitor session status and fetch questions
+  useEffect(() => {
+    async function fetchSessionStatus() {
+      try {
+        const res = await fetch(`/api/sessions?code=${quizCode}`)
+        if (res.ok) {
+          const data = await res.json()
+          const sessionStatus = data.session.status
+          setSessionStatus(sessionStatus)
+          
+          // If session is active and we're still waiting, start the quiz
+          if (sessionStatus === "active" && gameState === "waiting") {
+            console.log("Session is active, starting quiz...")
+            setGameState("active")
+          }
+          
+          // If session is completed, end the quiz
+          if (sessionStatus === "completed" && gameState !== "completed") {
+            console.log("Session completed, ending quiz...")
+            setGameState("completed")
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching session status:", error)
+      }
+    }
+
+    // Poll session status every 2 seconds
+    const interval = setInterval(fetchSessionStatus, 2000)
+    fetchSessionStatus() // Initial fetch
+    
+    return () => clearInterval(interval)
+  }, [quizCode, gameState])
+
+  // Handle transition from waiting to active state
+  useEffect(() => {
+    if (gameState === "active" && questions.length > 0 && !currentQuestion) {
+      console.log("Quiz became active, initializing first question")
+      setCurrentQuestion(questions[0])
+      setQuestionIndex(0)
+      setTimeRemaining(questions[0].timeLimit)
+    }
+  }, [gameState, questions, currentQuestion])
+
   // Fetch questions
   useEffect(() => {
     async function fetchQuestions() {
@@ -252,8 +309,16 @@ export default function TeamParticipantQuiz() {
           const data = await res.json()
           console.log("Raw questions data:", data.questions)
           
+          // Deduplicate by question id first to prevent repeats, then process
+          const uniqueByIdMap = new Map<string, any>()
+          for (const q of data.questions) {
+            const key = String(q.id)
+            if (!uniqueByIdMap.has(key)) uniqueByIdMap.set(key, q)
+          }
+          const uniqueQuestionsRaw = Array.from(uniqueByIdMap.values())
+
           // Process questions to match the expected format
-          const processedQuestions = data.questions.map((q: any) => {
+          const processedQuestions = uniqueQuestionsRaw.map((q: any) => {
             console.log("Processing question:", q)
             console.log("Question options:", q.options)
             
@@ -283,7 +348,7 @@ export default function TeamParticipantQuiz() {
           })
           
           // Apply option shuffling to each question based on its type
-          const questionsWithShuffledOptions = processedQuestions.map((question: Question) => {
+          const questionsWithShuffledOptions = processedQuestions.map((question: any) => {
             let shuffledQuestion = question
             
             // Shuffle MCQ options
@@ -310,15 +375,16 @@ export default function TeamParticipantQuiz() {
           // Shuffle questions for this participant to prevent memorization
           const shuffledQuestions = shuffleArray([...questionsWithShuffledOptions])
           
-          // Remove duplicate questions by id only (if any)
-          // const uniqueQuestions = shuffledQuestions.filter(
-          //   (q, idx, arr) => arr.findIndex(qq => qq.id === q.id) === idx
-          // );
-          setQuestions(shuffledQuestions);
-          console.log("Questions set for quiz:", shuffledQuestions.map(q => q.id), shuffledQuestions.length);
+          // Additional deduplication check to ensure no duplicates remain
+          const finalQuestions = shuffledQuestions.filter((question: any, index, array) => 
+            array.findIndex((q: any) => q.id === question.id) === index
+          )
+          
+          setQuestions(finalQuestions);
+          console.log("Questions set for quiz:", finalQuestions.map(q => q.id), finalQuestions.length);
           
           // Check for duplicate questions
-          const questionIds = shuffledQuestions.map(q => q.id)
+          const questionIds = finalQuestions.map(q => q.id)
           const uniqueIds = new Set(questionIds)
           if (questionIds.length !== uniqueIds.size) {
             console.error("DUPLICATE QUESTIONS DETECTED!", {
@@ -329,10 +395,25 @@ export default function TeamParticipantQuiz() {
             })
           }
           
-          console.log("Original questions order:", processedQuestions.map((q: Question) => q.id))
-          console.log("Shuffled questions order:", shuffledQuestions.map((q: Question) => q.id))
-          console.log("Processed questions:", shuffledQuestions)
-          // setQuestions(shuffledQuestions) // This line is now redundant as questions are set directly
+          console.log("Original questions order:", processedQuestions.map((q: any) => q.id))
+          console.log("Final questions order:", finalQuestions.map((q: any) => q.id))
+          console.log("Processed questions:", finalQuestions)
+          
+          // Initialize the first question if we have questions and are in waiting state
+          if (finalQuestions.length > 0 && gameState === "waiting") {
+            console.log("Initializing first question")
+            setCurrentQuestion(finalQuestions[0])
+            setQuestionIndex(0)
+            setTimeRemaining(finalQuestions[0].timeLimit)
+          }
+          
+          // Also initialize if we have questions but no current question (for when session becomes active)
+          if (finalQuestions.length > 0 && !currentQuestion && gameState === "active") {
+            console.log("Initializing first question for active session")
+            setCurrentQuestion(finalQuestions[0])
+            setQuestionIndex(0)
+            setTimeRemaining(finalQuestions[0].timeLimit)
+          }
         } else {
           console.error("Failed to fetch questions:", res.status, res.statusText)
         }
@@ -852,6 +933,13 @@ export default function TeamParticipantQuiz() {
     // Prevent multiple calls during transition
     if (gameState === "waiting") {
       console.log("Already in transition, skipping handleNextQuestion call")
+      return
+    }
+    
+    // Safety check: ensure we have questions
+    if (questions.length === 0) {
+      console.error("No questions available, ending quiz")
+      setGameState("completed")
       return
     }
     
