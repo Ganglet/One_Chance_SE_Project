@@ -301,3 +301,5 @@ A: Open an issue on GitHub or contact the maintainers listed in the repository.
 ## 📄 License
 
 This project is licensed under the MIT License.
+
+Copyright (c) 2025 Angshuman Chakravertty
