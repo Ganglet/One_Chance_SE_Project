@@ -184,29 +184,32 @@ export default function QuizSession() {
         if (pres.ok) {
           const pdata = await pres.json()
           console.log("Participants data:", pdata)
-          const newParticipants = pdata.participants.map((p: any) => ({
-            id: p.user_id.toString(),
-            name: p.users.username,
-            score: p.score || 0,
-            streak: p.streak || 0,
-            accuracy: p.accuracy || 0,
-            answered: p.answered || false,
-            timeRemaining: undefined, // We'll implement this later
-            // Enhanced statistics
-            totalAnswers: p.totalAnswers || 0,
-            correctAnswers: p.correctAnswers || 0,
-            incorrectAnswers: p.incorrectAnswers || 0,
-            averageTimeTaken: p.averageTimeTaken || 0,
-            totalTimeTaken: p.totalTimeTaken || 0,
-            totalPointsEarned: p.totalPointsEarned || 0,
-            fastestAnswer: p.fastestAnswer || 0,
-            slowestAnswer: p.slowestAnswer || 0,
-            questionsAnswered: p.questionsAnswered || 0,
-            questionsCorrect: p.questionsCorrect || 0,
-            questionsIncorrect: p.questionsIncorrect || 0,
-            averagePointsPerQuestion: p.averagePointsPerQuestion || 0,
-            efficiency: p.efficiency || 0,
-          }))
+          // Filter out participants with empty, null, or 'anonymous' names
+          const newParticipants = pdata.participants
+            .map((p: any) => ({
+              id: p.user_id.toString(),
+              name: p.users.username,
+              score: p.score || 0,
+              streak: p.streak || 0,
+              accuracy: p.accuracy || 0,
+              answered: p.answered || false,
+              timeRemaining: undefined, // We'll implement this later
+              // Enhanced statistics
+              totalAnswers: p.totalAnswers || 0,
+              correctAnswers: p.correctAnswers || 0,
+              incorrectAnswers: p.incorrectAnswers || 0,
+              averageTimeTaken: p.averageTimeTaken || 0,
+              totalTimeTaken: p.totalTimeTaken || 0,
+              totalPointsEarned: p.totalPointsEarned || 0,
+              fastestAnswer: p.fastestAnswer || 0,
+              slowestAnswer: p.slowestAnswer || 0,
+              questionsAnswered: p.questionsAnswered || 0,
+              questionsCorrect: p.questionsCorrect || 0,
+              questionsIncorrect: p.questionsIncorrect || 0,
+              averagePointsPerQuestion: p.averagePointsPerQuestion || 0,
+              efficiency: p.efficiency || 0,
+            }))
+            .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
 
           // Check for new disqualifications using tracked IDs to prevent duplicates
           const newDisqualified = newParticipants.filter(p => 

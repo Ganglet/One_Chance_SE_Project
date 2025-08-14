@@ -97,23 +97,25 @@ export default function TeamParticipantLobby() {
         if (pres.ok) {
           const pdata = await pres.json()
           console.log("Participants data:", pdata)
-          const transformedParticipants = pdata.participants.map((p: any) => ({
-            id: p.users.id.toString(),
-            name: p.users.username,
-            joinedAt: p.joined_at || new Date().toISOString(),
-            status: "waiting" as const,
-            team: p.team || null
-          }))
+          // Filter out anonymous/empty/null usernames
+          const transformedParticipants = pdata.participants
+            .map((p: any) => ({
+              id: p.users.id.toString(),
+              name: p.users.username,
+              joinedAt: p.joined_at || new Date().toISOString(),
+              status: "waiting" as const,
+              team: p.team || null
+            }))
+            .filter((p: any) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
           setParticipants(transformedParticipants)
           setParticipantCount(transformedParticipants.length)
-          
           // Update teams with member information
           setTeams(prevTeams => 
             prevTeams.map(team => ({
               ...team,
               members: transformedParticipants
-                .filter(p => p.team === team.name)
-                .map(p => p.name)
+                .filter((p: Participant) => p.team === team.name)
+                .map((p: Participant) => p.name)
             }))
           )
         }
@@ -170,8 +172,8 @@ export default function TeamParticipantLobby() {
             prevTeams.map(team => ({
               ...team,
               members: transformedParticipants
-                .filter(p => p.team === team.name)
-                .map(p => p.name)
+                .filter((p: Participant) => p.team === team.name)
+                .map((p: Participant) => p.name)
             }))
           )
         }
