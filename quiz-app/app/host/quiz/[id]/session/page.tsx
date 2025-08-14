@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -70,18 +70,37 @@ interface Question {
 export default function QuizSession() {
   const params = useParams()
   const searchParams = useSearchParams()
-  const [sessionStatus, setSessionStatus] = useState<"waiting" | "active" | "paused" | "completed">("waiting")
-  const [participants, setParticipants] = useState<Participant[]>([])
-  const [joinCode, setJoinCode] = useState<string>("")
-  const [sessionId, setSessionId] = useState<number | null>(null)
-  const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const [joinCode, setJoinCode] = useState("")
+  const [sessionId, setSessionId] = useState("")
+  const [sessionStatus, setSessionStatus] = useState("")
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [questions, setQuestions] = useState<Question[]>([])
   const [isTeamQuiz, setIsTeamQuiz] = useState(false)
-  const [showSessionCompleted, setShowSessionCompleted] = useState(false)
-  const [showTerminationModal, setShowTerminationModal] = useState(false)
   const [disqualificationNotifications, setDisqualificationNotifications] = useState<Array<{id: string, participantName: string, timestamp: Date}>>([])
+  // Add tracking for disqualified participants to prevent duplicate notifications
+  const [trackedDisqualifiedIds, setTrackedDisqualifiedIds] = useState<Set<string>>(new Set())
+  // Use ref for immediate access to prevent race conditions
+  const trackedDisqualifiedIdsRef = useRef<Set<string>>(new Set())
+
+  // Initialize tracking from localStorage if available
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionId) {
+      const stored = localStorage.getItem(`disqualified-${sessionId}`)
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored)
+          const storedSet = new Set(parsed)
+          setTrackedDisqualifiedIds(storedSet)
+          trackedDisqualifiedIdsRef.current = storedSet
+          console.log(`📥 Loaded ${storedSet.size} tracked disqualifications from localStorage`)
+        } catch (e) {
+          console.error('Failed to parse stored disqualifications:', e)
+        }
+      }
+    }
+  }, [sessionId])
 
   // Function to format correct answers for display
   const formatCorrectAnswer = (correctAnswer: string | number, questionType: string) => {
@@ -189,17 +208,39 @@ export default function QuizSession() {
             efficiency: p.efficiency || 0,
           }))
 
-          // Check for new disqualifications
-          const currentDisqualified = participants.filter((p: Participant) => p.accuracy === -1).map((p: Participant) => p.id)
-          const newDisqualified = newParticipants.filter((p: Participant) => p.accuracy === -1 && !currentDisqualified.includes(p.id))
+          // Check for new disqualifications using tracked IDs to prevent duplicates
+          const newDisqualified = newParticipants.filter(p => 
+            p.accuracy === -1 && !trackedDisqualifiedIdsRef.current.has(p.id)
+          )
           
-          if (newDisqualified.length > 0) {
-            const newNotifications = newDisqualified.map((p: Participant) => ({
+          // Additional safety check: filter out participants already in notifications
+          const existingNotificationNames = new Set(disqualificationNotifications.map(n => n.participantName))
+          const trulyNewDisqualified = newDisqualified.filter(p => !existingNotificationNames.has(p.name))
+          
+          console.log(`🔍 Disqualification check: ${newParticipants.filter(p => p.accuracy === -1).length} total disqualified, ${newDisqualified.length} new disqualified, ${trulyNewDisqualified.length} truly new, ${trackedDisqualifiedIdsRef.current.size} tracked IDs`)
+          
+          if (trulyNewDisqualified.length > 0) {
+            // Add new disqualifications to tracking set IMMEDIATELY to prevent race conditions
+            const newDisqualifiedIds = trulyNewDisqualified.map(p => p.id)
+            const updatedTrackedIds = new Set([...trackedDisqualifiedIdsRef.current, ...newDisqualifiedIds])
+            trackedDisqualifiedIdsRef.current = updatedTrackedIds
+            setTrackedDisqualifiedIds(updatedTrackedIds)
+            
+            // Persist to localStorage for reliability
+            if (typeof window !== 'undefined' && sessionId) {
+              localStorage.setItem(`disqualified-${sessionId}`, JSON.stringify(Array.from(updatedTrackedIds)))
+            }
+            
+            // Create notifications only for newly disqualified participants
+            const newNotifications = trulyNewDisqualified.map(p => ({
               id: `${p.id}-${Date.now()}`,
               participantName: p.name,
               timestamp: new Date()
             }))
             setDisqualificationNotifications(prev => [...prev, ...newNotifications])
+            
+            console.log(`🚫 New disqualifications detected: ${trulyNewDisqualified.map(p => p.name).join(', ')}`)
+            console.log(`📊 Updated tracked IDs: ${Array.from(updatedTrackedIds).join(', ')}`)
           }
 
           setParticipants(newParticipants)
@@ -253,10 +294,29 @@ export default function QuizSession() {
     }
     
     fetchSession()
-    // Poll for session updates every 5 seconds (reduced frequency)
-    const interval = setInterval(fetchSession, 5000)
+    // Poll for session updates every 10 seconds (increased frequency to reduce race conditions)
+    const interval = setInterval(fetchSession, 10000)
     return () => clearInterval(interval)
   }, [searchParams])
+
+  // Cleanup disqualification notifications to prevent memory issues
+  useEffect(() => {
+    if (disqualificationNotifications.length > 20) {
+      setDisqualificationNotifications(prev => prev.slice(-20))
+    }
+  }, [disqualificationNotifications])
+
+  // Function to reset disqualification tracking (for debugging)
+  const resetDisqualificationTracking = () => {
+    setTrackedDisqualifiedIds(new Set())
+    trackedDisqualifiedIdsRef.current = new Set()
+    setDisqualificationNotifications([])
+    // Clear localStorage as well
+    if (typeof window !== 'undefined' && sessionId) {
+      localStorage.removeItem(`disqualified-${sessionId}`)
+    }
+    console.log('🔄 Disqualification tracking reset')
+  }
 
   const answeredCount = participants.filter((p) => p.answered).length
 
@@ -808,12 +868,32 @@ export default function QuizSession() {
         {/* Disqualification Notifications */}
         {disqualificationNotifications.length > 0 && (
           <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <div className="flex items-center gap-3 mb-3">
-              <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-              <h3 className="font-semibold text-red-800 dark:text-red-200">Recent Disqualifications</h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <h3 className="font-semibold text-red-800 dark:text-red-200">Recent Disqualifications</h3>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetDisqualificationTracking}
+                  className="text-orange-600 border-orange-300 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-600 dark:hover:bg-orange-900/30"
+                >
+                  Reset Tracking
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDisqualificationNotifications([])}
+                  className="text-red-600 border-red-300 hover:bg-red-100 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/30"
+                >
+                  Clear
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
-              {disqualificationNotifications.slice(-3).map((notification) => (
+              {disqualificationNotifications.slice(-5).map((notification) => (
                 <div key={notification.id} className="flex items-center justify-between text-sm">
                   <span className="text-red-700 dark:text-red-300">
                     <strong>{notification.participantName}</strong> was disqualified
@@ -824,6 +904,11 @@ export default function QuizSession() {
                 </div>
               ))}
             </div>
+            {disqualificationNotifications.length > 5 && (
+              <p className="text-xs text-red-500 dark:text-red-400 mt-2">
+                Showing last 5 of {disqualificationNotifications.length} notifications
+              </p>
+            )}
           </div>
         )}
 

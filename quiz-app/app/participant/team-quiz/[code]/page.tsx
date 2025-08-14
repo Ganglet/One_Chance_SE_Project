@@ -112,8 +112,13 @@ export default function TeamParticipantQuiz() {
   const enemyTeams = teams.filter(team => team.id !== currentTeam?.id)
   const currentTeamScore = currentTeam?.score || 0
 
+  const [quizStarted, setQuizStarted] = useState(false)
+
   // Check if we're in browser environment
   const isBrowser = typeof window !== 'undefined'
+
+  // Flag to prevent multiple disqualification API calls
+  const [hasMarkedDisqualified, setHasMarkedDisqualified] = useState(false)
 
   // Determine if proctoring should be active
   const shouldProctoringBeActive = gameState === "active" && !showFeedback && !showTerminationModal
@@ -230,8 +235,12 @@ export default function TeamParticipantQuiz() {
   // When disqualified by proctoring, notify server so host can see it
   useEffect(() => {
     const markDisqualified = async () => {
-      if (!isDisqualified || !playerName || !playerName.trim()) return
+      if (!isDisqualified || !playerName || !playerName.trim() || hasMarkedDisqualified) return
+      
       try {
+        // Set flag to prevent multiple calls
+        setHasMarkedDisqualified(true)
+        
         // Get the specific violation that caused disqualification
         let disqualificationReason = 'Multiple proctoring violations'
         if (warnings >= 3) {
@@ -251,10 +260,12 @@ export default function TeamParticipantQuiz() {
         console.log('Successfully marked as disqualified')
       } catch (e) {
         console.log('Failed to mark disqualified:', e)
+        // Reset flag on error so it can be retried
+        setHasMarkedDisqualified(false)
       }
     }
     markDisqualified()
-  }, [isDisqualified, playerName, quizCode, warnings])
+  }, [isDisqualified, playerName, quizCode, warnings, hasMarkedDisqualified])
 
   // Monitor session status and fetch questions
   useEffect(() => {
@@ -1630,35 +1641,6 @@ export default function TeamParticipantQuiz() {
   }, [gameState, quizCode, playerName, router])
 
   // Proctoring is now handled by the useProctoring hook above
-
-  // When disqualified by proctoring, notify server so host can see it
-  useEffect(() => {
-    const markDisqualified = async () => {
-      if (!isDisqualified || !playerName || !playerName.trim()) return
-      try {
-        // Get the specific violation that caused disqualification
-        let disqualificationReason = 'Multiple proctoring violations'
-        if (warnings >= 3) {
-          disqualificationReason = `Exceeded maximum warnings (${warnings}/${3})`
-        }
-        
-        await fetch('/api/sessions/update-stats', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            code: quizCode,
-            username: playerName,
-            stats: { accuracy: -1, score: 0, streak: 0 },
-            disqualificationReason: disqualificationReason
-          })
-        })
-        console.log('Successfully marked as disqualified')
-      } catch (e) {
-        console.log('Failed to mark disqualified:', e)
-      }
-    }
-    markDisqualified()
-  }, [isDisqualified, playerName, quizCode, warnings])
 
   // Only show game content if questions are loaded
   if (questions.length === 0) {

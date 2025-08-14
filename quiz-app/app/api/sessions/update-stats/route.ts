@@ -49,6 +49,17 @@ export async function POST(req: NextRequest) {
 
     // If this is a disqualification, log it for the host
     if (stats.accuracy === -1) {
+      // Check if participant is already disqualified to prevent duplicate processing
+      if (participant.accuracy === -1) {
+        console.log(`🚫 PARTICIPANT ALREADY DISQUALIFIED: ${username} in session ${code} - skipping duplicate update`)
+        return NextResponse.json({ 
+          success: true, 
+          participant: participant,
+          isDisqualified: true,
+          message: 'Participant already disqualified'
+        })
+      }
+      
       console.log(`🚫 PARTICIPANT DISQUALIFIED: ${username} in session ${code}`)
       if (disqualificationReason) {
         console.log(`📋 Disqualification reason: ${disqualificationReason}`)

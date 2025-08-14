@@ -102,6 +102,9 @@ export default function ParticipantQuiz() {
   // Check if we're in browser environment
   const isBrowser = typeof window !== 'undefined'
 
+  // Flag to prevent multiple disqualification API calls
+  const [hasMarkedDisqualified, setHasMarkedDisqualified] = useState(false)
+
   // Determine if proctoring should be active
   const shouldProctoringBeActive = gameState === "active" && !showFeedback && !showTerminationModal
 
@@ -196,8 +199,12 @@ export default function ParticipantQuiz() {
   // When disqualified by proctoring, notify server so host can see it
   useEffect(() => {
     const markDisqualified = async () => {
-      if (!isDisqualified || !playerName || !playerName.trim()) return
+      if (!isDisqualified || !playerName || !playerName.trim() || hasMarkedDisqualified) return
+      
       try {
+        // Set flag to prevent multiple calls
+        setHasMarkedDisqualified(true)
+        
         // Get the specific violation that caused disqualification
         let disqualificationReason = 'Multiple proctoring violations'
         if (warnings >= 3) {
@@ -217,10 +224,12 @@ export default function ParticipantQuiz() {
         console.log('Successfully marked as disqualified')
       } catch (e) {
         console.log('Failed to mark disqualified:', e)
+        // Reset flag on error so it can be retried
+        setHasMarkedDisqualified(false)
       }
     }
     markDisqualified()
-  }, [isDisqualified, playerName, quizCode, warnings])
+  }, [isDisqualified, playerName, quizCode, warnings, hasMarkedDisqualified])
 
   // Fetch questions for this session on mount
   useEffect(() => {
