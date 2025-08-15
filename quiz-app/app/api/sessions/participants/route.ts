@@ -78,17 +78,23 @@ export async function GET(req: NextRequest) {
         }))
       })
       
-      return {
-        id: participant.id,
-        user_id: participant.user_id,
-        session_id: participant.session_id,
-        score: totalPointsEarned, // Use calculated score from answers instead of database field
-        streak: participant.streak || 0,
-        accuracy: totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0, // Calculate accuracy from answers
-        team: participant.team || null,
-        joined_at: participant.joined_at,
-        users: participant.users,
-        answered: totalAnswers >= totalQuestions,
+              // Check if participant is disqualified
+        const isDisqualified = participant.accuracy === -1
+        if (isDisqualified) {
+          console.log(`🚫 DISQUALIFIED PARTICIPANT: ${participant.users.username} - preserving accuracy: -1`)
+        }
+        
+        return {
+          id: participant.id,
+          user_id: participant.user_id,
+          session_id: participant.session_id,
+          score: totalPointsEarned, // Use calculated score from answers instead of database field
+          streak: participant.streak || 0,
+          accuracy: isDisqualified ? -1 : (totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0), // Preserve disqualification status
+          team: participant.team || null,
+          joined_at: participant.joined_at,
+          users: participant.users,
+          answered: totalAnswers >= totalQuestions,
         // Enhanced statistics (REAL DATA ONLY)
         totalAnswers,
         correctAnswers,

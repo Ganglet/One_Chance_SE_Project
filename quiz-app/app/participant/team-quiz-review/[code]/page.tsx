@@ -102,22 +102,20 @@ export default function TeamQuizReview() {
           // Update teams with actual member data and calculate scores
           if (quizInfo?.teams && Array.isArray(quizInfo.teams)) {
             const updatedTeams = quizInfo.teams.map((team: any) => {
-              const teamMembers = participantsData.participants.filter((p: any) => p.team === team.name)
+              // Filter out anonymous/empty/null usernames
+              const teamMembers = participantsData.participants.filter((p: any) => p.team === team.name && p.users.username && p.users.username.trim() !== '' && p.users.username.toLowerCase() !== 'anonymous')
               const memberUsernames = teamMembers.map((p: any) => p.users.username)
-              
               // Calculate team score from participant data
               const teamScore = teamMembers.reduce((sum: number, p: any) => sum + (p.score || 0), 0)
               const teamAccuracy = teamMembers.length > 0 
                 ? Math.round(teamMembers.reduce((sum: number, p: any) => sum + (p.accuracy || 0), 0) / teamMembers.length)
                 : 0
-              
               console.log(`Team ${team.name}:`, {
                 members: memberUsernames,
                 scores: teamMembers.map((p: any) => ({ username: p.users.username, score: p.score })),
                 totalScore: teamScore,
                 accuracy: teamAccuracy
               })
-              
               return {
                 id: team.id.toString(),
                 name: team.name,
@@ -128,7 +126,6 @@ export default function TeamQuizReview() {
               }
             })
             setTeams(updatedTeams)
-            
             // Find current user's team
             const currentParticipant = participantsData.participants.find((p: any) => p.users.username === playerName)
             if (currentParticipant && currentParticipant.team) {
@@ -157,8 +154,10 @@ export default function TeamQuizReview() {
         const leaderboardRes = await fetch(`/api/sessions/leaderboard?code=${quizCode}`)
         if (leaderboardRes.ok) {
           const leaderboardData = await leaderboardRes.json()
-          setLeaderboard(leaderboardData.leaderboard || [])
-          console.log("Leaderboard data:", leaderboardData.leaderboard)
+          // Filter out anonymous/empty/null usernames from leaderboard
+          const filteredLeaderboard = (leaderboardData.leaderboard || []).filter((p: any) => p.username && p.username.trim() !== '' && p.username.toLowerCase() !== 'anonymous')
+          setLeaderboard(filteredLeaderboard)
+          console.log("Leaderboard data:", filteredLeaderboard)
         }
 
         setLoading(false)
@@ -258,7 +257,7 @@ export default function TeamQuizReview() {
           <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold text-red-400 mb-4">Error Loading Results</h1>
           <p className="text-gray-300 mb-6">{error}</p>
-          <Button onClick={() => router.push("/dashboard")} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={() => router.push("/participant/dashboard")} className="bg-blue-600 hover:bg-blue-700">
             Back to Dashboard
           </Button>
         </div>
@@ -499,7 +498,7 @@ export default function TeamQuizReview() {
           {/* Action Buttons */}
           <div className="flex justify-center gap-4">
             <Button
-              onClick={() => router.push("/dashboard")}
+              onClick={() => router.push("/participant/dashboard")}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Back to Dashboard

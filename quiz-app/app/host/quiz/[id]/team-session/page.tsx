@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -73,7 +73,7 @@ interface Team {
 interface Question {
   id: string
   question: string
-  type: "multiple-choice" | "true-false" | "short-answer"
+  type: "multiple-choice" | "true-false" | "short-answer" | "matching-pairs" | "ordering" | "drag-drop"
   options?: string[]
   correctAnswer: string | number
   timeLimit: number
@@ -92,8 +92,31 @@ export default function TeamQuizSession() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showSessionCompleted, setShowSessionCompleted] = useState(false)
+  const [disqualificationNotifications, setDisqualificationNotifications] = useState<Array<{id: string, participantName: string, timestamp: Date}>>([])
+  // Add tracking for disqualified participants to prevent duplicate notifications
+  const [trackedDisqualifiedIds, setTrackedDisqualifiedIds] = useState<Set<string>>(new Set())
+  // Use ref for immediate access to prevent race conditions
+  const trackedDisqualifiedIdsRef = useRef<Set<string>>(new Set())
   const router = useRouter()
   const { toast } = useToast()
+
+  // Initialize tracking from localStorage if available
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionId) {
+      const stored = localStorage.getItem(`team-disqualified-${sessionId}`)
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored)
+          const storedSet = new Set(parsed)
+          setTrackedDisqualifiedIds(storedSet)
+          trackedDisqualifiedIdsRef.current = storedSet
+          console.log(`📥 Loaded ${storedSet.size} tracked team disqualifications from localStorage`)
+        } catch (e) {
+          console.error('Failed to parse stored team disqualifications:', e)
+        }
+      }
+    }
+  }, [sessionId])
 
   // Function to format correct answers for display
   const formatCorrectAnswer = (correctAnswer: string | number, questionType: string) => {
@@ -184,32 +207,67 @@ export default function TeamQuizSession() {
             console.log("First participant sample:", pdata.participants[0])
           }
           
-          setParticipants(
-            pdata.participants.map((p: any) => ({
-              id: p.user_id.toString(),
-              name: p.users.username,
-              score: p.score || 0,
-              streak: p.streak || 0,
-              accuracy: p.accuracy || 0,
-              answered: p.answered || false,
-              timeRemaining: undefined,
-              team: p.team || null,
-              // Enhanced statistics - use actual database values
-              totalAnswers: p.totalAnswers || p.total_answers || 0,
-              correctAnswers: p.correctAnswers || p.correct_answers || 0,
-              incorrectAnswers: p.incorrectAnswers || p.incorrect_answers || 0,
-              averageTimeTaken: p.averageTimeTaken || p.average_time_taken || 0,
-              totalTimeTaken: p.totalTimeTaken || p.total_time_taken || 0,
-              totalPointsEarned: p.totalPointsEarned || p.total_points_earned || p.score || 0,
-              fastestAnswer: p.fastestAnswer || p.fastest_answer || 0,
-              slowestAnswer: p.slowestAnswer || p.slowest_answer || 0,
-              questionsAnswered: p.questionsAnswered || p.questions_answered || p.totalAnswers || p.total_answers || 0,
-              questionsCorrect: p.questionsCorrect || p.questions_correct || p.correctAnswers || p.correct_answers || 0,
-              questionsIncorrect: p.questionsIncorrect || p.questions_incorrect || p.incorrectAnswers || p.incorrect_answers || 0,
-              averagePointsPerQuestion: p.averagePointsPerQuestion || p.average_points_per_question || 0,
-              efficiency: p.efficiency || p.accuracy || 0,
-            }))
+          const newParticipants = pdata.participants.map((p: any) => ({
+            id: p.user_id.toString(),
+            name: p.users.username,
+            score: p.score || 0,
+            streak: p.streak || 0,
+            accuracy: p.accuracy || 0,
+            answered: p.answered || false,
+            timeRemaining: undefined,
+            team: p.team || null,
+            // Enhanced statistics - use actual database values
+            totalAnswers: p.totalAnswers || p.total_answers || 0,
+            correctAnswers: p.correctAnswers || p.correct_answers || 0,
+            incorrectAnswers: p.incorrectAnswers || p.incorrect_answers || 0,
+            averageTimeTaken: p.averageTimeTaken || p.average_time_taken || 0,
+            totalTimeTaken: p.totalTimeTaken || p.total_time_taken || 0,
+            totalPointsEarned: p.totalPointsEarned || p.total_points_earned || p.score || 0,
+            fastestAnswer: p.fastestAnswer || p.fastest_answer || 0,
+            slowestAnswer: p.slowestAnswer || p.slowest_answer || 0,
+            questionsAnswered: p.questionsAnswered || p.questions_answered || p.totalAnswers || p.total_answers || 0,
+            questionsCorrect: p.questionsCorrect || p.questions_correct || p.correctAnswers || p.correct_answers || 0,
+            questionsIncorrect: p.questionsIncorrect || p.questions_incorrect || p.incorrectAnswers || p.incorrect_answers || 0,
+            averagePointsPerQuestion: p.averagePointsPerQuestion || p.average_points_per_question || 0,
+            efficiency: p.efficiency || p.accuracy || 0,
+          }))
+
+          // Check for new disqualifications using tracked IDs to prevent duplicates
+          const newDisqualified = newParticipants.filter(p => 
+            p.accuracy === -1 && !trackedDisqualifiedIdsRef.current.has(p.id)
           )
+          
+          // Additional safety check: filter out participants already in notifications
+          const existingNotificationNames = new Set(disqualificationNotifications.map(n => n.participantName))
+          const trulyNewDisqualified = newDisqualified.filter(p => !existingNotificationNames.has(p.name))
+          
+          console.log(`🔍 Team disqualification check: ${newParticipants.filter(p => p.accuracy === -1).length} total disqualified, ${newDisqualified.length} new disqualified, ${trulyNewDisqualified.length} truly new, ${trackedDisqualifiedIdsRef.current.size} tracked IDs`)
+          
+          if (trulyNewDisqualified.length > 0) {
+            // Add new disqualifications to tracking set IMMEDIATELY to prevent race conditions
+            const newDisqualifiedIds = trulyNewDisqualified.map(p => p.id)
+            const updatedTrackedIds = new Set([...trackedDisqualifiedIdsRef.current, ...newDisqualifiedIds])
+            trackedDisqualifiedIdsRef.current = updatedTrackedIds
+            setTrackedDisqualifiedIds(updatedTrackedIds)
+            
+            // Persist to localStorage for reliability
+            if (typeof window !== 'undefined' && sessionId) {
+              localStorage.setItem(`team-disqualified-${sessionId}`, JSON.stringify(Array.from(updatedTrackedIds)))
+            }
+            
+            // Create notifications only for newly disqualified participants
+            const newNotifications = trulyNewDisqualified.map(p => ({
+              id: `${p.id}-${Date.now()}`,
+              participantName: p.name,
+              timestamp: new Date()
+            }))
+            setDisqualificationNotifications(prev => [...prev, ...newNotifications])
+            
+            console.log(`🚫 New team disqualifications detected: ${trulyNewDisqualified.map(p => p.name).join(', ')}`)
+            console.log(`📊 Updated tracked IDs: ${Array.from(updatedTrackedIds).join(', ')}`)
+          }
+
+          setParticipants(newParticipants)
         } else {
           console.error("Failed to fetch participants:", pres.status, pres.statusText)
           const errorText = await pres.text()
@@ -228,7 +286,10 @@ export default function TeamQuizSession() {
             id: q.id.toString(),
             question: q.question,
             type: q.type === 'multiple_choice' ? 'multiple-choice' : 
-                  q.type === 'true_false' ? 'true-false' : 'short-answer',
+                  q.type === 'true_false' ? 'true-false' : 
+                  q.type === 'matching_pairs' ? 'matching-pairs' :
+                  q.type === 'ordering' ? 'ordering' :
+                  q.type === 'drag_drop' ? 'drag-drop' : 'short-answer',
             options: q.options?.map((opt: any) => opt.option_text) || [],
             correctAnswer: q.correct_answer || '',
             timeLimit: q.time_limit || 30,
@@ -255,6 +316,25 @@ export default function TeamQuizSession() {
     const interval = setInterval(fetchSession, 30000)
     return () => clearInterval(interval)
   }, [searchParams])
+
+  // Cleanup disqualification notifications to prevent memory issues
+  useEffect(() => {
+    if (disqualificationNotifications.length > 20) {
+      setDisqualificationNotifications(prev => prev.slice(-20))
+    }
+  }, [disqualificationNotifications])
+
+  // Function to reset disqualification tracking (for debugging)
+  const resetDisqualificationTracking = () => {
+    setTrackedDisqualifiedIds(new Set())
+    trackedDisqualifiedIdsRef.current = new Set()
+    setDisqualificationNotifications([])
+    // Clear localStorage as well
+    if (typeof window !== 'undefined' && sessionId) {
+      localStorage.removeItem(`team-disqualified-${sessionId}`)
+    }
+    console.log('🔄 Team disqualification tracking reset')
+  }
 
   const answeredCount = participants.filter((p) => p.answered).length
 
@@ -833,6 +913,17 @@ export default function TeamQuizSession() {
     )
   }
 
+  const renderDisqualifiedTag = (p: any) => {
+    if (p.accuracy === -1) {
+      return (
+        <span className="ml-2 inline-block text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-300">
+          Disqualified
+        </span>
+      )
+    }
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-slate-900">
       <div className="container mx-auto px-4 py-8">
@@ -904,9 +995,105 @@ export default function TeamQuizSession() {
           </div>
         </div>
 
+        {/* Recent Disqualifications */}
+        {disqualificationNotifications.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <XCircle className="w-5 h-5 text-red-600" />
+                <h3 className="font-semibold text-red-800">Recent Disqualifications</h3>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetDisqualificationTracking}
+                  className="text-orange-600 border-orange-300 hover:bg-orange-100"
+                >
+                  Reset Tracking
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDisqualificationNotifications([])}
+                  className="text-red-600 border-red-300 hover:bg-red-100"
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {disqualificationNotifications.slice(-5).map((notification) => (
+                <div key={notification.id} className="flex items-center justify-between text-sm">
+                  <span className="text-red-700">
+                    <strong>{notification.participantName}</strong> was disqualified
+                  </span>
+                  <span className="text-red-500">
+                    {notification.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {disqualificationNotifications.length > 5 && (
+              <p className="text-xs text-red-500 mt-2">
+                Showing last 5 of {disqualificationNotifications.length} notifications
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Session Summary Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="bg-white border-blue-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600">Total Participants</p>
+                      <p className="text-2xl font-bold text-blue-700">{participants.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-green-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-600">Active Participants</p>
+                      <p className="text-2xl font-bold text-green-700">
+                        {participants.filter(p => p.accuracy !== -1).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-white border-red-200 shadow-lg">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                      <XCircle className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-red-600">Disqualified</p>
+                      <p className="text-2xl font-bold text-red-700">
+                        {participants.filter(p => p.accuracy === -1).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Team Leaderboard */}
             <Card className="bg-white border-gray-200 shadow-lg">
               <CardHeader>
@@ -1070,6 +1257,7 @@ export default function TeamQuizSession() {
                                 {index + 1}
                               </span>
                               <span className="font-medium text-gray-900">{participant.name}</span>
+                              {renderDisqualifiedTag(participant)}
                               {participant.team && (
                                 <span className="text-xs text-gray-600">({participant.team})</span>
                               )}
@@ -1112,6 +1300,40 @@ export default function TeamQuizSession() {
                           ))}
                         </div>
                       )}
+
+                      {question.type === "true-false" && (
+                        <div className="flex gap-4">
+                          <div className="flex-1 p-2 border rounded bg-white text-gray-900 text-center border-gray-300">True</div>
+                          <div className="flex-1 p-2 border rounded bg-white text-gray-900 text-center border-gray-300">False</div>
+                        </div>
+                      )}
+
+                      {question.type === "matching-pairs" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 font-medium">Matching pairs question</p>
+                          <div className="p-2 border rounded bg-white text-gray-900 border-gray-300">
+                            <span className="text-sm">Match items from left column to right column</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {question.type === "ordering" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 font-medium">Ordering question</p>
+                          <div className="p-2 border rounded bg-white text-gray-900 border-gray-300">
+                            <span className="text-sm">Arrange items in the correct order</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {question.type === "drag-drop" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 font-medium">Drag and drop question</p>
+                          <div className="p-2 border rounded bg-white text-gray-900 border-gray-300">
+                            <span className="text-sm">Drag items to their correct categories</span>
+                          </div>
+                        </div>
+                      )}
                       
                       <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
                         <span className="text-sm font-medium text-gray-700">Correct Answer: </span>
@@ -1122,6 +1344,53 @@ export default function TeamQuizSession() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Disqualified Participants Section */}
+            {participants.filter(p => p.accuracy === -1).length > 0 && (
+              <Card className="bg-white border-red-200 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-xl text-red-700 flex items-center gap-2">
+                    <XCircle className="w-5 h-5" />
+                    Disqualified Participants
+                  </CardTitle>
+                  <CardDescription className="text-red-600">
+                    Participants disqualified due to proctoring violations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {participants
+                      .filter(p => p.accuracy === -1)
+                      .map((participant, index) => (
+                        <div key={participant.id} className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center">
+                              <XCircle className="w-4 h-4 text-red-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-red-800">
+                                {participant.name}
+                              </h4>
+                              <p className="text-sm text-red-600">
+                                Disqualified due to proctoring violations
+                                {participant.team && ` • Team: ${participant.team}`}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant="destructive" className="bg-red-600 text-white">
+                              Disqualified
+                            </Badge>
+                            <p className="text-xs text-red-500 mt-1">
+                              Final Score: {participant.score}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Detailed Participant Analytics */}
             <Card className="bg-white border-gray-200 shadow-lg">
@@ -1956,12 +2225,14 @@ export default function TeamQuizSession() {
                         data={(() => {
                           const multipleChoice = questions.filter(q => q.type === 'multiple-choice').length;
                           const trueFalse = questions.filter(q => q.type === 'true-false').length;
-                          const shortAnswer = questions.filter(q => q.type === 'short-answer').length;
+                          const matchingPairs = questions.filter(q => q.type === 'matching-pairs').length;
+                          const ordering = questions.filter(q => q.type === 'ordering').length;
                           
                           return [
                             { name: 'Multiple Choice', value: multipleChoice, color: '#3b82f6' },
                             { name: 'True/False', value: trueFalse, color: '#10b981' },
-                            { name: 'Short Answer', value: shortAnswer, color: '#f59e0b' }
+                            { name: 'Matching Pairs', value: matchingPairs, color: '#f59e0b' },
+                            { name: 'Ordering', value: ordering, color: '#ff7300' }
                           ].filter(item => item.value > 0);
                         })()}
                         cx="50%"
@@ -1975,12 +2246,14 @@ export default function TeamQuizSession() {
                         {(() => {
                           const multipleChoice = questions.filter(q => q.type === 'multiple-choice').length;
                           const trueFalse = questions.filter(q => q.type === 'true-false').length;
-                          const shortAnswer = questions.filter(q => q.type === 'short-answer').length;
+                          const matchingPairs = questions.filter(q => q.type === 'matching-pairs').length;
+                          const ordering = questions.filter(q => q.type === 'ordering').length;
                           
                           const data = [
                             { name: 'Multiple Choice', value: multipleChoice, color: '#3b82f6' },
                             { name: 'True/False', value: trueFalse, color: '#10b981' },
-                            { name: 'Short Answer', value: shortAnswer, color: '#f59e0b' }
+                            { name: 'Matching Pairs', value: matchingPairs, color: '#f59e0b' },
+                            { name: 'Ordering', value: ordering, color: '#ff7300' }
                           ].filter(item => item.value > 0);
                           
                           return data.map((entry, index) => (

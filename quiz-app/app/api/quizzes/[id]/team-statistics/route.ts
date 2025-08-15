@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '../../../../../../lib/db'
+import { prisma } from '../../../../../lib/db'
 
 // GET /api/quizzes/[id]/team-statistics - Get team quiz statistics
 export async function GET(

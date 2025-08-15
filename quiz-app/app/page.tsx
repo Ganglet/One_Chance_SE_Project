@@ -47,8 +47,19 @@ export default function SignInPage() {
         if (data.id) {
           localStorage.setItem("userId", data.id.toString());
         }
-        // PASS role in URL param for dashboard
-        router.push(`/dashboard?role=${data.role}`);
+
+        // Persist username and role for later use
+        localStorage.setItem("username", username.trim());
+        if (data.role) {
+          localStorage.setItem("role", data.role);
+        }
+        // Redirect based on role
+        if (data.role === "participant") {
+          router.push(`/participant/dashboard`);
+        } else {
+          router.push(`/dashboard`);
+        }
+
       } else {
         setError("Invalid username or password.");
       }

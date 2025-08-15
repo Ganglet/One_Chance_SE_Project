@@ -50,9 +50,22 @@ export default function TeamParticipantQuiz() {
   const params = useParams()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const playerName = searchParams.get("name") || "Anonymous"
+  const [playerName, setPlayerName] = useState<string>("")
   const teamName = searchParams.get("team") || "Anonymous Team"
   const quizCode = params.code as string
+
+  // Prefer ?name for display/identity; fall back to stored username
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const fromQuery = searchParams.get('name')
+      if (fromQuery && fromQuery.trim()) {
+        setPlayerName(fromQuery.trim())
+      } else {
+        const u = localStorage.getItem('username')
+        if (u) setPlayerName(u)
+      }
+    }
+  }, [searchParams])
 
   const [gameState, setGameState] = useState<"waiting" | "active" | "answered" | "results" | "completed">("waiting")
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null)
@@ -60,8 +73,9 @@ export default function TeamParticipantQuiz() {
   const [timeRemaining, setTimeRemaining] = useState(30)
   const [showFeedback, setShowFeedback] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
-  const [powerUps, setPowerUps] = useState({ fiftyFifty: 1, extraTime: 1, doublePoints: 1 })
+  const [powerUps, setPowerUps] = useState({ fiftyFifty: 1, extraTime: 1, doublePoints: 1, doubleOrNothing: 1, streakSaver: 1 })
   const [activePowerUp, setActivePowerUp] = useState<string | null>(null)
+  const [activeStreakSaver, setActiveStreakSaver] = useState<boolean>(false)
   const [hiddenOptions, setHiddenOptions] = useState<number[]>([])
   
   // State for new question types
@@ -98,8 +112,13 @@ export default function TeamParticipantQuiz() {
   const enemyTeams = teams.filter(team => team.id !== currentTeam?.id)
   const currentTeamScore = currentTeam?.score || 0
 
+  const [quizStarted, setQuizStarted] = useState(false)
+
   // Check if we're in browser environment
   const isBrowser = typeof window !== 'undefined'
+
+  // Flag to prevent multiple disqualification API calls
+  const [hasMarkedDisqualified, setHasMarkedDisqualified] = useState(false)
 
   // Determine if proctoring should be active
   const shouldProctoringBeActive = gameState === "active" && !showFeedback && !showTerminationModal
@@ -165,7 +184,7 @@ export default function TeamParticipantQuiz() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                   code: quizCode, 
-                  username: playerName 
+                  username: playerName || 'Anonymous'
                 })
               })
               
@@ -213,6 +232,85 @@ export default function TeamParticipantQuiz() {
     checkSessionStatus()
   }, [quizCode, playerName])
 
+  // When disqualified by proctoring, notify server so host can see it
+  useEffect(() => {
+    const markDisqualified = async () => {
+      if (!isDisqualified || !playerName || !playerName.trim() || hasMarkedDisqualified) return
+      
+      try {
+        // Set flag to prevent multiple calls
+        setHasMarkedDisqualified(true)
+        
+        // Get the specific violation that caused disqualification
+        let disqualificationReason = 'Multiple proctoring violations'
+        if (warnings >= 3) {
+          disqualificationReason = `Exceeded maximum warnings (${warnings}/${3})`
+        }
+        
+        await fetch('/api/sessions/update-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: quizCode,
+            username: playerName,
+            stats: { accuracy: -1, score: 0, streak: 0 },
+            disqualificationReason: disqualificationReason
+          })
+        })
+        console.log('Successfully marked as disqualified')
+      } catch (e) {
+        console.log('Failed to mark disqualified:', e)
+        // Reset flag on error so it can be retried
+        setHasMarkedDisqualified(false)
+      }
+    }
+    markDisqualified()
+  }, [isDisqualified, playerName, quizCode, warnings, hasMarkedDisqualified])
+
+  // Monitor session status and fetch questions
+  useEffect(() => {
+    async function fetchSessionStatus() {
+      try {
+        const res = await fetch(`/api/sessions?code=${quizCode}`)
+        if (res.ok) {
+          const data = await res.json()
+          const sessionStatus = data.session.status
+          setSessionStatus(sessionStatus)
+          
+          // If session is active and we're still waiting, start the quiz
+          if (sessionStatus === "active" && gameState === "waiting") {
+            console.log("Session is active, starting quiz...")
+            setGameState("active")
+          }
+          
+          // If session is completed, end the quiz
+          if (sessionStatus === "completed" && gameState !== "completed") {
+            console.log("Session completed, ending quiz...")
+            setGameState("completed")
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching session status:", error)
+      }
+    }
+
+    // Poll session status every 2 seconds
+    const interval = setInterval(fetchSessionStatus, 2000)
+    fetchSessionStatus() // Initial fetch
+    
+    return () => clearInterval(interval)
+  }, [quizCode, gameState])
+
+  // Handle transition from waiting to active state
+  useEffect(() => {
+    if (gameState === "active" && questions.length > 0 && !currentQuestion) {
+      console.log("Quiz became active, initializing first question")
+      setCurrentQuestion(questions[0])
+      setQuestionIndex(0)
+      setTimeRemaining(questions[0].timeLimit)
+    }
+  }, [gameState, questions, currentQuestion])
+
   // Fetch questions
   useEffect(() => {
     async function fetchQuestions() {
@@ -222,8 +320,16 @@ export default function TeamParticipantQuiz() {
           const data = await res.json()
           console.log("Raw questions data:", data.questions)
           
+          // Deduplicate by question id first to prevent repeats, then process
+          const uniqueByIdMap = new Map<string, any>()
+          for (const q of data.questions) {
+            const key = String(q.id)
+            if (!uniqueByIdMap.has(key)) uniqueByIdMap.set(key, q)
+          }
+          const uniqueQuestionsRaw = Array.from(uniqueByIdMap.values())
+
           // Process questions to match the expected format
-          const processedQuestions = data.questions.map((q: any) => {
+          const processedQuestions = uniqueQuestionsRaw.map((q: any) => {
             console.log("Processing question:", q)
             console.log("Question options:", q.options)
             
@@ -253,7 +359,7 @@ export default function TeamParticipantQuiz() {
           })
           
           // Apply option shuffling to each question based on its type
-          const questionsWithShuffledOptions = processedQuestions.map((question: Question) => {
+          const questionsWithShuffledOptions = processedQuestions.map((question: any) => {
             let shuffledQuestion = question
             
             // Shuffle MCQ options
@@ -280,15 +386,16 @@ export default function TeamParticipantQuiz() {
           // Shuffle questions for this participant to prevent memorization
           const shuffledQuestions = shuffleArray([...questionsWithShuffledOptions])
           
-          // Remove duplicate questions by id only (if any)
-          // const uniqueQuestions = shuffledQuestions.filter(
-          //   (q, idx, arr) => arr.findIndex(qq => qq.id === q.id) === idx
-          // );
-          setQuestions(shuffledQuestions);
-          console.log("Questions set for quiz:", shuffledQuestions.map(q => q.id), shuffledQuestions.length);
+          // Additional deduplication check to ensure no duplicates remain
+          const finalQuestions = shuffledQuestions.filter((question: any, index, array) => 
+            array.findIndex((q: any) => q.id === question.id) === index
+          )
+          
+          setQuestions(finalQuestions);
+          console.log("Questions set for quiz:", finalQuestions.map(q => q.id), finalQuestions.length);
           
           // Check for duplicate questions
-          const questionIds = shuffledQuestions.map(q => q.id)
+          const questionIds = finalQuestions.map(q => q.id)
           const uniqueIds = new Set(questionIds)
           if (questionIds.length !== uniqueIds.size) {
             console.error("DUPLICATE QUESTIONS DETECTED!", {
@@ -299,10 +406,25 @@ export default function TeamParticipantQuiz() {
             })
           }
           
-          console.log("Original questions order:", processedQuestions.map((q: Question) => q.id))
-          console.log("Shuffled questions order:", shuffledQuestions.map((q: Question) => q.id))
-          console.log("Processed questions:", shuffledQuestions)
-          // setQuestions(shuffledQuestions) // This line is now redundant as questions are set directly
+          console.log("Original questions order:", processedQuestions.map((q: any) => q.id))
+          console.log("Final questions order:", finalQuestions.map((q: any) => q.id))
+          console.log("Processed questions:", finalQuestions)
+          
+          // Initialize the first question if we have questions and are in waiting state
+          if (finalQuestions.length > 0 && gameState === "waiting") {
+            console.log("Initializing first question")
+            setCurrentQuestion(finalQuestions[0])
+            setQuestionIndex(0)
+            setTimeRemaining(finalQuestions[0].timeLimit)
+          }
+          
+          // Also initialize if we have questions but no current question (for when session becomes active)
+          if (finalQuestions.length > 0 && !currentQuestion && gameState === "active") {
+            console.log("Initializing first question for active session")
+            setCurrentQuestion(finalQuestions[0])
+            setQuestionIndex(0)
+            setTimeRemaining(finalQuestions[0].timeLimit)
+          }
         } else {
           console.error("Failed to fetch questions:", res.status, res.statusText)
         }
@@ -825,6 +947,13 @@ export default function TeamParticipantQuiz() {
       return
     }
     
+    // Safety check: ensure we have questions
+    if (questions.length === 0) {
+      console.error("No questions available, ending quiz")
+      setGameState("completed")
+      return
+    }
+    
     if (questionIndex < questions.length - 1) {
       const nextIndex = questionIndex + 1
       console.log(`Moving to next question: ${nextIndex + 1}/${questions.length}`)
@@ -872,9 +1001,8 @@ export default function TeamParticipantQuiz() {
       // Submit answer as incorrect when skipping
       const timeTaken = (currentQuestion?.timeLimit || 30) - timeRemaining
       const basePoints = currentQuestion?.points || 10
-      const pointsMultiplier = activePowerUp === "doublePoints" ? 2 : 1
-      const streakBonus = Math.floor(playerStats.streak / 3) * 5
-      const pointsAwarded = 0 // No points for skipping
+      // Double or Negative: skipping counts as wrong → negative base points
+      const pointsAwarded = activePowerUp === "doubleOrNothing" ? -basePoints : 0
       
       // Update time statistics
       const newTotalTime = (playerStats.totalTimeTaken || 0) + timeTaken
@@ -882,10 +1010,12 @@ export default function TeamParticipantQuiz() {
       const newSlowestAnswer = Math.max((playerStats.slowestAnswer || 0), timeTaken)
       const newAverageTime = Math.round(newTotalTime / (playerStats.totalAnswered + 1))
       
+      const preservedStreak = activeStreakSaver && playerStats.streak >= 1 ? playerStats.streak : 0
+      const newScore = Math.max(0, playerStats.score + pointsAwarded)
       const newStats = {
         ...playerStats,
-        score: playerStats.score, // No points added
-        streak: 0, // Reset streak
+        score: newScore,
+        streak: preservedStreak,
         totalAnswered: playerStats.totalAnswered + 1,
         correctAnswers: playerStats.correctAnswers, // No correct answer
         accuracy: Math.round((playerStats.correctAnswers / (playerStats.totalAnswered + 1)) * 100),
@@ -907,8 +1037,8 @@ export default function TeamParticipantQuiz() {
         null,
         false,
         timeTaken,
-        0,
-        playerStats.streak
+        pointsAwarded,
+        newStats.streak
       )
       
       // Update participant stats
@@ -917,6 +1047,10 @@ export default function TeamParticipantQuiz() {
       console.log(`Question skipped, Points: 0`)
       console.log(`Question ${questionIndex + 1} of ${questions.length} completed`)
       
+      // Clear power-ups after skip (consume Streak Saver now that it was used on a miss)
+      if (activePowerUp) setActivePowerUp(null)
+      if (activeStreakSaver) setActiveStreakSaver(false)
+
       // Re-enable proctoring after a short delay
       setTimeout(() => {
         
@@ -957,7 +1091,18 @@ export default function TeamParticipantQuiz() {
         break
       case "doublePoints":
         setActivePowerUp("doublePoints")
-        setTimeout(() => setActivePowerUp(null), 30000) // 30 seconds
+        break
+      case "doubleOrNothing":
+        setActivePowerUp("doubleOrNothing")
+        break
+      case "streakSaver":
+        if (playerStats.streak < 3) {
+          // Refund if not eligible
+          setPowerUps(prev => ({ ...prev, streakSaver: prev.streakSaver + 1 }))
+          toast({ title: "Streak too low", description: "Need a streak of 3+ to use Streak Saver." })
+          return
+        }
+        setActiveStreakSaver(true)
         break
     }
   }
@@ -1217,9 +1362,12 @@ export default function TeamParticipantQuiz() {
     
     const timeTaken = (currentQuestion?.timeLimit || 30) - timeRemaining
     const basePoints = currentQuestion?.points || 10
-    const pointsMultiplier = activePowerUp === "doublePoints" ? 2 : 1
-    const streakBonus = Math.floor(playerStats.streak / 3) * 5
-    const pointsAwarded = (basePoints + streakBonus) * pointsMultiplier
+    let pointsAwarded = 0
+    if (finalIsCorrect) {
+      pointsAwarded = basePoints * (activePowerUp === "doublePoints" || activePowerUp === "doubleOrNothing" ? 2 : 1)
+    } else {
+      pointsAwarded = activePowerUp === "doubleOrNothing" ? -basePoints : 0
+    }
     
     // Update time statistics
     const newTotalTime = (playerStats.totalTimeTaken || 0) + timeTaken
@@ -1227,10 +1375,14 @@ export default function TeamParticipantQuiz() {
     const newSlowestAnswer = Math.max((playerStats.slowestAnswer || 0), timeTaken)
     const newAverageTime = Math.round(newTotalTime / (playerStats.totalAnswered + 1))
     
+    const preservedStreak = !finalIsCorrect && activeStreakSaver && playerStats.streak >= 1
+      ? playerStats.streak
+      : (finalIsCorrect ? playerStats.streak + 1 : 0)
+    const newScore = Math.max(0, playerStats.score + pointsAwarded)
     const newStats = {
       ...playerStats,
-      score: playerStats.score + (finalIsCorrect ? pointsAwarded : 0),
-      streak: finalIsCorrect ? playerStats.streak + 1 : 0,
+      score: newScore,
+      streak: preservedStreak,
       totalAnswered: playerStats.totalAnswered + 1,
       correctAnswers: playerStats.correctAnswers + (finalIsCorrect ? 1 : 0),
       accuracy: Math.round(((playerStats.correctAnswers + (finalIsCorrect ? 1 : 0)) / (playerStats.totalAnswered + 1)) * 100),
@@ -1246,13 +1398,17 @@ export default function TeamParticipantQuiz() {
     setShowFeedback(true)
     setGameState("answered")
     
+    // Clear active power-up; only consume Streak Saver on a miss
+    if (activePowerUp) setActivePowerUp(null)
+    if (!finalIsCorrect && activeStreakSaver) setActiveStreakSaver(false)
+
     // Save answer to server
     saveAnswer(
       currentQuestion?.id || "",
       finalAnswer,
       finalIsCorrect,
       timeTaken,
-      finalIsCorrect ? pointsAwarded : 0,
+      pointsAwarded,
       newStats.streak
     )
     
@@ -1887,6 +2043,46 @@ export default function TeamParticipantQuiz() {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>Double points for 30 seconds</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => usePowerUp("doubleOrNothing")}
+                      disabled={powerUps.doubleOrNothing <= 0 || gameState !== "active"}
+                      className={`border-red-500 text-red-400 hover:bg-red-600 ${
+                        activePowerUp === "doubleOrNothing" ? "bg-red-600" : ""
+                      }`}
+                    >
+                      <Trophy className="w-4 h-4 mr-2" />
+                      Double or Negative ({powerUps.doubleOrNothing})
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Double points if correct; lose base points if wrong</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => usePowerUp("streakSaver")}
+                      disabled={powerUps.streakSaver <= 0 || gameState !== "active" || playerStats.streak < 3 || activeStreakSaver}
+                      className={`border-emerald-500 text-emerald-400 hover:bg-emerald-600 ${
+                        activeStreakSaver ? "bg-emerald-600" : ""
+                      }`}
+                    >
+                      <Shield className="w-4 h-4 mr-2" />
+                      Streak Saver ({powerUps.streakSaver})
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Preserve your current streak (3+) on one miss</p>
                   </TooltipContent>
                 </Tooltip>
               </div>

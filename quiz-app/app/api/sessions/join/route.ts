@@ -19,26 +19,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Session not found' }, { status: 404 })
     }
 
+    // Only block if the session is completed; allow joining during waiting/active/paused
     if (session.status === 'completed') {
       return NextResponse.json({ error: 'Session has already ended' }, { status: 400 })
     }
 
-    if (session.status === 'active') {
-      return NextResponse.json({ error: 'Session has already started' }, { status: 400 })
-    }
-
-    // Check if user already exists
+    // Find or create user by username
     let user = await prisma.users.findFirst({
       where: { username },
     })
 
-    // If user doesn't exist, create a new participant user
     if (!user) {
       user = await prisma.users.create({
         data: {
           username,
-          email: `${username}@participant.local`, // Temporary email
-          password: 'participant', // Temporary password
+          email: `${username}@participant.local`,
+          password: 'participant',
           role: 'participant',
         },
       })
@@ -54,9 +50,11 @@ export async function POST(req: NextRequest) {
 
     if (existingParticipant) {
       return NextResponse.json({ 
-        error: 'You are already in this session',
-        userId: user.id 
-      }, { status: 400 })
+        success: true,
+        message: 'Already joined',
+        userId: user.id,
+        participantId: existingParticipant.id
+      })
     }
 
     // Add user to session

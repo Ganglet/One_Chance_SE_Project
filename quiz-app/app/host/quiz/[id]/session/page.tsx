@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, BarChart3, CheckCircle, RotateCcw, X, Download } from "lucide-react"
+import { Trophy, BarChart3, CheckCircle, RotateCcw, X, Download, XCircle, Users } from "lucide-react"
 import { useParams, useSearchParams } from "next/navigation"
 import { useRouter } from "next/navigation"
 import { 
@@ -60,7 +60,7 @@ interface Participant {
 interface Question {
   id: string
   question: string
-  type: "multiple-choice" | "true-false" | "short-answer"
+  type: "multiple-choice" | "true-false" | "short-answer" | "matching-pairs" | "ordering" | "drag-drop"
   options?: string[]
   correctAnswer: string | number
   timeLimit: number
@@ -70,15 +70,37 @@ interface Question {
 export default function QuizSession() {
   const params = useParams()
   const searchParams = useSearchParams()
-  const [sessionStatus, setSessionStatus] = useState<"waiting" | "active" | "paused" | "completed">("waiting")
-  const [participants, setParticipants] = useState<Participant[]>([])
-  const [joinCode, setJoinCode] = useState<string>("")
-  const [sessionId, setSessionId] = useState<number | null>(null)
-  const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const [joinCode, setJoinCode] = useState("")
+  const [sessionId, setSessionId] = useState("")
+  const [sessionStatus, setSessionStatus] = useState("")
+  const [participants, setParticipants] = useState<Participant[]>([])
+  const [questions, setQuestions] = useState<Question[]>([])
   const [isTeamQuiz, setIsTeamQuiz] = useState(false)
+  const [disqualificationNotifications, setDisqualificationNotifications] = useState<Array<{id: string, participantName: string, timestamp: Date}>>([])
+  // Add tracking for disqualified participants to prevent duplicate notifications
+  const [trackedDisqualifiedIds, setTrackedDisqualifiedIds] = useState<Set<string>>(new Set())
+  // Use ref for immediate access to prevent race conditions
+  const trackedDisqualifiedIdsRef = useRef<Set<string>>(new Set())
+
+  // Initialize tracking from localStorage if available
+  useEffect(() => {
+    if (typeof window !== 'undefined' && sessionId) {
+      const stored = localStorage.getItem(`disqualified-${sessionId}`)
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored)
+          const storedSet = new Set(parsed)
+          setTrackedDisqualifiedIds(storedSet)
+          trackedDisqualifiedIdsRef.current = storedSet
+          console.log(`📥 Loaded ${storedSet.size} tracked disqualifications from localStorage`)
+        } catch (e) {
+          console.error('Failed to parse stored disqualifications:', e)
+        }
+      }
+    }
+  }, [sessionId])
 
   // Function to format correct answers for display
   const formatCorrectAnswer = (correctAnswer: string | number, questionType: string) => {
@@ -162,8 +184,9 @@ export default function QuizSession() {
         if (pres.ok) {
           const pdata = await pres.json()
           console.log("Participants data:", pdata)
-          setParticipants(
-            pdata.participants.map((p: any) => ({
+          // Filter out participants with empty, null, or 'anonymous' names
+          const newParticipants = pdata.participants
+            .map((p: any) => ({
               id: p.user_id.toString(),
               name: p.users.username,
               score: p.score || 0,
@@ -186,7 +209,44 @@ export default function QuizSession() {
               averagePointsPerQuestion: p.averagePointsPerQuestion || 0,
               efficiency: p.efficiency || 0,
             }))
+            .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
+
+          // Check for new disqualifications using tracked IDs to prevent duplicates
+          const newDisqualified = newParticipants.filter(p => 
+            p.accuracy === -1 && !trackedDisqualifiedIdsRef.current.has(p.id)
           )
+          
+          // Additional safety check: filter out participants already in notifications
+          const existingNotificationNames = new Set(disqualificationNotifications.map(n => n.participantName))
+          const trulyNewDisqualified = newDisqualified.filter(p => !existingNotificationNames.has(p.name))
+          
+          console.log(`🔍 Disqualification check: ${newParticipants.filter(p => p.accuracy === -1).length} total disqualified, ${newDisqualified.length} new disqualified, ${trulyNewDisqualified.length} truly new, ${trackedDisqualifiedIdsRef.current.size} tracked IDs`)
+          
+          if (trulyNewDisqualified.length > 0) {
+            // Add new disqualifications to tracking set IMMEDIATELY to prevent race conditions
+            const newDisqualifiedIds = trulyNewDisqualified.map(p => p.id)
+            const updatedTrackedIds = new Set([...trackedDisqualifiedIdsRef.current, ...newDisqualifiedIds])
+            trackedDisqualifiedIdsRef.current = updatedTrackedIds
+            setTrackedDisqualifiedIds(updatedTrackedIds)
+            
+            // Persist to localStorage for reliability
+            if (typeof window !== 'undefined' && sessionId) {
+              localStorage.setItem(`disqualified-${sessionId}`, JSON.stringify(Array.from(updatedTrackedIds)))
+            }
+            
+            // Create notifications only for newly disqualified participants
+            const newNotifications = trulyNewDisqualified.map(p => ({
+              id: `${p.id}-${Date.now()}`,
+              participantName: p.name,
+              timestamp: new Date()
+            }))
+            setDisqualificationNotifications(prev => [...prev, ...newNotifications])
+            
+            console.log(`🚫 New disqualifications detected: ${trulyNewDisqualified.map(p => p.name).join(', ')}`)
+            console.log(`📊 Updated tracked IDs: ${Array.from(updatedTrackedIds).join(', ')}`)
+          }
+
+          setParticipants(newParticipants)
         } else {
           console.error("Failed to fetch participants:", pres.status, pres.statusText)
         }
@@ -209,7 +269,10 @@ export default function QuizSession() {
             id: q.id.toString(),
             question: q.question,
             type: q.type === 'multiple_choice' ? 'multiple-choice' : 
-                  q.type === 'true_false' ? 'true-false' : 'short-answer',
+                  q.type === 'true_false' ? 'true-false' : 
+                  q.type === 'matching_pairs' ? 'matching-pairs' :
+                  q.type === 'ordering' ? 'ordering' :
+                  q.type === 'drag_drop' ? 'drag-drop' : 'short-answer',
             options: q.options?.map((opt: any) => opt.option_text) || [],
             correctAnswer: q.correct_answer || '',
             timeLimit: q.time_limit || 30,
@@ -234,10 +297,29 @@ export default function QuizSession() {
     }
     
     fetchSession()
-    // Poll for session updates every 5 seconds (reduced frequency)
-    const interval = setInterval(fetchSession, 5000)
+    // Poll for session updates every 10 seconds (increased frequency to reduce race conditions)
+    const interval = setInterval(fetchSession, 10000)
     return () => clearInterval(interval)
   }, [searchParams])
+
+  // Cleanup disqualification notifications to prevent memory issues
+  useEffect(() => {
+    if (disqualificationNotifications.length > 20) {
+      setDisqualificationNotifications(prev => prev.slice(-20))
+    }
+  }, [disqualificationNotifications])
+
+  // Function to reset disqualification tracking (for debugging)
+  const resetDisqualificationTracking = () => {
+    setTrackedDisqualifiedIds(new Set())
+    trackedDisqualifiedIdsRef.current = new Set()
+    setDisqualificationNotifications([])
+    // Clear localStorage as well
+    if (typeof window !== 'undefined' && sessionId) {
+      localStorage.removeItem(`disqualified-${sessionId}`)
+    }
+    console.log('🔄 Disqualification tracking reset')
+  }
 
   const answeredCount = participants.filter((p) => p.answered).length
 
@@ -702,6 +784,17 @@ export default function QuizSession() {
     `
   }
 
+  const renderDisqualifiedTag = (p: any) => {
+    if (p.accuracy === -1) {
+      return (
+        <span className="ml-2 inline-block text-xs px-2 py-0.5 rounded bg-red-100 text-red-700 border border-red-300">
+          Disqualified
+        </span>
+      )
+    }
+    return null
+  }
+
   if (loading) {
     return (
       <div className={`min-h-screen flex items-center justify-center ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
@@ -775,9 +868,105 @@ export default function QuizSession() {
           </div>
         </div>
 
+        {/* Disqualification Notifications */}
+        {disqualificationNotifications.length > 0 && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                <h3 className="font-semibold text-red-800 dark:text-red-200">Recent Disqualifications</h3>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetDisqualificationTracking}
+                  className="text-orange-600 border-orange-300 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-600 dark:hover:bg-orange-900/30"
+                >
+                  Reset Tracking
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDisqualificationNotifications([])}
+                  className="text-red-600 border-red-300 hover:bg-red-100 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/30"
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              {disqualificationNotifications.slice(-5).map((notification) => (
+                <div key={notification.id} className="flex items-center justify-between text-sm">
+                  <span className="text-red-700 dark:text-red-300">
+                    <strong>{notification.participantName}</strong> was disqualified
+                  </span>
+                  <span className="text-red-500 dark:text-red-400">
+                    {notification.timestamp.toLocaleTimeString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {disqualificationNotifications.length > 5 && (
+              <p className="text-xs text-red-500 dark:text-red-400 mt-2">
+                Showing last 5 of {disqualificationNotifications.length} notifications
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Session Summary Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                      <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-blue-600 dark:text-blue-400">Total Participants</p>
+                      <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{participants.length}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-green-600 dark:text-green-400">Active Participants</p>
+                      <p className="text-2xl font-bold text-green-700 dark:text-green-300">
+                        {participants.filter(p => p.accuracy !== -1).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
+                      <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-red-600 dark:text-red-400">Disqualified</p>
+                      <p className="text-2xl font-bold text-red-700 dark:text-red-300">
+                        {participants.filter(p => p.accuracy === -1).length}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             {/* Questions Preview */}
             <Card className={isTeamQuiz ? 'bg-gray-800 border-cyan-500/30' : ''}>
               <CardHeader>
@@ -809,6 +998,33 @@ export default function QuizSession() {
                         <div className="flex gap-4">
                           <div className="flex-1 p-2 border rounded bg-gray-50 dark:bg-gray-800 text-center">True</div>
                           <div className="flex-1 p-2 border rounded bg-gray-50 dark:bg-gray-800 text-center">False</div>
+                        </div>
+                      )}
+
+                      {question.type === "matching-pairs" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Matching pairs question</p>
+                          <div className="p-2 border rounded bg-gray-50 dark:bg-gray-800">
+                            <span className="text-sm">Match items from left column to right column</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {question.type === "ordering" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Ordering question</p>
+                          <div className="p-2 border rounded bg-gray-50 dark:bg-gray-800">
+                            <span className="text-sm">Arrange items in the correct order</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {question.type === "drag-drop" && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Drag and drop question</p>
+                          <div className="p-2 border rounded bg-gray-50 dark:bg-gray-800">
+                            <span className="text-sm">Drag items to their correct categories</span>
+                          </div>
                         </div>
                       )}
 
@@ -942,6 +1158,7 @@ export default function QuizSession() {
                                 {index + 1}
                               </span>
                               <span className="font-medium">{participant.name}</span>
+                              {renderDisqualifiedTag(participant)}
                             </div>
                             <div className="text-right">
                               <span className="font-bold text-green-600">{participant.efficiency}%</span>
@@ -954,6 +1171,52 @@ export default function QuizSession() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Disqualified Participants Section */}
+            {participants.filter(p => p.accuracy === -1).length > 0 && (
+              <Card className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-300">
+                    <XCircle className="w-5 h-5" />
+                    Disqualified Participants
+                  </CardTitle>
+                  <CardDescription className="text-red-600 dark:text-red-400">
+                    Participants disqualified due to proctoring violations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {participants
+                      .filter(p => p.accuracy === -1)
+                      .map((participant, index) => (
+                        <div key={participant.id} className="flex items-center justify-between p-4 bg-red-100 dark:bg-red-800/30 rounded-lg border border-red-200 dark:border-red-700">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-red-200 dark:bg-red-700 flex items-center justify-center">
+                              <XCircle className="w-4 h-4 text-red-600 dark:text-red-300" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-red-800 dark:text-red-200">
+                                {participant.name}
+                              </h4>
+                              <p className="text-sm text-red-600 dark:text-red-400">
+                                Disqualified due to proctoring violations
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <Badge variant="destructive" className="bg-red-600 text-white">
+                              Disqualified
+                            </Badge>
+                            <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                              Final Score: {participant.score}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Detailed Participant Analytics */}
             <Card>
@@ -982,7 +1245,7 @@ export default function QuizSession() {
                               {index + 1}
                             </div>
                             <div>
-                              <h3 className="font-semibold text-lg">{participant.name}</h3>
+                              <h3 className="font-semibold text-lg">{participant.name} {renderDisqualifiedTag(participant)}</h3>
                               <p className="text-sm text-gray-600 dark:text-gray-400">
                                 Rank #{index + 1} • {participant.score} points
                               </p>
@@ -1897,12 +2160,14 @@ export default function QuizSession() {
                       data={(() => {
                         const multipleChoice = questions.filter(q => q.type === 'multiple-choice').length;
                         const trueFalse = questions.filter(q => q.type === 'true-false').length;
-                        const shortAnswer = questions.filter(q => q.type === 'short-answer').length;
+                        const matchingPairs = questions.filter(q => q.type === 'matching-pairs').length;
+                        const ordering = questions.filter(q => q.type === 'ordering').length;
                         
                         return [
                           { name: 'Multiple Choice', value: multipleChoice, color: '#3b82f6' },
                           { name: 'True/False', value: trueFalse, color: '#10b981' },
-                          { name: 'Short Answer', value: shortAnswer, color: '#f59e0b' }
+                          { name: 'Matching Pairs', value: matchingPairs, color: '#f59e0b' },
+                          { name: 'Ordering', value: ordering, color: '#ff7300' }
                         ].filter(item => item.value > 0);
                       })()}
                       cx="50%"
@@ -1916,12 +2181,14 @@ export default function QuizSession() {
                       {(() => {
                         const multipleChoice = questions.filter(q => q.type === 'multiple-choice').length;
                         const trueFalse = questions.filter(q => q.type === 'true-false').length;
-                        const shortAnswer = questions.filter(q => q.type === 'short-answer').length;
+                        const matchingPairs = questions.filter(q => q.type === 'matching-pairs').length;
+                        const ordering = questions.filter(q => q.type === 'ordering').length;
                         
                         const data = [
                           { name: 'Multiple Choice', value: multipleChoice, color: '#3b82f6' },
                           { name: 'True/False', value: trueFalse, color: '#10b981' },
-                          { name: 'Short Answer', value: shortAnswer, color: '#f59e0b' }
+                          { name: 'Matching Pairs', value: matchingPairs, color: '#f59e0b' },
+                          { name: 'Ordering', value: ordering, color: '#ff7300' }
                         ].filter(item => item.value > 0);
                         
                         return data.map((entry, index) => (

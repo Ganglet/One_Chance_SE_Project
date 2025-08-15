@@ -46,7 +46,9 @@ export default function ParticipantReview() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { toast } = useToast()
-  const playerName = searchParams.get("name") || "Anonymous"
+  const playerName = (typeof window !== 'undefined' && (new URLSearchParams(window.location.search)).get('name'))
+    || (typeof window !== 'undefined' ? localStorage.getItem('username') : null)
+    || 'Anonymous'
   const quizCode = params.code as string
 
   const [loading, setLoading] = useState(true)
@@ -208,7 +210,7 @@ export default function ParticipantReview() {
   }
 
   const handleGoHome = () => {
-    router.push("/")
+    router.push("/participant/dashboard")
   }
 
   if (loading) {
@@ -263,6 +265,9 @@ export default function ParticipantReview() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 slide-in-left">
+          <Button variant="ghost" onClick={() => router.back()} className="mr-4">
+            ⟵ Back
+          </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Quiz Review</h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -574,7 +579,11 @@ export default function ParticipantReview() {
                                     {isCorrect ? 'Correct' : 'Incorrect'}
                                   </span>
                                   {answer && (
-                                    <span className="text-gray-600 dark:text-gray-400">
+                                    <span className={
+                                      answer.points_awarded < 0
+                                        ? "text-red-600 dark:text-red-400 font-bold"
+                                        : "text-gray-600 dark:text-gray-400"
+                                    }>
                                       Points: {answer.points_awarded}
                                     </span>
                                   )}
