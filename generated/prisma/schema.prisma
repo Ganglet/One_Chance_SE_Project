@@ -1,0 +1,218 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "darwin"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model answers {
+  id                     Int                  @id @default(autoincrement())
+  session_participant_id Int
+  question_id            Int
+  selected_option        String?              @db.VarChar(255)
+  is_correct             Boolean?
+  time_taken             Int?
+  points_awarded         Int?
+  streak_at_time         Int?
+  answered_at            DateTime?            @default(now()) @db.Timestamp(0)
+  session_participants   session_participants @relation(fields: [session_participant_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "answers_ibfk_1")
+  questions              questions            @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "answers_ibfk_2")
+
+  @@index([question_id], map: "question_id")
+  @@index([session_participant_id], map: "session_participant_id")
+}
+
+model options {
+  id           Int       @id @default(autoincrement())
+  question_id  Int
+  option_text  String    @db.VarChar(255)
+  option_index Int
+  questions    questions @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "options_ibfk_1")
+
+  @@index([question_id], map: "question_id")
+}
+
+model matching_pairs {
+  id          Int       @id @default(autoincrement())
+  question_id Int
+  left_item   String    @db.VarChar(255)
+  right_item  String    @db.VarChar(255)
+  pair_index  Int
+  questions   questions @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "matching_pairs_ibfk_1")
+
+  @@index([question_id], map: "question_id")
+}
+
+model drag_drop_items {
+  id          Int       @id @default(autoincrement())
+  question_id Int
+  item_text   String    @db.VarChar(255)
+  category    String    @db.VarChar(100)
+  item_index  Int
+  questions   questions @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "drag_drop_items_ibfk_1")
+
+  @@index([question_id], map: "question_id")
+}
+
+model ordering_items {
+  id            Int       @id @default(autoincrement())
+  question_id   Int
+  item_text     String    @db.VarChar(255)
+  correct_order Int
+  questions     questions @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ordering_items_ibfk_1")
+
+  @@index([question_id], map: "question_id")
+}
+
+model teams {
+  id          Int       @id @default(autoincrement())
+  quiz_id     Int
+  name        String    @db.VarChar(100)
+  color       String    @db.VarChar(7) // Hex color code
+  max_members Int       @default(4)
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  quizzes     quizzes   @relation(fields: [quiz_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "teams_ibfk_1")
+
+  @@index([quiz_id], map: "quiz_id")
+}
+
+model participant_history {
+  id              Int       @id @default(autoincrement())
+  user_id         Int
+  quiz_id         Int
+  total_sessions  Int?      @default(0)
+  total_score     Int?      @default(0)
+  total_correct   Int?      @default(0)
+  total_questions Int?      @default(0)
+  best_streak     Int?      @default(0)
+  last_played     DateTime? @db.Timestamp(0)
+  users           users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "participant_history_ibfk_1")
+  quizzes         quizzes   @relation(fields: [quiz_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "participant_history_ibfk_2")
+
+  @@index([quiz_id], map: "quiz_id")
+  @@index([user_id], map: "user_id")
+}
+
+model questions {
+  id              Int                   @id @default(autoincrement())
+  quiz_id         Int
+  type            questions_type
+  question        String                @db.Text
+  correct_answer  String?               @db.VarChar(255)
+  time_limit      Int?                  @default(30)
+  points          Int?                  @default(100)
+  category        String?               @db.VarChar(100)
+  media_type      questions_media_type?
+  media_url       String?               @db.VarChar(255)
+  answers         answers[]
+  options         options[]
+  matching_pairs  matching_pairs[]
+  drag_drop_items drag_drop_items[]
+  ordering_items  ordering_items[]
+  quizzes         quizzes               @relation(fields: [quiz_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "questions_ibfk_1")
+
+  @@index([quiz_id], map: "quiz_id")
+}
+
+model quiz_sessions {
+  id                   Int                    @id @default(autoincrement())
+  quiz_id              Int
+  host_id              Int
+  code                 String                 @unique @db.VarChar(10) // Unique join code
+  status               quiz_sessions_status?  @default(waiting)
+  started_at           DateTime?              @db.Timestamp(0)
+  ended_at             DateTime?              @db.Timestamp(0)
+  quizzes              quizzes                @relation(fields: [quiz_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quiz_sessions_ibfk_1")
+  users                users                  @relation(fields: [host_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quiz_sessions_ibfk_2")
+  session_participants session_participants[]
+
+  @@index([host_id], map: "host_id")
+  @@index([quiz_id], map: "quiz_id")
+}
+
+model quizzes {
+  id                  Int                   @id @default(autoincrement())
+  user_id             Int
+  title               String                @db.VarChar(255)
+  description         String?               @db.Text
+  negative_marking    Boolean?              @default(false)
+  team_mode           Boolean?              @default(false)
+  status              quizzes_status?       @default(draft)
+  created_at          DateTime?             @default(now()) @db.Timestamp(0)
+  participant_history participant_history[]
+  questions           questions[]
+  quiz_sessions       quiz_sessions[]
+  teams               teams[]
+  users               users                 @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "quizzes_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model session_participants {
+  id            Int           @id @default(autoincrement())
+  session_id    Int
+  user_id       Int
+  join_code     String?       @db.VarChar(10)
+  team          String?       @db.VarChar(100) // Team name for team quizzes
+  score         Int?          @default(0)
+  streak        Int?          @default(0)
+  accuracy      Float?        @default(0) @db.Float
+  joined_at     DateTime?     @default(now()) @db.Timestamp(0)
+  answers       answers[]
+  quiz_sessions quiz_sessions @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "session_participants_ibfk_1")
+  users         users         @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "session_participants_ibfk_2")
+
+  @@index([session_id], map: "session_id")
+  @@index([user_id], map: "user_id")
+}
+
+model users {
+  id                   Int                    @id @default(autoincrement())
+  username             String                 @unique(map: "username") @db.VarChar(50)
+  password             String                 @db.VarChar(255)
+  email                String                 @unique(map: "email") @db.VarChar(100)
+  role                 users_role             @default(participant)
+  created_at           DateTime?              @default(now()) @db.Timestamp(0)
+  participant_history  participant_history[]
+  quiz_sessions        quiz_sessions[]
+  quizzes              quizzes[]
+  session_participants session_participants[]
+}
+
+enum questions_type {
+  multiple_choice @map("multiple-choice")
+  true_false      @map("true-false")
+  matching_pairs  @map("matching-pairs")
+  drag_drop       @map("drag-drop")
+  ordering        @map("ordering")
+}
+
+enum quiz_sessions_status {
+  waiting
+  active
+  paused
+  completed
+}
+
+enum users_role {
+  host
+  participant
+}
+
+enum quizzes_status {
+  draft
+  inactive
+  active
+  stopped
+  completed
+  terminated
+}
+
+enum questions_media_type {
+  image
+  video
+}
