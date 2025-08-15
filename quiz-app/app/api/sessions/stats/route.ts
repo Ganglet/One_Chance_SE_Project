@@ -81,7 +81,8 @@ export async function GET(request: NextRequest) {
       accuracy,
       totalAnswered,
       correctAnswers,
-      position
+      position,
+      streak: participant.streak || 0
     }
 
     return NextResponse.json({ stats })

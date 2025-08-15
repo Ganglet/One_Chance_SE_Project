@@ -45,7 +45,8 @@ export async function GET(request: NextRequest) {
         score,
         accuracy,
         totalAnswered,
-        correctAnswers
+        correctAnswers,
+        streak: participant.streak || 0
       }
     }))
 

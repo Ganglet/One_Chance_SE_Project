@@ -332,7 +332,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/angshumansmac/Desktop/BTECH/Sem5/SE/SE_Project_Copy2/generated/prisma",
+      "value": "E:\\SE_6_proj\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -341,7 +341,7 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "darwin-arm64",
+        "value": "windows",
         "native": true
       },
       {
@@ -350,7 +350,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/angshumansmac/Desktop/BTECH/Sem5/SE/SE_Project_Copy2/prisma/schema.prisma",
+    "sourceFilePath": "E:\\SE_6_proj\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

@@ -182,10 +182,10 @@ export default function TeamParticipantQuiz() {
               const joinRes = await fetch("/api/sessions/join", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                  code: quizCode, 
-                  username: playerName || 'Anonymous'
-                })
+                                 body: JSON.stringify({ 
+                   code: quizCode, 
+                   username: playerName || 'Participant'
+                 })
               })
               
               if (!joinRes.ok) {
@@ -1095,15 +1095,15 @@ export default function TeamParticipantQuiz() {
       case "doubleOrNothing":
         setActivePowerUp("doubleOrNothing")
         break
-      case "streakSaver":
-        if (playerStats.streak < 3) {
-          // Refund if not eligible
-          setPowerUps(prev => ({ ...prev, streakSaver: prev.streakSaver + 1 }))
-          toast({ title: "Streak too low", description: "Need a streak of 3+ to use Streak Saver." })
-          return
-        }
-        setActiveStreakSaver(true)
-        break
+             case "streakSaver":
+         if (playerStats.streak < 1) {
+           // Refund if not eligible
+           setPowerUps(prev => ({ ...prev, streakSaver: prev.streakSaver + 1 }))
+           toast({ title: "Streak too low", description: "Need a streak of 1+ to use Streak Saver." })
+           return
+         }
+         setActiveStreakSaver(true)
+         break
     }
   }
 
@@ -1154,10 +1154,20 @@ export default function TeamParticipantQuiz() {
         const newSlowestAnswer = Math.max((playerStats.slowestAnswer || 0), timeTaken)
         const newAverageTime = Math.round(newTotalTime / (playerStats.totalAnswered + 1))
         
+        // Calculate new streak with streak saver logic
+        let newStreak = 0
+        if (isCorrect) {
+          const potentialStreak = playerStats.streak + 1
+          // If streak reaches 3, reset to 1 (streak saver)
+          newStreak = potentialStreak >= 3 ? 1 : potentialStreak
+        } else {
+          newStreak = 0
+        }
+
         const newStats = {
           ...playerStats,
           score: playerStats.score + (isCorrect ? pointsAwarded : 0),
-          streak: isCorrect ? playerStats.streak + 1 : 0,
+          streak: newStreak,
           totalAnswered: playerStats.totalAnswered + 1,
           correctAnswers: playerStats.correctAnswers + (isCorrect ? 1 : 0),
           accuracy: Math.round(((playerStats.correctAnswers + (isCorrect ? 1 : 0)) / (playerStats.totalAnswered + 1)) * 100),
@@ -1375,9 +1385,16 @@ export default function TeamParticipantQuiz() {
     const newSlowestAnswer = Math.max((playerStats.slowestAnswer || 0), timeTaken)
     const newAverageTime = Math.round(newTotalTime / (playerStats.totalAnswered + 1))
     
-    const preservedStreak = !finalIsCorrect && activeStreakSaver && playerStats.streak >= 1
-      ? playerStats.streak
-      : (finalIsCorrect ? playerStats.streak + 1 : 0)
+    // Calculate new streak with streak saver logic
+    let preservedStreak = 0
+    if (finalIsCorrect) {
+      const potentialStreak = playerStats.streak + 1
+      // If streak reaches 3, reset to 1 (streak saver)
+      preservedStreak = potentialStreak >= 3 ? 1 : potentialStreak
+    } else {
+      // Check if streak saver power-up is active
+      preservedStreak = activeStreakSaver && playerStats.streak >= 1 ? playerStats.streak : 0
+    }
     const newScore = Math.max(0, playerStats.score + pointsAwarded)
     const newStats = {
       ...playerStats,
@@ -2072,7 +2089,7 @@ export default function TeamParticipantQuiz() {
                       variant="outline"
                       size="sm"
                       onClick={() => usePowerUp("streakSaver")}
-                      disabled={powerUps.streakSaver <= 0 || gameState !== "active" || playerStats.streak < 3 || activeStreakSaver}
+                                             disabled={powerUps.streakSaver <= 0 || gameState !== "active" || playerStats.streak < 1 || activeStreakSaver}
                       className={`border-emerald-500 text-emerald-400 hover:bg-emerald-600 ${
                         activeStreakSaver ? "bg-emerald-600" : ""
                       }`}
@@ -2081,9 +2098,9 @@ export default function TeamParticipantQuiz() {
                       Streak Saver ({powerUps.streakSaver})
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Preserve your current streak (3+) on one miss</p>
-                  </TooltipContent>
+                                     <TooltipContent>
+                     <p>Preserve your current streak (1+) on one miss</p>
+                   </TooltipContent>
                 </Tooltip>
               </div>
 

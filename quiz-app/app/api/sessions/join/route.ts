@@ -10,6 +10,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'code and username required' }, { status: 400 })
     }
 
+    // Prevent joining with anonymous/empty usernames
+    if (!username.trim() || username.toLowerCase() === 'anonymous') {
+      return NextResponse.json({ error: 'Invalid username. Please provide a valid name.' }, { status: 400 })
+    }
+
     // Find session by code
     const session = await prisma.quiz_sessions.findFirst({
       where: { code },

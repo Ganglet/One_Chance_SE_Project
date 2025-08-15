@@ -14,6 +14,7 @@ interface PlayerStats {
   totalAnswered: number
   correctAnswers: number
   position: number
+  streak: number
 }
 
 interface Team {
@@ -41,7 +42,8 @@ export default function TeamQuizReview() {
     accuracy: 0,
     totalAnswered: 0,
     correctAnswers: 0,
-    position: 1
+    position: 1,
+    streak: 0
   })
   const [teams, setTeams] = useState<Team[]>([])
   const [currentTeam, setCurrentTeam] = useState<Team | null>(null)
@@ -146,7 +148,8 @@ export default function TeamQuizReview() {
             accuracy: 0,
             totalAnswered: 0,
             correctAnswers: 0,
-            position: 1
+            position: 1,
+            streak: 0
           })
         }
 
@@ -312,6 +315,10 @@ export default function TeamQuizReview() {
                 <div className="text-center">
                   <div className="text-3xl font-bold text-white mb-2">#{playerRank}</div>
                   <p className="text-gray-400">Rank</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-white mb-2">{playerStats.streak}</div>
+                  <p className="text-gray-400">Best Streak</p>
                 </div>
               </div>
               
@@ -480,7 +487,7 @@ export default function TeamQuizReview() {
                             )}
                           </h3>
                           <p className="text-sm text-gray-400">
-                            {participant.team || "No team"} • {participant.accuracy}% accuracy
+                            {participant.team || "No team"} • {participant.accuracy}% accuracy • Best Streak: {participant.streak || 0}
                           </p>
                         </div>
                       </div>

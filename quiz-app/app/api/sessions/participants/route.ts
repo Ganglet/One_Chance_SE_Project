@@ -114,7 +114,16 @@ export async function GET(req: NextRequest) {
     
     console.log('Returning transformed participants:', transformedParticipants.length)
     
-    return NextResponse.json({ participants: transformedParticipants })
+    // Filter out anonymous/empty/null usernames
+    const filteredParticipants = transformedParticipants.filter((p: any) => 
+      p.users.username && 
+      p.users.username.trim() !== '' && 
+      p.users.username.toLowerCase() !== 'anonymous'
+    )
+    
+    console.log('Filtered participants (removed anonymous):', filteredParticipants.length)
+    
+    return NextResponse.json({ participants: filteredParticipants })
   } catch (error) {
     console.error('Error fetching participants:', error)
     return NextResponse.json({ error: 'Failed to fetch participants' }, { status: 500 })

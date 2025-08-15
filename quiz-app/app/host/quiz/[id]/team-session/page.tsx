@@ -336,12 +336,13 @@ export default function TeamQuizSession() {
     console.log('🔄 Team disqualification tracking reset')
   }
 
-  const answeredCount = participants.filter((p) => p.answered).length
+  const filteredParticipants = participants.filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
+  const answeredCount = filteredParticipants.filter((p) => p.answered).length
 
   // Calculate team statistics
   const calculateTeamStats = () => {
     const updatedTeams = teams.map(team => {
-      const teamParticipants = participants.filter(p => p.team === team.name)
+      const teamParticipants = filteredParticipants.filter(p => p.team === team.name)
       const teamScore = teamParticipants.reduce((sum, p) => sum + p.score, 0)
       const teamTotalAnswers = teamParticipants.reduce((sum, p) => sum + p.totalAnswers, 0)
       const teamCorrectAnswers = teamParticipants.reduce((sum, p) => sum + p.correctAnswers, 0)
@@ -780,7 +781,7 @@ export default function TeamQuizSession() {
                             <div class="team-name">${team.name}</div>
                         </div>
                         <div class="participant-list">
-                            ${participants?.filter((p: any) => p.team === team.name).map((participant: any) => `
+                            ${filteredParticipants?.filter((p: any) => p.team === team.name).map((participant: any) => `
                                 <div class="participant-card">
                                     <div class="participant-name">${participant.name}</div>
                                     <div class="participant-stats">
@@ -819,7 +820,7 @@ export default function TeamQuizSession() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${participants?.sort((a: any, b: any) => b.score - a.score).map((participant: any, index: any) => `
+                        ${filteredParticipants?.sort((a: any, b: any) => b.score - a.score).map((participant: any, index: any) => `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>${participant.name}</td>
@@ -961,7 +962,7 @@ export default function TeamQuizSession() {
           </div>
           <div className="flex items-center gap-4">
             <Badge variant="outline" className="text-lg px-4 py-2 border-gray-300 text-gray-700 bg-white">
-              {participants.length} Participants
+              {filteredParticipants.length} Participants
             </Badge>
             {!showSessionCompleted && (
               <>
@@ -1055,7 +1056,7 @@ export default function TeamQuizSession() {
                     </div>
                     <div>
                       <p className="text-sm text-blue-600">Total Participants</p>
-                      <p className="text-2xl font-bold text-blue-700">{participants.length}</p>
+                      <p className="text-2xl font-bold text-blue-700">{filteredParticipants.length}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -1154,35 +1155,35 @@ export default function TeamQuizSession() {
                     <div className="flex items-center justify-between">
                       <span className="text-gray-700">Responses Received</span>
                       <span className="font-bold text-gray-900">
-                        {answeredCount} / {participants.length}
+                        {answeredCount} / {filteredParticipants.length}
                       </span>
                     </div>
-                    <Progress value={participants.length > 0 ? (answeredCount / participants.length) * 100 : 0} className="h-2 [&>div]:bg-blue-500" />
+                    <Progress value={filteredParticipants.length > 0 ? (answeredCount / filteredParticipants.length) * 100 : 0} className="h-2 [&>div]:bg-blue-500" />
                   </div>
 
                   {/* Enhanced Statistics Grid */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="text-center p-3 bg-green-50 rounded-lg border border-green-200">
                       <p className="text-2xl font-bold text-green-600">
-                        {participants.length > 0 ? Math.round((answeredCount / participants.length) * 100) : 0}%
+                        {filteredParticipants.length > 0 ? Math.round((answeredCount / filteredParticipants.length) * 100) : 0}%
                       </p>
                       <p className="text-sm text-gray-600">Response Rate</p>
                     </div>
                     <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-200">
                       <p className="text-2xl font-bold text-blue-600">
-                        {participants.length}
+                        {filteredParticipants.length}
                       </p>
                       <p className="text-sm text-gray-600">Total Participants</p>
                     </div>
                     <div className="text-center p-3 bg-purple-50 rounded-lg border border-purple-200">
                       <p className="text-2xl font-bold text-purple-600">
-                        {participants.reduce((sum, p) => sum + p.streak, 0)}
+                        {filteredParticipants.reduce((sum, p) => sum + p.streak, 0)}
                       </p>
                       <p className="text-sm text-gray-600">Total Streaks</p>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
                       <p className="text-2xl font-bold text-orange-600">
-                        {participants.reduce((sum, p) => sum + p.questionsAnswered, 0)}
+                        {filteredParticipants.reduce((sum, p) => sum + p.questionsAnswered, 0)}
                       </p>
                       <p className="text-sm text-gray-600">Questions Answered</p>
                     </div>
@@ -1196,14 +1197,14 @@ export default function TeamQuizSession() {
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm text-gray-600">Average Accuracy</span>
                           <span className="font-bold text-lg">
-                            {participants.length > 0 
-                              ? Math.round(participants.reduce((sum, p) => sum + p.efficiency, 0) / participants.length)
+                            {filteredParticipants.length > 0 
+                              ? Math.round(filteredParticipants.reduce((sum, p) => sum + p.efficiency, 0) / filteredParticipants.length)
                               : 0}%
                           </span>
                         </div>
                         <Progress 
-                          value={participants.length > 0 
-                            ? participants.reduce((sum, p) => sum + p.efficiency, 0) / participants.length
+                          value={filteredParticipants.length > 0 
+                            ? filteredParticipants.reduce((sum, p) => sum + p.efficiency, 0) / filteredParticipants.length
                             : 0} 
                           className="h-2 [&>div]:bg-blue-500" 
                         />
@@ -1213,13 +1214,13 @@ export default function TeamQuizSession() {
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm text-gray-600">Avg Response Time</span>
                           <span className="font-bold text-lg">
-                            {participants.length > 0 
-                              ? Math.round(participants.reduce((sum, p) => sum + p.averageTimeTaken, 0) / participants.length)
+                            {filteredParticipants.length > 0 
+                              ? Math.round(filteredParticipants.reduce((sum, p) => sum + p.averageTimeTaken, 0) / filteredParticipants.length)
                               : 0}s
                           </span>
                         </div>
                         <div className="text-xs text-gray-500">
-                          Fastest: {participants.length > 0 ? Math.min(...participants.map(p => p.fastestAnswer || 0)) : 0}s
+                          Fastest: {filteredParticipants.length > 0 ? Math.min(...filteredParticipants.map(p => p.fastestAnswer || 0)) : 0}s
                         </div>
                       </div>
                       
@@ -1227,12 +1228,12 @@ export default function TeamQuizSession() {
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm text-gray-600">Total Points</span>
                           <span className="font-bold text-lg">
-                            {participants.reduce((sum, p) => sum + p.totalPointsEarned, 0)}
+                            {filteredParticipants.reduce((sum, p) => sum + p.totalPointsEarned, 0)}
                           </span>
                         </div>
                         <div className="text-xs text-gray-500">
-                          Avg: {participants.length > 0 
-                            ? Math.round(participants.reduce((sum, p) => sum + p.averagePointsPerQuestion, 0) / participants.length)
+                          Avg: {filteredParticipants.length > 0 
+                            ? Math.round(filteredParticipants.reduce((sum, p) => sum + p.averagePointsPerQuestion, 0) / filteredParticipants.length)
                             : 0} per question
                         </div>
                       </div>
@@ -1243,7 +1244,7 @@ export default function TeamQuizSession() {
                   <div className="space-y-4">
                     <h4 className="font-medium text-gray-900">Top Individual Performers</h4>
                     <div className="space-y-2">
-                      {participants
+                      {filteredParticipants
                         .sort((a, b) => b.efficiency - a.efficiency)
                         .slice(0, 3)
                         .map((participant, index) => (
@@ -1404,6 +1405,7 @@ export default function TeamQuizSession() {
               <CardContent>
                 <div className="space-y-4">
                   {participants
+                    .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
                     .sort((a, b) => b.score - a.score)
                     .map((participant, index) => (
                       <div key={participant.id} className="border rounded-lg p-4 bg-gray-50 border-gray-300">
@@ -1585,7 +1587,7 @@ export default function TeamQuizSession() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Participants</span>
-                    <span className="font-bold text-gray-900">{participants.length}</span>
+                    <span className="font-bold text-gray-900">{filteredParticipants.length}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Questions</span>
@@ -1598,7 +1600,7 @@ export default function TeamQuizSession() {
                 </div>
                 
                 {/* Team Assignment Button */}
-                {sessionStatus === "waiting" && participants.length > 0 && (
+                {sessionStatus === "waiting" && filteredParticipants.length > 0 && (
                   <div className="pt-4 border-t border-gray-200">
                     <Button 
                       onClick={handleAssignTeams}
@@ -1628,6 +1630,7 @@ export default function TeamQuizSession() {
               <CardContent>
                 <div className="space-y-4">
                   {participants
+                    .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
                     .sort((a, b) => b.score - a.score)
                     .map((participant, index) => (
                       <div
@@ -1808,10 +1811,11 @@ export default function TeamQuizSession() {
                     <PieChart>
                       <Pie
                         data={(() => {
-                          const excellent = participants.filter(p => p.efficiency >= 80).length;
-                          const good = participants.filter(p => p.efficiency >= 60 && p.efficiency < 80).length;
-                          const average = participants.filter(p => p.efficiency >= 40 && p.efficiency < 60).length;
-                          const needsImprovement = participants.filter(p => p.efficiency < 40).length;
+                          const filteredParticipants = participants.filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous');
+                          const excellent = filteredParticipants.filter(p => p.efficiency >= 80).length;
+                          const good = filteredParticipants.filter(p => p.efficiency >= 60 && p.efficiency < 80).length;
+                          const average = filteredParticipants.filter(p => p.efficiency >= 40 && p.efficiency < 60).length;
+                          const needsImprovement = filteredParticipants.filter(p => p.efficiency < 40).length;
                           
                           return [
                             { name: 'Excellent (80%+)', value: excellent, color: '#10b981' },
@@ -1829,10 +1833,11 @@ export default function TeamQuizSession() {
                         dataKey="value"
                       >
                         {(() => {
-                          const excellent = participants.filter(p => p.efficiency >= 80).length;
-                          const good = participants.filter(p => p.efficiency >= 60 && p.efficiency < 80).length;
-                          const average = participants.filter(p => p.efficiency >= 40 && p.efficiency < 60).length;
-                          const needsImprovement = participants.filter(p => p.efficiency < 40).length;
+                          const filteredParticipants = participants.filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous');
+                          const excellent = filteredParticipants.filter(p => p.efficiency >= 80).length;
+                          const good = filteredParticipants.filter(p => p.efficiency >= 60 && p.efficiency < 80).length;
+                          const average = filteredParticipants.filter(p => p.efficiency >= 40 && p.efficiency < 60).length;
+                          const needsImprovement = filteredParticipants.filter(p => p.efficiency < 40).length;
                           
                           const data = [
                             { name: 'Excellent (80%+)', value: excellent, color: '#10b981' },
@@ -1874,6 +1879,7 @@ export default function TeamQuizSession() {
               <div className="h-96">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={participants
+                    .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
                     .sort((a, b) => b.score - a.score)
                     .slice(0, 5)
                     .map(participant => ({
@@ -1973,16 +1979,20 @@ export default function TeamQuizSession() {
                       ]}
                     />
                     <Scatter 
-                      data={participants.map(participant => ({
-                        name: participant.name,
-                        accuracy: participant.efficiency || 0,
-                        avgTime: participant.averageTimeTaken || 0,
-                        score: participant.score || 0,
-                        questionsAnswered: participant.questionsAnswered || 0
-                      }))}
+                      data={participants
+                        .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
+                        .map(participant => ({
+                          name: participant.name,
+                          accuracy: participant.efficiency || 0,
+                          avgTime: participant.averageTimeTaken || 0,
+                          score: participant.score || 0,
+                          questionsAnswered: participant.questionsAnswered || 0
+                        }))}
                       fill="#8884d8"
                     >
-                      {participants.map((participant, index) => (
+                      {participants
+                        .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
+                        .map((participant, index) => (
                         <Cell 
                           key={`cell-${index}`}
                           fill={(() => {
@@ -2014,6 +2024,7 @@ export default function TeamQuizSession() {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={participants
+                    .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
                     .sort((a, b) => b.score - a.score)
                     .map((participant, index) => ({
                       name: participant.name,
