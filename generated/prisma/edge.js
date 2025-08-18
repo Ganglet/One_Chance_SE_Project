@@ -332,7 +332,9 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
+
       "value": "E:\\SE_6_proj\\generated\\prisma",
+
       "fromEnvVar": null
     },
     "config": {
@@ -350,7 +352,9 @@ const config = {
       }
     ],
     "previewFeatures": [],
+
     "sourceFilePath": "E:\\SE_6_proj\\prisma\\schema.prisma",
+
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

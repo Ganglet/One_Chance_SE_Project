@@ -1,11 +1,14 @@
 "use client";
 
+
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 import { Users, Trophy, BarChart3, Zap, Clock, UserCheck, ShieldCheck, Download } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Menu, X, User } from "lucide-react";
@@ -19,6 +22,7 @@ export default function DashboardRoute() {
 
   // Dashboard is host-only in this app. Keep role constant to avoid search params.
   const role = "host";
+
 
   // 3D tilt effect handlers (same as before)
   const handleTilt = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -58,6 +62,7 @@ export default function DashboardRoute() {
     }
   };
 
+
   // Load host quizzes to power quick stats
   useEffect(() => {
     const load = async () => {
@@ -81,6 +86,7 @@ export default function DashboardRoute() {
     };
     load();
   }, []);
+
 
   const totalQuizzes = quizzes.length;
   const teamQuizzes = quizzes.filter((q: any) => q.team_mode || q.teamMode).length;
@@ -160,7 +166,7 @@ export default function DashboardRoute() {
           {/* Host Card - only for hosts */}
           <Card
             className="border-2 border-purple-200 dark:border-purple-800 hover:shadow-lg transition-all duration-300 card-hover slide-in-left"
-            style={{ animationDelay: "0.1s", minWidth: 340, maxWidth: 400 }}
+            style={{ animationDelay: "0.1s", minWidth: 420, maxWidth: 520 }}
           >
             <CardHeader className="text-center">
               <div
@@ -280,6 +286,7 @@ export default function DashboardRoute() {
               </CardContent>
             </Card>
           </div>
+
         </div>
 
         {/* Features Section (as above, unchanged) */}
@@ -300,6 +307,7 @@ export default function DashboardRoute() {
                 Create custom quizzes as a host or join existing sessions as a participant with unique join codes
               </p>
             </div>
+
             <div className="text-center fade-in-up" style={{ animationDelay: "0.6s" }}>
               <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 scale-in">
                 <BarChart3 className="w-8 h-8 text-white" />
@@ -309,6 +317,7 @@ export default function DashboardRoute() {
                 Real-time participant management with live lobby where hosts can see who joined and start/terminate sessions
               </p>
             </div>
+
             <div className="text-center fade-in-up" style={{ animationDelay: "0.7s" }}>
               <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 scale-in">
                 <Trophy className="w-8 h-8 text-white" />
@@ -329,8 +338,10 @@ export default function DashboardRoute() {
                 Full control over quiz sessions with waiting, active, and completed states for organized gameplay
               </p>
             </div>
+
             <div className="text-center fade-in-up" style={{ animationDelay: "0.9s" }}>
               <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items.center justify-center mx-auto mb-4 scale-in">
+
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Instant Results</h3>
@@ -338,6 +349,7 @@ export default function DashboardRoute() {
                 View quiz results, participant scores, and performance analytics after session completion
               </p>
             </div>
+
             <div className="text-center fade-in-up" style={{ animationDelay: "1.0s" }}>
               <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 scale-in">
                 <UserCheck className="w-8 h-8 text-white" />

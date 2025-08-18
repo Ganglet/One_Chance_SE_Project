@@ -47,6 +47,7 @@ export default function SignInPage() {
         if (data.id) {
           localStorage.setItem("userId", data.id.toString());
         }
+
         // Persist username and role for later use
         localStorage.setItem("username", username.trim());
         if (data.role) {
@@ -58,6 +59,7 @@ export default function SignInPage() {
         } else {
           router.push(`/dashboard`);
         }
+
       } else {
         setError("Invalid username or password.");
       }
