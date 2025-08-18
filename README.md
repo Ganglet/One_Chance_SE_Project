@@ -5,6 +5,8 @@
 
 **One Chance** is a robust, real-time quiz platform designed for educational institutions, competitions, and interactive learning environments. Built with Next.js, Prisma, and MySQL, it offers seamless experiences for both hosts and participants, with a focus on reliability, security, and analytics.
 
+<img width="1600" height="956" alt="image" src="https://github.com/user-attachments/assets/4ca32f56-d674-41ff-8049-4b7de321b479" />
+
 ---
 
 ## 🚀 Key Features & Unique Selling Points (USPs)
@@ -17,6 +19,8 @@
 - **Team & Individual Modes:** Host quizzes for individuals or teams, with automatic scoring and ranking.
 - **Session Management:** Schedule quizzes, manage multiple concurrent sessions, and control access with unique codes.
 - **Secure Hosting:** Only authorized users can create or host quizzes, with role-based access control.
+
+<img width="1600" height="952" alt="image" src="https://github.com/user-attachments/assets/be166c18-574c-413b-b267-6f897a0a913a" />
 
 ### �‍🎓 For Participants
 - **Easy Join with Codes:** Enter a session code to join quizzes from any device—no installation required.
@@ -32,6 +36,8 @@
 - **Comprehensive Error Handling:** User-friendly error messages and troubleshooting guides.
 - **One-Command Setup:** Automated scripts for fast local or cloud deployment.
 - **Security First:** Secure authentication, environment validation, and safe data handling.
+
+<img width="1600" height="951" alt="image" src="https://github.com/user-attachments/assets/a833443d-7634-4603-996f-74efa6f42fcb" />
 
 ---
 
@@ -167,6 +173,9 @@ One_Chance_SE_Project/
 - Answer questions in real time
 - See live leaderboard and instant feedback
 - Review answers and analytics post-quiz
+
+<img width="1600" height="995" alt="image" src="https://github.com/user-attachments/assets/5bd23c93-f46b-4f78-a460-50dc665e0b8c" />
+<img width="1600" height="954" alt="image" src="https://github.com/user-attachments/assets/7e95f06d-8224-4f2f-992a-b60578788e1e" />
 
 ### Security & Reliability
 - Secure authentication (NextAuth.js)
