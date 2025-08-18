@@ -99,9 +99,7 @@ export default function DashboardRoute() {
     <div className="min-h-screen fade-in-up bg-white dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         {/* Title & Description */}
-
         <div className="text-center mb-12 slide-in-left relative">
-
           <div
             className="relative inline-block group"
             id="one-chance-tilt"
@@ -138,7 +136,6 @@ export default function DashboardRoute() {
           </p>
         </div>
 
-
         {/* Quick Stats for Hosts */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-5xl mx-auto mb-10">
           <Card className="border border-purple-200 dark:border-purple-800 hover:shadow-md transition-shadow">
@@ -169,7 +166,7 @@ export default function DashboardRoute() {
           {/* Host Card - only for hosts */}
           <Card
             className="border-2 border-purple-200 dark:border-purple-800 hover:shadow-lg transition-all duration-300 card-hover slide-in-left"
-            style={{ animationDelay: "0.1s", minWidth: 340, maxWidth: 400 }}
+            style={{ animationDelay: "0.1s", minWidth: 420, maxWidth: 520 }}
           >
             <CardHeader className="text-center">
               <div
@@ -196,33 +193,11 @@ export default function DashboardRoute() {
                 <div className="flex items-center gap-2">
                   <Zap className="w-4 h-4 text-green-500" />
                   <span>Real-time Control</span>
-
                 </div>
-                <CardTitle className="text-2xl">Quiz Host</CardTitle>
-                <CardDescription>
-                  Create and manage quizzes, control sessions, and view detailed analytics
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-yellow-500" />
-                    <span>Create Quizzes</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-blue-500" />
-                    <span>View Analytics</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-green-500" />
-                    <span>Real-time Control</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-purple-500" />
-                    <span>Manage Sessions</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-purple-500" />
+                  <span>Manage Sessions</span>
                 </div>
-
               </div>
               <Button onClick={handleHostLogin} className="w-full transition-element" size="lg">
                 Start as Host
