@@ -332,9 +332,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-
-      "value": "E:\\SE_6_proj\\generated\\prisma",
-
+  "value": "../generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -343,7 +341,7 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "darwin-arm64",
         "native": true
       },
       {
@@ -352,14 +350,12 @@ const config = {
       }
     ],
     "previewFeatures": [],
-
-    "sourceFilePath": "E:\\SE_6_proj\\prisma\\schema.prisma",
-
+  "sourceFilePath": "../../prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
     "rootEnvPath": null,
-    "schemaEnvPath": "../../quiz-app/.env"
+    "schemaEnvPath": "../../.env"
   },
   "relativePath": "../../prisma",
   "clientVersion": "6.12.0",
@@ -368,7 +364,7 @@ const config = {
     "db"
   ],
   "activeProvider": "mysql",
-  "postinstall": false,
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
