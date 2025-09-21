@@ -747,25 +747,25 @@ export default function QuizSession() {
 
             <!-- Chart Placeholders -->
             <div class="section">
-                <h2>📈 Performance Charts</h2>
+                <h2>Performance Charts</h2>
                 <div class="chart-placeholder">
-                    <h3>📊 Score Distribution Chart</h3>
+                    <h3> Score Distribution Chart</h3>
                     <p>Interactive chart showing participant score distribution</p>
                 </div>
                 <div class="chart-placeholder">
-                    <h3>🥧 Performance Distribution</h3>
+                    <h3>Performance Distribution</h3>
                     <p>Pie chart showing performance categories</p>
                 </div>
                 <div class="chart-placeholder">
-                    <h3>🎯 Accuracy vs Time Analysis</h3>
+                    <h3>Accuracy vs Time Analysis</h3>
                     <p>Scatter plot showing accuracy vs response time</p>
                 </div>
                 <div class="chart-placeholder">
-                    <h3>📈 Performance Trends</h3>
+                    <h3>Performance Trends</h3>
                     <p>Area chart showing performance progression</p>
                 </div>
                 <div class="chart-placeholder">
-                    <h3>🔥 Question Performance Heatmap</h3>
+                    <h3>Question Performance Heatmap</h3>
                     <p>Heatmap showing question difficulty and success rates</p>
                 </div>
             </div>
