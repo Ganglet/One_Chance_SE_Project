@@ -91,12 +91,12 @@ export default function QuizSession() {
       if (stored) {
         try {
           const parsed = JSON.parse(stored)
-          const storedSet = new Set(parsed)
+          const storedSet = new Set<string>(parsed)
           setTrackedDisqualifiedIds(storedSet)
           trackedDisqualifiedIdsRef.current = storedSet
-          console.log(`📥 Loaded ${storedSet.size} tracked disqualifications from localStorage`)
+          console.log(`📥 Loaded ${storedSet.size} tracked team disqualifications from localStorage`)
         } catch (e) {
-          console.error('Failed to parse stored disqualifications:', e)
+          console.error('Failed to parse stored team disqualifications:', e)
         }
       }
     }
@@ -212,37 +212,31 @@ export default function QuizSession() {
             .filter((p: Participant) => p.name && p.name.trim() !== '' && p.name.toLowerCase() !== 'anonymous')
 
           // Check for new disqualifications using tracked IDs to prevent duplicates
-          const newDisqualified = newParticipants.filter(p => 
+          const newDisqualified = newParticipants.filter((p: Participant) => 
             p.accuracy === -1 && !trackedDisqualifiedIdsRef.current.has(p.id)
           )
-          
           // Additional safety check: filter out participants already in notifications
           const existingNotificationNames = new Set(disqualificationNotifications.map(n => n.participantName))
-          const trulyNewDisqualified = newDisqualified.filter(p => !existingNotificationNames.has(p.name))
-          
-          console.log(`🔍 Disqualification check: ${newParticipants.filter(p => p.accuracy === -1).length} total disqualified, ${newDisqualified.length} new disqualified, ${trulyNewDisqualified.length} truly new, ${trackedDisqualifiedIdsRef.current.size} tracked IDs`)
-          
+          const trulyNewDisqualified = newDisqualified.filter((p: Participant) => !existingNotificationNames.has(p.name))
+          console.log(`🔍 Disqualification check: ${newParticipants.filter((p: Participant) => p.accuracy === -1).length} total disqualified, ${newDisqualified.length} new disqualified, ${trulyNewDisqualified.length} truly new, ${trackedDisqualifiedIdsRef.current.size} tracked IDs`)
           if (trulyNewDisqualified.length > 0) {
             // Add new disqualifications to tracking set IMMEDIATELY to prevent race conditions
-            const newDisqualifiedIds = trulyNewDisqualified.map(p => p.id)
-            const updatedTrackedIds = new Set([...trackedDisqualifiedIdsRef.current, ...newDisqualifiedIds])
+            const newDisqualifiedIds = trulyNewDisqualified.map((p: Participant) => p.id)
+            const updatedTrackedIds = new Set<string>([...trackedDisqualifiedIdsRef.current, ...newDisqualifiedIds])
             trackedDisqualifiedIdsRef.current = updatedTrackedIds
             setTrackedDisqualifiedIds(updatedTrackedIds)
-            
             // Persist to localStorage for reliability
             if (typeof window !== 'undefined' && sessionId) {
               localStorage.setItem(`disqualified-${sessionId}`, JSON.stringify(Array.from(updatedTrackedIds)))
             }
-            
             // Create notifications only for newly disqualified participants
-            const newNotifications = trulyNewDisqualified.map(p => ({
+            const newNotifications = trulyNewDisqualified.map((p: Participant) => ({
               id: `${p.id}-${Date.now()}`,
               participantName: p.name,
               timestamp: new Date()
             }))
             setDisqualificationNotifications(prev => [...prev, ...newNotifications])
-            
-            console.log(`🚫 New disqualifications detected: ${trulyNewDisqualified.map(p => p.name).join(', ')}`)
+            console.log(`🚫 New disqualifications detected: ${trulyNewDisqualified.map((p: Participant) => p.name).join(', ')}`)
             console.log(`📊 Updated tracked IDs: ${Array.from(updatedTrackedIds).join(', ')}`)
           }
 
@@ -352,7 +346,8 @@ export default function QuizSession() {
       }
       
       // Redirect back to host dashboard
-      router.push("/host/dashboard")
+  const router = useRouter();
+  router.push("/host/dashboard")
     } catch (error) {
       console.error("Error stopping session:", error)
       alert("Failed to stop session")
@@ -388,7 +383,8 @@ export default function QuizSession() {
       }
       
       // Redirect back to host dashboard
-      router.push("/host/dashboard")
+  const router = useRouter();
+  router.push("/host/dashboard")
     } catch (error) {
       console.error("Error terminating session:", error)
       alert("Failed to terminate session")
@@ -797,10 +793,10 @@ export default function QuizSession() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className={`animate-spin rounded-full h-32 w-32 border-b-2 mx-auto ${isTeamQuiz ? 'border-cyan-400' : 'border-gray-900 dark:border-white'}`}></div>
-          <p className={`mt-4 text-lg ${isTeamQuiz ? 'text-cyan-50' : ''}`}>Loading quiz session...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 mx-auto border-gray-300"></div>
+          <p className="mt-4 text-lg text-gray-700">Loading quiz session...</p>
         </div>
       </div>
     )
@@ -808,10 +804,10 @@ export default function QuizSession() {
 
   if (error) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-md">
-          <h1 className={`text-2xl font-bold mb-4 ${isTeamQuiz ? 'text-red-400' : 'text-red-600 dark:text-red-400'}`}>Error Loading Session</h1>
-          <p className={`mb-4 ${isTeamQuiz ? 'text-cyan-300' : 'text-gray-600 dark:text-gray-400'}`}>{error}</p>
+          <h1 className="text-2xl font-bold mb-4 text-red-600">Error Loading Session</h1>
+          <p className="mb-4 text-gray-600">{error}</p>
           <Button onClick={() => window.location.reload()}>
             Try Again
           </Button>
@@ -822,26 +818,24 @@ export default function QuizSession() {
 
   if (questions.length === 0) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <h1 className={`text-2xl font-bold mb-4 ${isTeamQuiz ? 'text-cyan-50' : 'text-gray-900 dark:text-white'}`}>No Questions Found</h1>
-          <p className={isTeamQuiz ? 'text-cyan-300' : 'text-gray-600 dark:text-gray-400'}>This quiz doesn't have any questions yet.</p>
+          <h1 className="text-2xl font-bold mb-4 text-gray-900">No Questions Found</h1>
+          <p className="text-gray-600">This quiz doesn't have any questions yet.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className={`min-h-screen ${isTeamQuiz ? 'bg-gray-900' : 'bg-gray-50 dark:bg-gray-900'}`}>
+  <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className={`text-3xl font-bold ${isTeamQuiz ? 'text-cyan-50' : 'text-gray-900 dark:text-white'}`}>
-              {isTeamQuiz ? 'Team Quiz Session' : 'Quiz Session'}
-            </h1>
-            <p className={`mt-2 ${isTeamQuiz ? 'text-cyan-300' : 'text-gray-600 dark:text-gray-400'}`}>
-              Join Code: <span className={`font-mono font-bold text-lg ${isTeamQuiz ? 'text-cyan-400' : ''}`}>{joinCode}</span>
+            <h1 className="text-3xl font-bold text-gray-900">Quiz Session</h1>
+            <p className="mt-2 text-gray-600">
+              Join Code: <span className="font-mono font-bold text-lg text-gray-700">{joinCode}</span>
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -860,7 +854,7 @@ export default function QuizSession() {
             <Button 
               onClick={() => handleDownloadSessionData()} 
               variant="outline"
-              className={`${isTeamQuiz ? 'border-cyan-500/50 text-cyan-400 hover:bg-cyan-900/30' : 'border-blue-200 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30'}`}
+              className="border-blue-200 text-blue-700 hover:bg-blue-100"
             >
               <Download className="w-4 h-4 mr-2" />
               Export Complete Analytics
@@ -870,18 +864,18 @@ export default function QuizSession() {
 
         {/* Disqualification Notifications */}
         {disqualificationNotifications.length > 0 && (
-          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                <h3 className="font-semibold text-red-800 dark:text-red-200">Recent Disqualifications</h3>
+                <XCircle className="w-5 h-5 text-red-600" />
+                <h3 className="font-semibold text-red-800">Recent Disqualifications</h3>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={resetDisqualificationTracking}
-                  className="text-orange-600 border-orange-300 hover:bg-orange-100 dark:text-orange-400 dark:border-orange-600 dark:hover:bg-orange-900/30"
+                  className="text-orange-600 border-orange-300 hover:bg-orange-100"
                 >
                   Reset Tracking
                 </Button>
@@ -889,7 +883,7 @@ export default function QuizSession() {
                   variant="outline"
                   size="sm"
                   onClick={() => setDisqualificationNotifications([])}
-                  className="text-red-600 border-red-300 hover:bg-red-100 dark:text-red-400 dark:border-red-600 dark:hover:bg-red-900/30"
+                  className="text-red-600 border-red-300 hover:bg-red-100"
                 >
                   Clear
                 </Button>
@@ -898,17 +892,17 @@ export default function QuizSession() {
             <div className="space-y-2">
               {disqualificationNotifications.slice(-5).map((notification) => (
                 <div key={notification.id} className="flex items-center justify-between text-sm">
-                  <span className="text-red-700 dark:text-red-300">
+                  <span className="text-red-700">
                     <strong>{notification.participantName}</strong> was disqualified
                   </span>
-                  <span className="text-red-500 dark:text-red-400">
+                  <span className="text-red-500">
                     {notification.timestamp.toLocaleTimeString()}
                   </span>
                 </div>
               ))}
             </div>
             {disqualificationNotifications.length > 5 && (
-              <p className="text-xs text-red-500 dark:text-red-400 mt-2">
+              <p className="text-xs text-red-500 mt-2">
                 Showing last 5 of {disqualificationNotifications.length} notifications
               </p>
             )}

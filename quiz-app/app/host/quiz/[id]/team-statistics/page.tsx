@@ -97,10 +97,10 @@ export default function TeamQuizStatistics() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-lg text-white">Loading team statistics...</p>
+          <p className="mt-4 text-lg text-gray-700">Loading team statistics...</p>
         </div>
       </div>
     )
@@ -108,10 +108,10 @@ export default function TeamQuizStatistics() {
 
   if (error || !stats) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold text-red-400 mb-4">Error Loading Team Statistics</h1>
-          <p className="text-gray-300 mb-4">{error || 'Team statistics not found'}</p>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Team Statistics</h1>
+          <p className="text-gray-600 mb-4">{error || 'Team statistics not found'}</p>
           <Button onClick={() => router.back()}>
             Go Back
           </Button>
@@ -121,7 +121,7 @@ export default function TeamQuizStatistics() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
+  <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -131,8 +131,8 @@ export default function TeamQuizStatistics() {
               Back to Dashboard
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-white">Team Quiz Statistics</h1>
-              <p className="text-gray-300 mt-2">{stats.title}</p>
+              <h1 className="text-3xl font-bold text-gray-800">Team Quiz Statistics</h1>
+              <p className="text-gray-600 mt-2">{stats.title}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -163,8 +163,8 @@ export default function TeamQuizStatistics() {
                   <p className="text-sm font-medium text-gray-600">Total Teams</p>
                   <p className="text-2xl font-bold text-gray-900">{stats.totalTeams}</p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-gray-700" />
                 </div>
               </div>
             </CardContent>

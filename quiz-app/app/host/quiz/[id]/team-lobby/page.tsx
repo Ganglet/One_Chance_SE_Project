@@ -340,22 +340,22 @@ export default function HostTeamLobby() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 fade-in-up">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 fade-in-up">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8 slide-in-left">
           <div>
-            <h1 className="text-3xl font-bold text-cyan-500 mb-2" style={{ color: '#06b6d4' }}>
+            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
               Team Quiz Lobby
             </h1>
-            <p className="text-gray-300 text-lg">
+            <p className="text-gray-600 dark:text-gray-300 text-lg">
               {quizTitle || "Team Quiz Session"}
             </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm text-gray-300 font-medium">Join Code</p>
-              <p className="text-2xl font-mono font-bold bg-gray-800 px-3 py-2 rounded-lg border" style={{ color: '#06b6d4', borderColor: '#06b6d4' }}>
+              <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">Join Code</p>
+              <p className="text-2xl font-mono font-bold bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-blue-500 text-blue-600 dark:text-blue-400">
                 {joinCode}
               </p>
             </div>

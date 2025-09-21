@@ -739,7 +739,7 @@ export default function HostDashboard() {
   }
 
   return (
-    <div className="min-h-screen">
+  <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -861,31 +861,27 @@ export default function HostDashboard() {
                 {quizzes.map((quiz) => (
                   <div
                     key={quiz.id}
-                    className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 card-hover ${
-                      quiz.teamMode 
-                        ? 'bg-gray-900 border-cyan-500/30 hover:bg-gray-800 text-cyan-50' 
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                    }`}
+                    className={`flex items-center justify-between p-4 border rounded-lg transition-all duration-200 card-hover bg-white hover:bg-gray-50`}
                   >
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <h3 className={`font-semibold ${quiz.teamMode ? 'text-cyan-50' : 'text-gray-900 dark:text-white'}`}>
+                        <h3 className="font-semibold text-gray-900">
                           {quiz.title}
                         </h3>
                         {quiz.teamMode && (
-                          <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/50 text-xs">
+                          <Badge className="bg-gray-200 text-gray-700 border-gray-300 text-xs">
                             Team Quiz
                           </Badge>
                         )}
                       </div>
-                      <p className={`text-sm mt-1 ${quiz.teamMode ? 'text-cyan-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                      <p className="text-sm mt-1 text-gray-600">
                         {quiz.description || "No description"}
                       </p>
-                      <div className={`flex items-center gap-4 mt-2 text-xs ${quiz.teamMode ? 'text-cyan-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                         <span>{quiz.questions} questions</span>
                         <span>{quiz.participants} participants</span>
                         <span>Created {quiz.createdAt}</span>
-                        <Badge className={`${getStatusBadgeStyle(quiz.status)} border`}>
+                        <Badge className="bg-gray-100 text-gray-700 border-gray-200">
                           {quiz.status}
                         </Badge>
                       </div>

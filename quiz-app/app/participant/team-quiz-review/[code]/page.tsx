@@ -275,23 +275,23 @@ export default function TeamQuizReview() {
   const currentTeamRank = currentTeam ? sortedTeams.findIndex(t => t.name === currentTeam.name) + 1 : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <Trophy className="w-8 h-8 text-yellow-400" />
-            <h1 className="text-3xl font-bold text-cyan-500">Team Quiz Results</h1>
+            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">Team Quiz Results</h1>
             <Trophy className="w-8 h-8 text-yellow-400" />
           </div>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
             {quizInfo?.title || "Team Quiz"} • Code: {quizCode}
           </p>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Player Performance Summary */}
-          <Card className="bg-gray-800 border-gray-700 shadow-xl">
+          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl">
             <CardHeader className="text-center">
             <CardTitle className="text-2xl text-black flex items-center justify-center gap-2">
             <Star className="w-6 h-6 text-yellow-400" />
@@ -353,7 +353,7 @@ export default function TeamQuizReview() {
           </Card>
 
           {/* Team Rankings */}
-          <Card className="bg-gray-800 border-gray-700 shadow-xl">
+          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl">
             <CardHeader>
               <CardTitle className="text-xl text-black flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-400" />
@@ -449,7 +449,7 @@ export default function TeamQuizReview() {
           </Card>
 
           {/* Individual Leaderboard */}
-          <Card className="bg-gray-800 border-gray-700 shadow-xl">
+          <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-xl">
             <CardHeader>
               <CardTitle className="text-xl text-black flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-green-400" />

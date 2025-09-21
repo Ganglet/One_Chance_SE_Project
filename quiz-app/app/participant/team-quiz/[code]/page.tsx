@@ -384,6 +384,9 @@ export default function TeamParticipantQuiz() {
           })
           
           // Shuffle questions for this participant to prevent memorization
+          // Add timestamp to ensure different shuffling each time
+          const timestamp = Date.now()
+          console.log("Shuffling questions at timestamp:", timestamp)
           const shuffledQuestions = shuffleArray([...questionsWithShuffledOptions])
           
           // Additional deduplication check to ensure no duplicates remain
@@ -436,13 +439,24 @@ export default function TeamParticipantQuiz() {
     fetchQuestions()
   }, [quizCode])
 
-  // Fisher-Yates shuffle algorithm for randomizing question order
+  // Enhanced Fisher-Yates shuffle algorithm with better randomization
   const shuffleArray = (array: Question[]): Question[] => {
     const shuffled = [...array]
+    // Use crypto.getRandomValues for better randomness if available
+    const getRandomInt = (max: number) => {
+      if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+        const array = new Uint32Array(1)
+        window.crypto.getRandomValues(array)
+        return array[0] % max
+      }
+      return Math.floor(Math.random() * max)
+    }
+    
     for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
+      const j = getRandomInt(i + 1)
       ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
     }
+    console.log("Shuffled questions:", shuffled.map(q => q.id))
     return shuffled
   }
 
@@ -455,9 +469,19 @@ export default function TeamParticipantQuiz() {
     // Create pairs of option text and their indices
     const optionPairs = question.options.map((option, index) => ({ option, originalIndex: index }))
     
+    // Enhanced randomization for option shuffling
+    const getRandomInt = (max: number) => {
+      if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+        const array = new Uint32Array(1)
+        window.crypto.getRandomValues(array)
+        return array[0] % max
+      }
+      return Math.floor(Math.random() * max)
+    }
+    
     // Shuffle the pairs
     for (let i = optionPairs.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
+      const j = getRandomInt(i + 1)
       ;[optionPairs[i], optionPairs[j]] = [optionPairs[j], optionPairs[i]]
     }
     
@@ -1665,7 +1689,7 @@ export default function TeamParticipantQuiz() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white">
       <TooltipProvider>
         {/* Proctoring Warning Modal */}
         {showWarning && isBrowser && (
@@ -1695,8 +1719,8 @@ export default function TeamParticipantQuiz() {
 
         {/* Score Display Panel */}
         {(gameState === "active" || gameState === "answered") && (
-          <div className="fixed top-4 right-4 bg-gray-800/90 border border-gray-600 rounded-lg p-3 w-64 z-10 backdrop-blur-sm">
-            <h3 className="text-white font-semibold mb-2 flex items-center gap-2 text-sm">
+          <div className="fixed top-4 right-4 bg-white/90 dark:bg-gray-800/90 border border-gray-300 dark:border-gray-600 rounded-lg p-3 w-64 z-10 backdrop-blur-sm">
+            <h3 className="text-gray-900 dark:text-white font-semibold mb-2 flex items-center gap-2 text-sm">
               <Trophy className="w-3 h-3 text-yellow-400" />
               Live Scores
             </h3>

@@ -883,7 +883,7 @@ export default function TeamQuizSession() {
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="mt-4 text-lg text-white">Loading team quiz session...</p>
+          <p className="mt-4 text-lg text-gray-900 dark:text-white">Loading team quiz session...</p>
         </div>
       </div>
     )
@@ -907,8 +907,8 @@ export default function TeamQuizSession() {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-white">No Questions Found</h1>
-          <p className="text-gray-300">This team quiz doesn't have any questions yet.</p>
+          <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">No Questions Found</h1>
+          <p className="text-gray-600 dark:text-gray-300">This team quiz doesn't have any questions yet.</p>
         </div>
       </div>
     )
@@ -955,9 +955,9 @@ export default function TeamQuizSession() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-white">Team Quiz Session</h1>
-            <p className="text-gray-300 mt-2">
-              Join Code: <span className="font-mono font-bold text-lg text-white">{joinCode}</span>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Team Quiz Session</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Join Code: <span className="font-mono font-bold text-lg text-blue-600 dark:text-blue-400">{joinCode}</span>
             </p>
           </div>
           <div className="flex items-center gap-4">

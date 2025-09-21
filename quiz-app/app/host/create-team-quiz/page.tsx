@@ -177,23 +177,23 @@ export default function CreateTeamQuiz() {
   const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-10">
         {/* Header Section */}
         <div className="flex items-center gap-6 mb-12">
           <Button 
             variant="ghost" 
             onClick={() => router.back()}
-            className="text-cyan-400 hover:text-cyan-300 hover:bg-cyan-900/30 border border-cyan-500/50 rounded-lg px-4 py-2 transition-all duration-200 shadow-lg"
+            className="text-blue-600 dark:text-blue-400 hover:text-gray-600 dark:text-gray-300 hover:bg-cyan-900/30 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 transition-all duration-200 shadow-lg"
           >
             <ArrowLeftIcon className="w-5 h-5 mr-2" />
             Back
           </Button>
           <div className="flex-1">
-            <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 mb-2">
+            <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 mb-2">
               CREATE TEAM QUIZ
             </h1>
-            <p className="text-cyan-300 text-lg font-medium">
+            <p className="text-gray-600 dark:text-gray-300 text-lg font-medium">
               Design an epic team-based quiz with competitive gameplay
             </p>
           </div>
@@ -202,40 +202,40 @@ export default function CreateTeamQuiz() {
         <div className="grid lg:grid-cols-3 gap-10">
           {/* Quiz Settings Sidebar */}
           <div className="lg:col-span-1">
-            <Card className="sticky top-8 bg-gray-800 border border-cyan-500/30 shadow-xl rounded-xl">
-              <CardHeader className="bg-gray-700 border-b border-cyan-500/30 rounded-t-xl">
-                <CardTitle className="text-cyan-400 text-2xl font-bold flex items-center gap-3">
-                  <Gamepad2 className="w-6 h-6 text-cyan-400" />
+            <Card className="sticky top-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl">
+              <CardHeader className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 rounded-t-xl">
+                <CardTitle className="text-blue-600 dark:text-blue-400 text-2xl font-bold flex items-center gap-3">
+                  <Gamepad2 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   Quiz Settings
                 </CardTitle>
-                <CardDescription className="text-cyan-300 font-medium">
+                <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                   Configure your team quiz parameters
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-7 p-7">
                 <div className="space-y-3">
-                  <Label htmlFor="title" className="text-cyan-300 font-semibold">Quiz Title</Label>
+                  <Label htmlFor="title" className="text-gray-600 dark:text-gray-300 font-semibold">Quiz Title</Label>
                   <Input
                     id="title"
                     value={quizTitle}
                     onChange={(e) => setQuizTitle(e.target.value)}
                     placeholder="Enter quiz title"
-                    className="bg-gray-800/80 border border-cyan-500/50 text-cyan-50 placeholder-cyan-400/50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl h-12 text-lg shadow-inner"
+                    className="bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl h-12 text-lg shadow-inner"
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label htmlFor="description" className="text-cyan-300 font-semibold">Description</Label>
+                  <Label htmlFor="description" className="text-gray-600 dark:text-gray-300 font-semibold">Description</Label>
                   <Textarea
                     id="description"
                     value={quizDescription}
                     onChange={(e) => setQuizDescription(e.target.value)}
                     placeholder="Brief description of your team quiz"
                     rows={3}
-                    className="bg-gray-800/80 border border-cyan-500/50 text-cyan-50 placeholder-cyan-400/50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl resize-none text-base shadow-inner"
+                    className="bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl resize-none text-base shadow-inner"
                   />
                 </div>
-                <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-xl border border-cyan-500/30">
-                  <Label htmlFor="negative-marking" className="text-cyan-300 font-semibold">Negative Marking</Label>
+                <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <Label htmlFor="negative-marking" className="text-gray-600 dark:text-gray-300 font-semibold">Negative Marking</Label>
                   <Switch 
                     id="negative-marking" 
                     checked={negativeMarking} 
@@ -244,21 +244,21 @@ export default function CreateTeamQuiz() {
                   />
                 </div>
                 {/* Team Configuration */}
-                <div className="space-y-4 p-4 bg-gray-800/50 rounded-xl border border-cyan-500/30">
-                  <Label className="text-cyan-400 font-bold flex items-center gap-2">
-                    <Users className="w-4 h-4 text-cyan-400" />
+                <div className="space-y-4 p-4 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                  <Label className="text-blue-600 dark:text-blue-400 font-bold flex items-center gap-2">
+                    <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     Team Configuration
                   </Label>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-cyan-300 font-medium">Maximum Teams</Label>
+                      <Label className="text-gray-600 dark:text-gray-300 font-medium">Maximum Teams</Label>
                       <Select value={maxTeams.toString()} onValueChange={(value) => setMaxTeams(Number(value))}>
-                        <SelectTrigger className="bg-gray-800/80 border border-cyan-500/50 text-cyan-50 hover:border-cyan-400 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl h-12 text-lg">
+                        <SelectTrigger className="bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-cyan-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl h-12 text-lg">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-cyan-500/50">
+                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                           {[2, 3, 4, 5, 6, 7, 8].map(num => (
-                            <SelectItem key={num} value={num.toString()} className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">
+                            <SelectItem key={num} value={num.toString()} className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">
                               {num} Teams
                             </SelectItem>
                           ))}
@@ -266,14 +266,14 @@ export default function CreateTeamQuiz() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-cyan-300 font-medium">Team Size</Label>
+                      <Label className="text-gray-600 dark:text-gray-300 font-medium">Team Size</Label>
                       <Select value={teamSize.toString()} onValueChange={(value) => setTeamSize(Number(value))}>
-                        <SelectTrigger className="bg-gray-800/80 border border-cyan-500/50 text-cyan-50 hover:border-cyan-400 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl h-12 text-lg">
+                        <SelectTrigger className="bg-white dark:bg-gray-800/80 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-cyan-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl h-12 text-lg">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-cyan-500/50">
+                        <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
                           {[2, 3, 4, 5, 6].map(num => (
-                            <SelectItem key={num} value={num.toString()} className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">
+                            <SelectItem key={num} value={num.toString()} className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">
                               {num} Members
                             </SelectItem>
                           ))}
@@ -283,28 +283,28 @@ export default function CreateTeamQuiz() {
                   </div>
                 </div>
                 {/* Quiz Stats */}
-                <div className="pt-6 border-t border-cyan-500/30">
+                <div className="pt-6 border-t border-gray-200 dark:border-gray-700">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl border border-cyan-500/30">
-                      <span className="text-cyan-300 font-medium flex items-center gap-2">
+                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-600 dark:text-gray-300 font-medium flex items-center gap-2">
                         <Target className="w-4 h-4 text-green-400" />
                         Total Questions
                       </span>
-                      <span className="text-cyan-50 font-bold text-lg">{questions.length}</span>
+                      <span className="text-gray-900 dark:text-gray-100 font-bold text-lg">{questions.length}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl border border-cyan-500/30">
-                      <span className="text-cyan-300 font-medium flex items-center gap-2">
-                        <Users className="w-4 h-4 text-cyan-400" />
+                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-600 dark:text-gray-300 font-medium flex items-center gap-2">
+                        <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                         Teams
                       </span>
-                      <span className="text-cyan-50 font-bold text-lg">{teams.length}/{maxTeams}</span>
+                      <span className="text-gray-900 dark:text-gray-100 font-bold text-lg">{teams.length}/{maxTeams}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-xl border border-cyan-500/30">
-                      <span className="text-cyan-300 font-medium flex items-center gap-2">
+                    <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                      <span className="text-gray-600 dark:text-gray-300 font-medium flex items-center gap-2">
                         <Star className="w-4 h-4 text-yellow-400" />
                         Total Points
                       </span>
-                      <span className="text-cyan-50 font-bold text-lg">{totalPoints}</span>
+                      <span className="text-gray-900 dark:text-gray-100 font-bold text-lg">{totalPoints}</span>
                     </div>
                   </div>
                 </div>
@@ -335,13 +335,13 @@ export default function CreateTeamQuiz() {
           {/* Teams and Questions */}
           <div className="lg:col-span-2 space-y-10">
             {/* Teams Section */}
-            <Card className="bg-gray-800 border border-cyan-500/30 shadow-xl rounded-xl">
-              <CardHeader className="bg-gray-700 border-b border-cyan-500/30 rounded-t-xl">
-                <CardTitle className="text-cyan-400 text-2xl font-bold flex items-center gap-3">
-                  <Shield className="w-6 h-6 text-cyan-400" />
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl">
+              <CardHeader className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 rounded-t-xl">
+                <CardTitle className="text-blue-600 dark:text-blue-400 text-2xl font-bold flex items-center gap-3">
+                  <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   Team Configuration
                 </CardTitle>
-                <CardDescription className="text-cyan-300 font-medium">
+                <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                   Set up your teams for competitive gameplay
                 </CardDescription>
               </CardHeader>
@@ -350,7 +350,7 @@ export default function CreateTeamQuiz() {
                   {teams.map((team) => (
                     <div 
                       key={team.id} 
-                      className="group p-5 rounded-2xl border-2 transition-all duration-200 hover:scale-105 bg-gray-800/50"
+                      className="group p-5 rounded-2xl border-2 transition-all duration-200 hover:scale-105 bg-white dark:bg-gray-800/50"
                       style={{ 
                         borderColor: team.color,
                         boxShadow: `0 0 20px ${team.color}40, inset 0 0 20px ${team.color}10`
@@ -365,7 +365,7 @@ export default function CreateTeamQuiz() {
                           <Input
                             value={team.name}
                             onChange={(e) => updateTeam(team.id, { name: e.target.value })}
-                            className="bg-gray-700/80 border border-cyan-500/50 text-white font-bold w-36 placeholder-cyan-400/50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl text-base transition-all duration-200 shadow-inner"
+                            className="bg-gray-50 dark:bg-gray-700/80 border border-gray-300 dark:border-gray-600 text-white font-bold w-36 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl text-base transition-all duration-200 shadow-inner"
                           />
                         </div>
                         <Button
@@ -380,8 +380,8 @@ export default function CreateTeamQuiz() {
                       </div>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-cyan-300 font-medium">Members:</span>
-                          <span className="text-cyan-50 font-bold text-lg">{team.members.length}/{team.maxMembers}</span>
+                          <span className="text-gray-600 dark:text-gray-300 font-medium">Members:</span>
+                          <span className="text-gray-900 dark:text-gray-100 font-bold text-lg">{team.members.length}/{team.maxMembers}</span>
                         </div>
                         <div className="flex gap-2">
                           {Array.from({ length: team.maxMembers }).map((_, index) => (
@@ -390,7 +390,7 @@ export default function CreateTeamQuiz() {
                               className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-base font-bold transition-all duration-200 ${
                                 index < team.members.length
                                   ? 'bg-green-500 border-green-400 text-white shadow-lg'
-                                  : 'bg-gray-700 border-gray-600 text-gray-400 group-hover:border-cyan-400'
+                                  : 'bg-gray-50 dark:bg-gray-700 border-gray-600 text-gray-400 group-hover:border-cyan-400'
                               }`}
                             >
                               {index < team.members.length ? team.members[index].charAt(0).toUpperCase() : '?'}
@@ -405,7 +405,7 @@ export default function CreateTeamQuiz() {
                   <Button 
                     onClick={addTeam}
                     variant="outline" 
-                    className="w-full border-2 border-dashed border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-300 bg-gray-800/50 rounded-xl py-5 text-lg transition-all duration-200 hover:scale-105"
+                    className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 hover:border-cyan-400 hover:text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800/50 rounded-xl py-5 text-lg transition-all duration-200 hover:scale-105"
                   >
                     <Plus className="w-5 h-5 mr-2" />
                     Add Team
@@ -414,26 +414,26 @@ export default function CreateTeamQuiz() {
               </CardContent>
             </Card>
             {/* Questions Section */}
-            <Card className="bg-gray-800 border border-cyan-500/30 shadow-xl rounded-xl">
-              <CardHeader className="bg-gray-700 border-b border-cyan-500/30 rounded-t-xl">
-                <CardTitle className="text-cyan-400 text-2xl font-bold flex items-center gap-3">
+            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl">
+              <CardHeader className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700 rounded-t-xl">
+                <CardTitle className="text-blue-600 dark:text-blue-400 text-2xl font-bold flex items-center gap-3">
                   <Zap className="w-6 h-6 text-yellow-400" />
                   Quiz Questions
                 </CardTitle>
-                <CardDescription className="text-cyan-300 font-medium">
+                <CardDescription className="text-gray-600 dark:text-gray-300 font-medium">
                   Design challenging questions for your teams
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-7">
                 <div className="space-y-8">
                   {questions.map((question, index) => (
-                    <div key={question.id} className="group p-7 bg-gray-800/50 rounded-2xl border border-cyan-500/30 hover:border-cyan-400 transition-all duration-200 shadow-lg">
+                    <div key={question.id} className="group p-7 bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-cyan-400 transition-all duration-200 shadow-lg">
                       <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md">
                             {index + 1}
                           </div>
-                          <h3 className="text-xl font-bold text-white">Question {index + 1}</h3>
+                          <h3 className="text-xl font-bold text-gray-900 dark:text-white">Question {index + 1}</h3>
                         </div>
                         <Button
                           variant="ghost"
@@ -448,63 +448,63 @@ export default function CreateTeamQuiz() {
                       <div className="space-y-7">
                         <div className="grid md:grid-cols-2 gap-7">
                           <div className="space-y-3">
-                            <Label className="text-cyan-300 font-semibold">Question Type</Label>
+                            <Label className="text-gray-600 dark:text-gray-300 font-semibold">Question Type</Label>
                             <Select
                               value={question.type}
                               onValueChange={(value: any) => updateQuestion(question.id, { type: value })}
                             >
-                              <SelectTrigger className="bg-gray-700/80 border border-cyan-500/50 text-cyan-50 hover:border-cyan-400 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl h-12 text-lg">
+                              <SelectTrigger className="bg-gray-50 dark:bg-gray-700/80 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-cyan-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl h-12 text-lg">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-gray-800 border-cyan-500/50">
-                                <SelectItem value="multiple-choice" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Multiple Choice</SelectItem>
-                                <SelectItem value="true-false" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">True/False</SelectItem>
-                                <SelectItem value="matching-pairs" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Matching Pairs</SelectItem>
-                                <SelectItem value="ordering" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Ordering/Sequencing</SelectItem>
+                              <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                                <SelectItem value="multiple-choice" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Multiple Choice</SelectItem>
+                                <SelectItem value="true-false" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">True/False</SelectItem>
+                                <SelectItem value="matching-pairs" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Matching Pairs</SelectItem>
+                                <SelectItem value="ordering" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Ordering/Sequencing</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="space-y-3">
-                            <Label className="text-cyan-300 font-semibold">Category</Label>
+                            <Label className="text-gray-600 dark:text-gray-300 font-semibold">Category</Label>
                             <Select
                               value={question.category}
                               onValueChange={(value) => updateQuestion(question.id, { category: value })}
                             >
-                              <SelectTrigger className="bg-gray-700/80 border border-cyan-500/50 text-cyan-50 hover:border-cyan-400 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl h-12 text-lg">
+                              <SelectTrigger className="bg-gray-50 dark:bg-gray-700/80 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-cyan-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl h-12 text-lg">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-gray-800 border-cyan-500/50">
-                                <SelectItem value="General" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">General</SelectItem>
-                                <SelectItem value="Science" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Science</SelectItem>
-                                <SelectItem value="History" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">History</SelectItem>
-                                <SelectItem value="Sports" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Sports</SelectItem>
-                                <SelectItem value="Technology" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Technology</SelectItem>
+                              <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                                <SelectItem value="General" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">General</SelectItem>
+                                <SelectItem value="Science" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Science</SelectItem>
+                                <SelectItem value="History" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">History</SelectItem>
+                                <SelectItem value="Sports" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Sports</SelectItem>
+                                <SelectItem value="Technology" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">Technology</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                         </div>
                         <div className="space-y-3">
-                          <Label className="text-cyan-300 font-semibold">Question</Label>
+                          <Label className="text-gray-600 dark:text-gray-300 font-semibold">Question</Label>
                           <Textarea
                             value={question.question}
                             onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
                             placeholder="Enter your question here"
                             rows={3}
-                            className="bg-gray-700/80 border border-cyan-500/50 text-cyan-50 placeholder-cyan-400/50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl resize-none text-base shadow-inner"
+                            className="bg-gray-50 dark:bg-gray-700/80 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl resize-none text-base shadow-inner"
                           />
                         </div>
                         {question.type === "multiple-choice" && (
                           <div className="space-y-4">
-                            <Label className="text-cyan-300 font-semibold">Answer Options</Label>
+                            <Label className="text-gray-600 dark:text-gray-300 font-semibold">Answer Options</Label>
                             <div className="grid gap-3">
                               {question.options?.map((option, optionIndex) => (
-                                <div key={optionIndex} className="flex items-center gap-4 p-3 bg-gray-700/50 rounded-xl border border-cyan-500/30 hover:border-cyan-400 transition-all duration-200 shadow-sm">
+                                <div key={optionIndex} className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-cyan-400 transition-all duration-200 shadow-sm">
                                   <input
                                     type="radio"
                                     name={`correct-${question.id}`}
                                     checked={question.correctAnswer === optionIndex}
                                     onChange={() => updateQuestion(question.id, { correctAnswer: optionIndex })}
-                                    className="w-5 h-5 text-cyan-500 bg-gray-600 border-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
+                                    className="w-5 h-5 text-gray-900 dark:text-gray-1000 bg-gray-600 border-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
                                   />
                                   <Input
                                     value={option}
@@ -514,7 +514,7 @@ export default function CreateTeamQuiz() {
                                       updateQuestion(question.id, { options: newOptions })
                                     }}
                                     placeholder={`Option ${optionIndex + 1}`}
-                                    className="bg-gray-600/80 border-cyan-500/50 text-white placeholder-cyan-400/50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl text-base transition-all duration-200"
+                                    className="bg-white dark:bg-gray-600/80 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl text-base transition-all duration-200"
                                   />
                                   {question.correctAnswer === optionIndex && (
                                     <CheckCircle className="w-5 h-5 text-green-400" />
@@ -527,30 +527,30 @@ export default function CreateTeamQuiz() {
 
                         {question.type === "true-false" && (
                           <div className="space-y-4">
-                            <Label className="text-cyan-300 font-semibold">Correct Answer</Label>
+                            <Label className="text-gray-600 dark:text-gray-300 font-semibold">Correct Answer</Label>
                             <div className="grid gap-3">
-                              <div className="flex items-center gap-4 p-3 bg-gray-700/50 rounded-xl border border-cyan-500/30 hover:border-cyan-400 transition-all duration-200 shadow-sm">
+                              <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-cyan-400 transition-all duration-200 shadow-sm">
                                 <input
                                   type="radio"
                                   name={`correct-${question.id}`}
                                   checked={question.correctAnswer === "true"}
                                   onChange={() => updateQuestion(question.id, { correctAnswer: "true" })}
-                                  className="w-5 h-5 text-cyan-500 bg-gray-600 border-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
+                                  className="w-5 h-5 text-gray-900 dark:text-gray-1000 bg-gray-600 border-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
                                 />
-                                <span className="text-white font-medium">True</span>
+                                <span className="text-gray-900 dark:text-white font-medium">True</span>
                                 {question.correctAnswer === "true" && (
                                   <CheckCircle className="w-5 h-5 text-green-400" />
                                 )}
                               </div>
-                              <div className="flex items-center gap-4 p-3 bg-gray-700/50 rounded-xl border border-cyan-500/30 hover:border-cyan-400 transition-all duration-200 shadow-sm">
+                              <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-cyan-400 transition-all duration-200 shadow-sm">
                                 <input
                                   type="radio"
                                   name={`correct-${question.id}`}
                                   checked={question.correctAnswer === "false"}
                                   onChange={() => updateQuestion(question.id, { correctAnswer: "false" })}
-                                  className="w-5 h-5 text-cyan-500 bg-gray-600 border-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
+                                  className="w-5 h-5 text-gray-900 dark:text-gray-1000 bg-gray-600 border-cyan-400 focus:ring-cyan-400 focus:ring-offset-0"
                                 />
-                                <span className="text-white font-medium">False</span>
+                                <span className="text-gray-900 dark:text-white font-medium">False</span>
                                 {question.correctAnswer === "false" && (
                                   <CheckCircle className="w-5 h-5 text-green-400" />
                                 )}
@@ -561,12 +561,12 @@ export default function CreateTeamQuiz() {
 
                         {question.type === "matching-pairs" && (
                           <div className="space-y-4">
-                            <Label className="text-cyan-300 font-semibold">Matching Pairs</Label>
+                            <Label className="text-gray-600 dark:text-gray-300 font-semibold">Matching Pairs</Label>
                             <div className="space-y-3">
                               {Array.from({ length: Math.max(1, (question.matchingPairs?.length || 0)) }).map((_, index) => (
-                                <div key={index} className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-xl border border-cyan-500/30">
+                                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700">
                                   <div className="flex-1">
-                                    <Label className="text-cyan-300 text-sm font-medium">Left Item {index + 1}</Label>
+                                    <Label className="text-gray-600 dark:text-gray-300 text-sm font-medium">Left Item {index + 1}</Label>
                                     <Input
                                       value={question.matchingPairs?.[index]?.left || ""}
                                       onChange={(e) => {
@@ -576,14 +576,14 @@ export default function CreateTeamQuiz() {
                                         updateQuestion(question.id, { matchingPairs: newPairs })
                                       }}
                                       placeholder={`Left item ${index + 1}`}
-                                      className="bg-gray-600/80 border-cyan-500/50 text-white placeholder-cyan-400/50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl text-base mt-1"
+                                      className="bg-white dark:bg-gray-600/80 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl text-base mt-1"
                                     />
                                   </div>
                                   <div className="flex items-center justify-center w-8 h-8">
                                     <div className="w-6 h-0.5 bg-cyan-400"></div>
                                   </div>
                                   <div className="flex-1">
-                                    <Label className="text-cyan-300 text-sm font-medium">Right Item {index + 1}</Label>
+                                    <Label className="text-gray-600 dark:text-gray-300 text-sm font-medium">Right Item {index + 1}</Label>
                                     <Input
                                       value={question.matchingPairs?.[index]?.right || ""}
                                       onChange={(e) => {
@@ -593,7 +593,7 @@ export default function CreateTeamQuiz() {
                                         updateQuestion(question.id, { matchingPairs: newPairs })
                                       }}
                                       placeholder={`Right item ${index + 1}`}
-                                      className="bg-gray-600/80 border-cyan-500/50 text-white placeholder-cyan-400/50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl text-base mt-1"
+                                      className="bg-white dark:bg-gray-600/80 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl text-base mt-1"
                                     />
                                   </div>
                                 </div>
@@ -605,7 +605,7 @@ export default function CreateTeamQuiz() {
                                   const newPairs = [...(question.matchingPairs || []), { left: "", right: "" }]
                                   updateQuestion(question.id, { matchingPairs: newPairs })
                                 }}
-                                className="w-full border-2 border-dashed border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-300 bg-gray-700/50 rounded-xl py-2 text-sm transition-all duration-200"
+                                className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 hover:border-cyan-400 hover:text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 rounded-xl py-2 text-sm transition-all duration-200"
                               >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Pair
@@ -616,11 +616,11 @@ export default function CreateTeamQuiz() {
 
                         {question.type === "ordering" && (
                           <div className="space-y-4">
-                            <Label className="text-cyan-300 font-semibold">Items to Order</Label>
+                            <Label className="text-gray-600 dark:text-gray-300 font-semibold">Items to Order</Label>
                             <div className="space-y-3">
                               {Array.from({ length: Math.max(1, (question.orderingItems?.length || 0)) }).map((_, index) => (
-                                <div key={index} className="flex items-center gap-3 p-3 bg-gray-700/50 rounded-xl border border-cyan-500/30">
-                                  <div className="flex items-center justify-center w-8 h-8 bg-cyan-500/20 rounded-full text-cyan-400 font-bold text-sm">
+                                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-700">
+                                  <div className="flex items-center justify-center w-8 h-8 bg-cyan-500/20 rounded-full text-blue-600 dark:text-blue-400 font-bold text-sm">
                                     {index + 1}
                                   </div>
                                   <div className="flex-1">
@@ -632,7 +632,7 @@ export default function CreateTeamQuiz() {
                                         updateQuestion(question.id, { orderingItems: newItems })
                                       }}
                                       placeholder={`Item ${index + 1}`}
-                                      className="bg-gray-600/80 border-cyan-500/50 text-white placeholder-cyan-400/50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl text-base"
+                                      className="bg-gray-600/80 border-gray-300 dark:border-gray-600 text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl text-base"
                                     />
                                   </div>
                                 </div>
@@ -644,7 +644,7 @@ export default function CreateTeamQuiz() {
                                   const newItems = [...(question.orderingItems || []), ""]
                                   updateQuestion(question.id, { orderingItems: newItems })
                                 }}
-                                className="w-full border-2 border-dashed border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-300 bg-gray-700/50 rounded-xl py-2 text-sm transition-all duration-200"
+                                className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 hover:border-cyan-400 hover:text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-700/50 rounded-xl py-2 text-sm transition-all duration-200"
                               >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Item
@@ -654,28 +654,28 @@ export default function CreateTeamQuiz() {
                         )}
                         <div className="grid md:grid-cols-2 gap-7">
                           <div className="space-y-3">
-                            <Label className="text-cyan-300 font-semibold flex items-center gap-2">
-                              <Clock className="w-5 h-5 text-cyan-400" />
+                            <Label className="text-gray-600 dark:text-gray-300 font-semibold flex items-center gap-2">
+                              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                               Time Limit (seconds)
                             </Label>
                             <Select
                               value={question.timeLimit.toString()}
                               onValueChange={(value) => updateQuestion(question.id, { timeLimit: Number.parseInt(value) })}
                             >
-                              <SelectTrigger className="bg-gray-700/80 border border-cyan-500/50 text-cyan-50 hover:border-cyan-400 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl h-12 text-lg">
+                              <SelectTrigger className="bg-gray-50 dark:bg-gray-700/80 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:border-cyan-400 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl h-12 text-lg">
                                 <SelectValue />
                               </SelectTrigger>
-                              <SelectContent className="bg-gray-800 border-cyan-500/50">
-                                <SelectItem value="15" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">15 seconds</SelectItem>
-                                <SelectItem value="30" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">30 seconds</SelectItem>
-                                <SelectItem value="45" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">45 seconds</SelectItem>
-                                <SelectItem value="60" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">60 seconds</SelectItem>
-                                <SelectItem value="90" className="text-cyan-50 hover:bg-cyan-900/50 focus:bg-cyan-900/50">90 seconds</SelectItem>
+                              <SelectContent className="bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600">
+                                <SelectItem value="15" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">15 seconds</SelectItem>
+                                <SelectItem value="30" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">30 seconds</SelectItem>
+                                <SelectItem value="45" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">45 seconds</SelectItem>
+                                <SelectItem value="60" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">60 seconds</SelectItem>
+                                <SelectItem value="90" className="text-gray-900 dark:text-gray-100 hover:bg-cyan-900/50 focus:bg-cyan-900/50">90 seconds</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div className="space-y-3">
-                            <Label className="text-cyan-300 font-semibold flex items-center gap-2">
+                            <Label className="text-gray-600 dark:text-gray-300 font-semibold flex items-center gap-2">
                               <Star className="w-5 h-5 text-yellow-400" />
                               Points
                             </Label>
@@ -688,7 +688,7 @@ export default function CreateTeamQuiz() {
                               min="50"
                               max="1000"
                               step="50"
-                              className="bg-gray-700/80 border-cyan-500/50 text-cyan-50 focus:border-cyan-400 focus:ring-cyan-400/30 rounded-xl h-12 text-lg"
+                              className="bg-gray-50 dark:bg-gray-700/80 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 focus:border-blue-500 focus:ring-blue-500/30 rounded-xl h-12 text-lg"
                             />
                           </div>
                         </div>
@@ -698,7 +698,7 @@ export default function CreateTeamQuiz() {
                   <Button 
                     onClick={addQuestion} 
                     variant="outline" 
-                    className="w-full border-2 border-dashed border-cyan-500/50 text-cyan-400 hover:border-cyan-400 hover:text-cyan-300 bg-gray-800/50 rounded-xl py-7 text-lg transition-all duration-200 hover:scale-105"
+                    className="w-full border-2 border-dashed border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 hover:border-cyan-400 hover:text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800/50 rounded-xl py-7 text-lg transition-all duration-200 hover:scale-105"
                     size="lg"
                   >
                     <Plus className="w-6 h-6 mr-2" />

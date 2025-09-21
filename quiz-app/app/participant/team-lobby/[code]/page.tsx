@@ -308,13 +308,13 @@ export default function TeamParticipantLobby() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 fade-in-up">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 fade-in-up">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-8 slide-in-left">
-          <h1 className="text-3xl font-bold text-cyan-500 mb-2" style={{ color: '#06b6d4' }}>Team Quiz Lobby</h1>
-          <p className="text-gray-300 text-lg">
-            Join Code: <span className="font-mono font-bold text-xl bg-gray-800 px-3 py-2 rounded-lg border" style={{ color: '#06b6d4', borderColor: '#06b6d4' }}>{joinCode}</span>
+          <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">Team Quiz Lobby</h1>
+          <p className="text-gray-600 dark:text-gray-300 text-lg">
+            Join Code: <span className="font-mono font-bold text-xl bg-white dark:bg-gray-800 px-3 py-2 rounded-lg border border-blue-500 text-blue-600 dark:text-blue-400">{joinCode}</span>
           </p>
         </div>
 

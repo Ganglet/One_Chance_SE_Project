@@ -29,11 +29,14 @@ export function PageTransition({ children }: PageTransitionProps) {
 
   return (
     <div
-      className={`transition-all duration-300 ease-in-out ${
+      className={`transition-all duration-300 ease-out ${
         isVisible 
-          ? 'opacity-100 transform translate-y-0' 
-          : 'opacity-0 transform translate-y-4'
+          ? 'opacity-100 transform translate-y-0 scale-100' 
+          : 'opacity-0 transform translate-y-4 scale-95'
       }`}
+      style={{
+        willChange: 'opacity, transform',
+      }}
     >
       {children}
     </div>
