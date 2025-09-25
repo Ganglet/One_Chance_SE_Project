@@ -82,3 +82,4 @@ export function scrollToTop() {
     behavior: 'smooth'
   })
 }
+
